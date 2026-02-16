@@ -5,39 +5,28 @@
   <title>Nova MINING 7 HMC</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #0b0f1a;
-      color: #fff;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .card {
-      background: #131a2a;
-      padding: 30px;
-      border-radius: 12px;
-      width: 100%;
-      max-width: 360px;
-      box-shadow: 0 0 20px rgba(0,0,0,.5);
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 6px;
-      border: none;
-    }
-    button {
-      width: 100%;
-      padding: 10px;
+  <!-- CSS -->
+  <link rel="stylesheet" href="./web/css/style.css">
+</head>
 
-      <button onclick="auth.signOut()">TEST FIREBASE</button>
+<body class="center">
 
+  <div class="card">
+    <h1>Nova MINING 7 HMC</h1>
+
+    <input type="email" id="email" placeholder="Correo">
+    <input type="password" id="password" placeholder="Contraseña">
+
+    <button onclick="login()">Ingresar</button>
+    <p id="status"></p>
+  </div>
+
+  <!-- Firebase COMPAT -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <!-- App -->
+  <script src="./web/js/app.js"></script>
+</body>
+</html>
