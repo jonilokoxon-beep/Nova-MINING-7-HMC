@@ -3,9 +3,9 @@ body {
   font-family: 'Segoe UI', Arial, sans-serif;
 }
 
-/* ===== LOGIN ===== */
+/* ===== LOGIN (VERDE + DORADO) ===== */
 .login-bg {
-  background: linear-gradient(180deg, #0b1224, #05080f);
+  background: radial-gradient(circle at top, #0f3d2e, #020617);
   height: 100vh;
   display: flex;
   justify-content: center;
@@ -13,12 +13,13 @@ body {
 }
 
 .login-card {
-  background: #0f172a;
+  background: linear-gradient(180deg, #0b1f17, #050b08);
   padding: 30px;
-  border-radius: 16px;
+  border-radius: 18px;
   width: 320px;
   text-align: center;
-  box-shadow: 0 0 40px rgba(0,0,0,.7);
+  box-shadow: 0 0 40px rgba(0,0,0,.8);
+  border: 1px solid rgba(212,175,55,.25);
 }
 
 .logo {
@@ -28,70 +29,25 @@ body {
 
 .login-card h2 {
   margin-bottom: 20px;
+  color: #d4af37;
+  font-weight: bold;
 }
 
 .login-card input {
   width: 100%;
   padding: 12px;
   margin-bottom: 12px;
-  border-radius: 8px;
+  border-radius: 10px;
   border: none;
+  background: #020617;
+  color: white;
+  outline: none;
+}
+
+.login-card input::placeholder {
+  color: #9ca3af;
 }
 
 .login-card button {
   width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  background: linear-gradient(90deg,#2563eb,#1e40af);
-  color: white;
-  font-weight: bold;
-  border: none;
-}
-
-.status {
-  margin-top: 10px;
-  font-size: 13px;
-}
-
-/* ===== DASHBOARD ===== */
-.top {
-  background: linear-gradient(90deg,#020617,#0f172a);
-  color: white;
-  padding: 15px;
-  display: flex;
-  justify-content: space-between;
-}
-
-.stats {
-  display: flex;
-  gap: 10px;
-  padding: 15px;
-}
-
-.box {
-  flex: 1;
-  padding: 15px;
-  border-radius: 14px;
-  color: white;
-  font-size: 14px;
-}
-
-.blue { background: linear-gradient(135deg,#1e3a8a,#2563eb); }
-.green { background: linear-gradient(135deg,#065f46,#16a34a); }
-.gold { background: linear-gradient(135deg,#78350f,#d97706); }
-
-.plans {
-  display: flex;
-  gap: 10px;
-  padding: 15px;
-}
-
-.plan {
-  background: #0f172a;
-  color: white;
-  padding: 15px;
-  border-radius: 14px;
-  text-align: center;
-  flex: 1;
-  box-shadow: 0 0 15px rgba(0,0,0,.4);
-}
+  p
