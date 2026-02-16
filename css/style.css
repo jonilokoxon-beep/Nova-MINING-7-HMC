@@ -1,68 +1,97 @@
 body {
   margin: 0;
-  font-family: Arial;
+  font-family: 'Segoe UI', Arial, sans-serif;
 }
 
-.dark {
-  background:#0b0f1a;
-  color:white;
+/* ===== LOGIN ===== */
+.login-bg {
+  background: linear-gradient(180deg, #0b1224, #05080f);
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.center {
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
+.login-card {
+  background: #0f172a;
+  padding: 30px;
+  border-radius: 16px;
+  width: 320px;
+  text-align: center;
+  box-shadow: 0 0 40px rgba(0,0,0,.7);
 }
 
-.card {
-  background:#131a2a;
-  padding:25px;
-  border-radius:12px;
-  width:300px;
+.logo {
+  width: 90px;
+  margin-bottom: 15px;
 }
 
-input, button {
-  width:100%;
-  padding:10px;
-  margin-top:10px;
+.login-card h2 {
+  margin-bottom: 20px;
 }
 
+.login-card input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: none;
+}
+
+.login-card button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  background: linear-gradient(90deg,#2563eb,#1e40af);
+  color: white;
+  font-weight: bold;
+  border: none;
+}
+
+.status {
+  margin-top: 10px;
+  font-size: 13px;
+}
+
+/* ===== DASHBOARD ===== */
 .top {
-  background:#111827;
-  color:white;
-  padding:15px;
-  display:flex;
-  justify-content:space-between;
+  background: linear-gradient(90deg,#020617,#0f172a);
+  color: white;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
 }
 
 .stats {
-  display:flex;
-  gap:10px;
-  padding:15px;
+  display: flex;
+  gap: 10px;
+  padding: 15px;
 }
 
 .box {
-  flex:1;
-  padding:15px;
-  border-radius:10px;
-  color:white;
+  flex: 1;
+  padding: 15px;
+  border-radius: 14px;
+  color: white;
+  font-size: 14px;
 }
 
-.blue {background:#1e40af;}
-.green {background:#166534;}
-.gold {background:#92400e;}
+.blue { background: linear-gradient(135deg,#1e3a8a,#2563eb); }
+.green { background: linear-gradient(135deg,#065f46,#16a34a); }
+.gold { background: linear-gradient(135deg,#78350f,#d97706); }
 
 .plans {
-  display:flex;
-  gap:10px;
-  padding:15px;
+  display: flex;
+  gap: 10px;
+  padding: 15px;
 }
 
 .plan {
-  flex:1;
-  background:white;
-  padding:15px;
-  border-radius:10px;
-  text-align:center;
+  background: #0f172a;
+  color: white;
+  padding: 15px;
+  border-radius: 14px;
+  text-align: center;
+  flex: 1;
+  box-shadow: 0 0 15px rgba(0,0,0,.4);
 }
