@@ -1,0 +1,1 @@
+// Pega aqui tu firebaseConfig
