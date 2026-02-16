@@ -6,16 +6,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="center dark">
+<body class="login-bg">
 
-  <div class="card">
+  <div class="login-card">
+    <img src="https://i.imgur.com/4ZQZ6zM.png" class="logo">
+
     <h2>Nova MINING 7 HMC</h2>
 
     <input type="email" id="email" placeholder="Correo">
     <input type="password" id="password" placeholder="Contraseña">
 
     <button onclick="login()">Ingresar</button>
-    <p id="status"></p>
+    <p id="status" class="status"></p>
   </div>
 
   <script type="module" src="js/auth.js"></script>
