@@ -1,9 +1,20 @@
-body {
-  margin: 0;
-  font-family: Arial;
-  background: #f2f2f2;
+/* =========================
+   RESET Y BASE
+========================= */
+* {
+  box-sizing: border-box;
 }
 
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f2f2f2;
+  color: #111;
+}
+
+/* =========================
+   LOGIN / CENTRADO
+========================= */
 .center {
   display: flex;
   flex-direction: column;
@@ -17,27 +28,52 @@ body {
   margin-bottom: 20px;
 }
 
+/* =========================
+   CARDS
+========================= */
 .card {
-  background: white;
+  background: #ffffff;
   padding: 25px;
   border-radius: 12px;
   width: 280px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
 }
 
-input, button {
+input,
+button {
   width: 100%;
   padding: 10px;
   margin-top: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
 }
 
+button {
+  background: #1e3a8a;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+/* =========================
+   HEADER
+========================= */
 header.top {
-  background: linear-gradient(90deg,#0a2a66,#133c8b);
+  background: linear-gradient(90deg, #0a2a66, #133c8b);
   color: white;
   padding: 15px;
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 
+/* =========================
+   STATS
+========================= */
 .stats {
   display: flex;
   gap: 10px;
@@ -49,12 +85,16 @@ header.top {
   color: white;
   padding: 15px;
   border-radius: 10px;
+  text-align: center;
 }
 
-.blue { background:#1e3a8a; }
-.green { background:#166534; }
-.gold { background:#b45309; }
+.blue { background: #1e3a8a; }
+.green { background: #166534; }
+.gold { background: #b45309; }
 
+/* =========================
+   PLANES
+========================= */
 .plans {
   display: flex;
   gap: 10px;
@@ -67,18 +107,24 @@ header.top {
   border-radius: 12px;
   flex: 1;
   text-align: center;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.06);
 }
 
 .basic { border-top: 5px solid #2563eb; }
-.vip { border-top: 5px solid #d97706; }
-.vip2 { border-top: 5px solid #6d28d9; }
+.vip   { border-top: 5px solid #d97706; }
+.vip2  { border-top: 5px solid #6d28d9; }
 
+/* =========================
+   BOTTOM NAV
+========================= */
 .bottom {
   position: fixed;
   bottom: 0;
+  left: 0;
   width: 100%;
   background: white;
   display: flex;
   justify-content: space-around;
   padding: 10px;
+  box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
 }
