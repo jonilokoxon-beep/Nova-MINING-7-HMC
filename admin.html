@@ -1,15 +1,34 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Admin</title>
+  <title>Admin – Nova MINING 7 HMC</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
 
-<h2>ADMIN – Nova MINING 7 HMC</h2>
+<body style="background:#05080f;color:white">
 
-<div id="users"></div>
+<header class="top">
+  <span>Nova <b>MINING 7</b> HMC</span>
+  <span>ADMIN</span>
+</header>
+
+<div class="stats">
+  <div class="box blue">
+    Usuarios<br><b id="totalUsers">0</b>
+  </div>
+  <div class="box green">
+    Saldo Total<br><b id="totalBalance">$0</b>
+  </div>
+  <div class="box gold">
+    Planes Activos<br><b id="activePlans">0</b>
+  </div>
+</div>
+
+<h3 style="padding:15px">Usuarios</h3>
+
+<div id="usersList" style="padding:15px"></div>
 
 <script type="module" src="js/admin.js"></script>
 </body>
