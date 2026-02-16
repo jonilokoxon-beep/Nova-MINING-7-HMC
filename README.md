@@ -1,1 +1,0 @@
-# Nova-MINING-7-HMC
