@@ -14,7 +14,7 @@ service cloud.firestore {
       allow write: if request.auth.token.admin == true;
     }
 
-    // Planes
+    // Planes de inversión
     match /plans/{planId} {
       allow read: if true;
       allow write: if request.auth.token.admin == true;
