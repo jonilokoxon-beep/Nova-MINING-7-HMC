@@ -1,21 +1,43 @@
-import { auth, db } from "./firebase.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  query,
+  where
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-auth.onAuthStateChanged(async user => {
-  if (!user) location.href = "index.html";
+const db = getFirestore();
 
-  const ref = doc(db, "users", user.uid);
-  const snap = await getDoc(ref);
+const plansContainer = document.getElementById("plans");
 
-  if (snap.exists()) {
-    const d = snap.data();
-    saldo.innerText = "$" + d.saldo;
-    ganancias.innerText = "$" + d.ganancias;
-    retirado.innerText = "$" + d.retirado;
+async function loadPlans() {
+  plansContainer.innerHTML = "";
+
+  const q = query(
+    collection(db, "plans"),
+    where("active", "==", true)
+  );
+
+  const snapshot = await getDocs(q);
+
+  if (snapshot.empty) {
+    plansContainer.innerHTML = "<p>No hay planes disponibles</p>";
+    return;
   }
-});
 
-window.logout = () => {
-  signOut(auth).then(() => location.href = "index.html");
-};
+  snapshot.forEach(doc => {
+    const p = doc.data();
+
+    plansContainer.innerHTML += `
+      <div class="plan">
+        <h3>${p.name}</h3>
+        <p>Inversión: ${p.price} HMC</p>
+        <p>Ganancia diaria: ${p.daily} HMC</p>
+        <p>Días: ${p.days}</p>
+        <button>Invertir</button>
+      </div>
+    `;
+  });
+}
+
+loadPlans();
