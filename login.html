@@ -1,20 +1,23 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <title>Login</title>
+  <meta charset="UTF-8">
+  <title>Nova MINING 7 HMC</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="center">
+<body class="center dark">
 
-<div class="card">
-  <h2>Iniciar sesión</h2>
-  <input id="email" placeholder="Correo">
-  <input id="password" type="password" placeholder="Contraseña">
-  <button onclick="login()">Entrar</button>
-</div>
+  <div class="card">
+    <h2>Nova MINING 7 HMC</h2>
 
-<script src="js/firebase.js"></script>
-<script src="js/auth.js"></script>
+    <input type="email" id="email" placeholder="Correo">
+    <input type="password" id="password" placeholder="Contraseña">
+
+    <button onclick="login()">Ingresar</button>
+    <p id="status"></p>
+  </div>
+
+  <script type="module" src="js/auth.js"></script>
 </body>
 </html>
-
