@@ -1,0 +1,84 @@
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #f2f2f2;
+}
+
+.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.logo {
+  width: 120px;
+  margin-bottom: 20px;
+}
+
+.card {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  width: 280px;
+}
+
+input, button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+header.top {
+  background: linear-gradient(90deg,#0a2a66,#133c8b);
+  color: white;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.stats {
+  display: flex;
+  gap: 10px;
+  padding: 15px;
+}
+
+.box {
+  flex: 1;
+  color: white;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.blue { background:#1e3a8a; }
+.green { background:#166534; }
+.gold { background:#b45309; }
+
+.plans {
+  display: flex;
+  gap: 10px;
+  padding: 15px;
+}
+
+.plan {
+  background: white;
+  padding: 15px;
+  border-radius: 12px;
+  flex: 1;
+  text-align: center;
+}
+
+.basic { border-top: 5px solid #2563eb; }
+.vip { border-top: 5px solid #d97706; }
+.vip2 { border-top: 5px solid #6d28d9; }
+
+.bottom {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: white;
+  display: flex;
+  justify-content: space-around;
+  padding: 10px;
+}
