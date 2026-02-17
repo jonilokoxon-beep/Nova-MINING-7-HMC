@@ -6,37 +6,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
 
-<div class="login-bg">
+<body class="register">
+
+<div class="login-container">
   <div class="login-card">
 
-    <img src="img/logo.png" class="logo" alt="Nova Mining">
-    
-    <h2>Crear cuenta</h2>
+    <img src="img/logo.png" class="logo">
+    <h2>Nova MINING 7 HMC</h2>
 
-    <input type="text" id="name" placeholder="Nombre completo">
-
-    <input type="email" id="email" placeholder="Correo electrónico">
-
+    <input type="email" id="email" placeholder="Correo">
     <input type="password" id="password" placeholder="Contraseña">
-
     <input type="password" id="confirm" placeholder="Confirmar contraseña">
 
     <button onclick="register()">Registrarse</button>
 
-    <div class="status" id="status"></div>
+    <p id="status" class="status"></p>
 
-    <div style="margin-top:15px;font-size:13px">
-      ¿Ya tienes cuenta?  
-      <a href="login.html" style="color:#facc15;text-decoration:none">
-        Iniciar sesión
-      </a>
-    </div>
+    <p class="link">
+      ¿Ya tienes cuenta?
+      <a href="login.html">Ingresar</a>
+    </p>
 
   </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="js/firebase.js"></script>
 <script src="js/auth.js"></script>
+
 </body>
 </html>
