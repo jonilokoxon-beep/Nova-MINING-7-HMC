@@ -267,3 +267,42 @@ body.login-bg {
   color: white;
   font-weight: bold;
 }
+
+.total-box {
+  margin: 15px;
+  padding: 15px;
+  background: linear-gradient(135deg,#6a00ff,#9b5cff);
+  border-radius: 15px;
+  color: white;
+  text-align: center;
+}
+
+.orders {
+  padding: 10px;
+}
+
+.order-card {
+  background: #f5f5ff;
+  border-radius: 15px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.order-card img {
+  width: 100%;
+  border-radius: 12px;
+}
+
+.order-info {
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.timer {
+  background: #000;
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 10px;
+  display: inline-block;
+  margin-top: 5px;
+}
