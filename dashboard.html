@@ -30,28 +30,8 @@
 
 <h3 style="padding:15px">Planes de Inversión</h3>
 
-<div class="plans">
-  <div class="plan basic">
-    <h4>Básico</h4>
-    <p>$100</p>
-    <p>$5 diario</p>
-    <button>Comprar</button>
-  </div>
-
-  <div class="plan vip">
-    <h4>VIP 1</h4>
-    <p>$500</p>
-    <p>$50 diario</p>
-    <button>Comprar</button>
-  </div>
-
-  <div class="plan vip2">
-    <h4>VIP 2</h4>
-    <p>$1500</p>
-    <p>$150 diario</p>
-    <button>Comprar</button>
-  </div>
-</div>
+<!-- 👇 AQUÍ SE CARGAN DESDE FIRESTORE -->
+<div class="plans" id="plans"></div>
 
 <nav class="bottom">
   <span>Inicio</span>
@@ -60,6 +40,7 @@
   <span>Cuenta</span>
 </nav>
 
-<script src="js/dashboard.js"></script>
+<!-- IMPORTANTE: module -->
+<script type="module" src="js/dashboard.js"></script>
 </body>
 </html>
