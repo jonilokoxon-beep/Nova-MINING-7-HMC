@@ -82,4 +82,113 @@ h3 {
   border-radius: 8px;
   font-weight: bold;
   color: white;
-  background: linear-gradient(90d
+  background: linear-gradient(90deg,#16a34a,#d97706);
+}
+
+.basic { border-top: 4px solid #2563eb; }
+.vip { border-top: 4px solid #d97706; }
+.vip2 { border-top: 4px solid #7c3aed; }
+
+/* ===== BOTTOM NAV ===== */
+.bottom {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: #020617;
+  display: flex;
+  justify-content: space-around;
+  padding: 12px 0;
+  font-size: 13px;
+}
+
+/* ===== LOGIN PREMIUM ===== */
+body.login-bg {
+  background: radial-gradient(circle at top, #064e3b, #020617);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-card {
+  background: linear-gradient(180deg,#0f172a,#020617);
+  padding: 35px 28px;
+  width: 320px;
+  border-radius: 18px;
+  text-align: center;
+  box-shadow: 0 0 40px rgba(0,0,0,.8);
+  border: 1px solid rgba(217,119,6,.3);
+}
+
+.login-card h2 {
+  margin: 12px 0 20px;
+  font-weight: 600;
+  color: #facc15;
+}
+
+.login-card input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  border: none;
+  background: #020617;
+  color: white;
+  outline: none;
+}
+
+.login-card input::placeholder {
+  color: #9ca3af;
+}
+
+.login-card button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 10px;
+  border: none;
+  font-weight: bold;
+  font-size: 15px;
+  color: white;
+  background: linear-gradient(90deg,#16a34a,#d97706);
+  box-shadow: 0 0 15px rgba(217,119,6,.5);
+}
+
+.login-card button:active {
+  transform: scale(.98);
+}
+
+.logo {
+  width: 75px;
+  margin: 0 auto 12px;
+  display: block;
+}
+
+.status {
+  margin-top: 10px;
+  font-size: 13px;
+  opacity: .9;
+}
+
+/* ===== REGISTRO (BOTÓN CREAR CUENTA) ===== */
+.register-box {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.register-box span {
+  color: #cbd5f5;
+}
+
+.register-box a {
+  display: inline-block;
+  margin-top: 6px;
+  color: #facc15;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.register-box a:hover {
+  text-decoration: underline;
+}
