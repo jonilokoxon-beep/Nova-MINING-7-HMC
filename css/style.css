@@ -276,3 +276,25 @@ body {
 .register-link a:hover {
   text-decoration: underline;
 }
+
+.register-box {
+  margin-top: 18px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.register-box span {
+  color: #cbd5f5;
+}
+
+.register-box a {
+  display: inline-block;
+  margin-top: 6px;
+  color: #facc15;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.register-box a:hover {
+  text-decoration: underline;
+}
