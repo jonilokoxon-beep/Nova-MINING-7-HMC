@@ -217,13 +217,28 @@ body.login-bg {
   margin: 0 auto 12px;
   background: transparent !important;
 }
-
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #0b0f2b;
-  color: #fff;
+.register-box {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 14px;
 }
+
+.register-box span {
+  color: #e5e7eb;
+}
+
+.register-box a {
+  display: inline-block;
+  margin-top: 6px;
+  color: #facc15;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.register-box a:hover {
+  text-decoration: underline;
+}
+
 
 #content {
   padding: 20px;
