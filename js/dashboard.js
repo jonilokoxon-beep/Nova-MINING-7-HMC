@@ -66,7 +66,7 @@ async function cargarPlanes() {
   plansDiv.innerHTML = "Cargando planes...";
 
   try {
-    const snapshot = await getDocs(collection(db, "planes"));
+    const snapshot = await getDocs(collection(db, "products"));
     plansDiv.innerHTML = "";
 
     snapshot.forEach(doc => {
