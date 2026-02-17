@@ -6,26 +6,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="center dark">
+<body class="login-bg">
 
-  <div class="card">
+  <div class="login-card">
+
+    <img src="assets/WhatsApp Image 2026-02-16 at 11.40.46 AM.jpeg" class="logo">
+
     <h2>Nova MINING 7 HMC</h2>
 
     <input type="email" id="email" placeholder="Correo">
     <input type="password" id="password" placeholder="Contraseña">
 
     <button onclick="login()">Ingresar</button>
-<p class="register-link">
-  ¿No tienes cuenta?
-  <a href="register.html">Crear cuenta</a>
-</p>
 
+    <!-- 🔥 REGISTRO FORZADO -->
+    <div class="register-box">
+      <span>¿No tienes cuenta?</span><br>
+      <a href="register.html">Crear cuenta</a>
+    </div>
 
-    <p id="status"></p>
+    <p id="status" class="status"></p>
   </div>
 
-  
-  <script src="js/firebase.js"></script>
-<script src="js/auth.js"></script>
+  <script type="module" src="js/auth.js"></script>
 </body>
 </html>
