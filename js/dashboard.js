@@ -1,64 +1,46 @@
-import { auth, db } from "./firebase.js";
-import {
-  onAuthStateChanged,
-  signOut
-} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Nova MINING 7 HMC</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
 
-import {
-  doc,
-  getDoc,
-  collection,
-  getDocs
-} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+<header class="top">
+  <span>Nova <b>MINING 7</b> HMC</span>
+  <button onclick="logout()">Salir</button>
+</header>
 
-/* ====== AUTH CHECK ====== */
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    window.location.href = "index.html";
-    return;
-  }
+<div class="stats">
+  <div class="box blue">
+    Saldo<br>
+    <b>$0.00</b>
+  </div>
+  <div class="box green">
+    Ganancias<br>
+    <b>$0.00</b>
+  </div>
+  <div class="box gold">
+    Retirado<br>
+    <b>$0.00</b>
+  </div>
+</div>
 
-  cargarUsuario(user.uid);
-  cargarPlanes();
-});
+<h3 style="padding:15px">Planes de Inversión</h3>
 
-/* ====== LOGOUT ====== */
-window.logout = function () {
-  signOut(auth).then(() => {
-    window.location.href = "index.html";
-  });
-};
+<!-- 👇 AQUÍ SE CARGAN DESDE FIRESTORE -->
+<div class="plans" id="plans"></div>
 
-/* ====== USUARIO ====== */
-async function cargarUsuario(uid) {
-  const ref = doc(db, "users", uid);
-  const snap = await getDoc(ref);
+<nav class="bottom">
+  <span>Inicio</span>
+  <span>Órdenes</span>
+  <span>Retiros</span>
+  <span>Cuenta</span>
+</nav>
 
-  if (snap.exists()) {
-    const data = snap.data();
-    document.getElementById("saldo").innerText = `$${data.saldo || 0}`;
-    document.getElementById("ganancias").innerText = `$${data.ganancias || 0}`;
-    document.getElementById("retirado").innerText = `$${data.retirado || 0}`;
-  }
-}
-
-/* ====== PLANES ====== */
-async function cargarPlanes() {
-  const contenedor = document.getElementById("plans");
-  contenedor.innerHTML = "";
-
-  const querySnapshot = await getDocs(collection(db, "plans"));
-
-  querySnapshot.forEach((docu) => {
-    const plan = docu.data();
-
-    contenedor.innerHTML += `
-      <div class="plan">
-        <h4>${plan.nombre}</h4>
-        <p><b>$${plan.precio}</b></p>
-        <p>${plan.diario} diario</p>
-        <button>Comprar</button>
-      </div>
-    `;
-  });
-}
+<!-- IMPORTANTE: module -->
+<script type="module" src="js/dashboard.js"></script>
+</body>
+</html>
