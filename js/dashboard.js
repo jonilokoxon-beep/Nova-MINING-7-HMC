@@ -42,5 +42,23 @@
 
 <!-- IMPORTANTE: module -->
 <script type="module" src="js/dashboard.js"></script>
+
+  function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => {
+    p.classList.remove('active');
+  });
+  document.getElementById(id).classList.add('active');
+}
+
+// navegación bottom
+function go(page) {
+  if (page === 'inicio') showPage('inicio');
+  if (page === 'productos') showPage('productos');
+}
+
+// por defecto
+showPage('inicio');
+
+  
 </body>
 </html>
