@@ -6,7 +6,7 @@ import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/fi
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // ===============================
-// 🔹 CONFIG FIREBASE REAL
+// 🔹 CONFIG FIREBASE
 // ===============================
 const firebaseConfig = {
   apiKey: "AIzaSyALrk15Qvqrq6zCVTxZ7U9wSnnZIqeSmv4",
@@ -41,16 +41,20 @@ window.go = function (id) {
   document.querySelectorAll(".page").forEach(p => {
     p.style.display = "none";
   });
+
   const page = document.getElementById(id);
   if (page) page.style.display = "block";
 };
 
 // ===============================
-// 💰 CARGAR PLANES
+// 💰 CARGAR PLANES (products)
 // ===============================
 async function cargarPlanes() {
   const plansDiv = document.getElementById("plans");
-  if (!plansDiv) return;
+  if (!plansDiv) {
+    console.error("No existe el div #plans");
+    return;
+  }
 
   plansDiv.innerHTML = "Cargando planes...";
 
@@ -66,11 +70,15 @@ async function cargarPlanes() {
 
     snapshot.forEach(doc => {
       const p = doc.data();
+
+      if (p.active !== true) return;
+
       plansDiv.innerHTML += `
-        <div class="plan ${p.tipo}">
-          <h4>${p.nombre}</h4>
-          <p>$${p.precio}</p>
-          <p>${p.ingreso}</p>
+        <div class="plan ${p.type}">
+          <h4>${p.name}</h4>
+          <p>Precio: $${p.price}</p>
+          <p>Ganancia diaria: $${p.profit}</p>
+          <p>Duración: ${p.duration} días</p>
           <button>Invertir</button>
         </div>
       `;
