@@ -192,3 +192,27 @@ body.login-bg {
 .register-box a:hover {
   text-decoration: underline;
 }
+
+/* ===== FIX DEFINITIVO BOTÓN REGISTRO ===== */
+.login-card .register-box {
+  display: block !important;
+  margin-top: 20px !important;
+  text-align: center !important;
+}
+
+.login-card .register-box span {
+  display: block !important;
+  color: #cbd5f5 !important;
+}
+
+.login-card .register-box a {
+  display: inline-block !important;
+  margin-top: 8px !important;
+  color: #facc15 !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+}
+
+.login-card .register-box a:hover {
+  text-decoration: underline !important;
+}
