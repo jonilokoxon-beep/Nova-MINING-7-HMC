@@ -1,3 +1,115 @@
+/* ===== RESET ===== */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #0b1224;
+  color: #fff;
+}
+
+/* ===== HEADER ===== */
+.top {
+  background: linear-gradient(90deg,#020617,#0f172a);
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.top button {
+  background: #dc2626;
+  border: none;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 8px;
+}
+
+/* ===== STATS ===== */
+.stats {
+  display: flex;
+  gap: 10px;
+  padding: 15px;
+}
+
+.box {
+  flex: 1;
+  padding: 15px;
+  border-radius: 14px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.blue {
+  background: linear-gradient(135deg,#1e3a8a,#2563eb);
+}
+
+.green {
+  background: linear-gradient(135deg,#065f46,#16a34a);
+}
+
+.gold {
+  background: linear-gradient(135deg,#78350f,#d97706);
+}
+
+/* ===== PLANES ===== */
+h3 {
+  padding: 0 15px;
+}
+
+.plans {
+  display: flex;
+  gap: 10px;
+  padding: 15px;
+}
+
+.plan {
+  flex: 1;
+  background: #0f172a;
+  border-radius: 14px;
+  padding: 15px;
+  text-align: center;
+  box-shadow: 0 0 15px rgba(0,0,0,.4);
+}
+
+.plan h4 {
+  margin: 5px 0;
+}
+
+.plan button {
+  margin-top: 10px;
+  padding: 10px;
+  width: 100%;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  color: white;
+  background: linear-gradient(90deg,#16a34a,#d97706);
+}
+
+.basic {
+  border-top: 4px solid #2563eb;
+}
+
+.vip {
+  border-top: 4px solid #d97706;
+}
+
+.vip2 {
+  border-top: 4px solid #7c3aed;
+}
+
+/* ===== BOTTOM NAV ===== */
+.bottom {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: #020617;
+  display: flex;
+  justify-content: space-around;
+  padding: 12px 0;
+  font-size: 13px;
+}
+
+
 /* ===== LOGIN PREMIUM ===== */
 .login-bg {
   background: radial-gradient(circle at top, #064e3b, #020617);
