@@ -42,13 +42,9 @@ window.register = function () {
   const status = document.getElementById("status");
 
   createUserWithEmailAndPassword(auth, email, password)
-    .then(() => {
-      status.innerText = "Cuenta creada correctamente ✅";
-      setTimeout(() => {
-        window.location.href = "index.html";
-      }, 1500);
-    })
-    .catch(err => {
-      status.innerText = err.message;
-    });
-};
+  .then((userCredential) => {
+    document.getElementById("status").innerText = "Cuenta creada correctamente ✅";
+  })
+  .catch((error) => {
+    document.getElementById("status").innerText = error.message;
+  });
