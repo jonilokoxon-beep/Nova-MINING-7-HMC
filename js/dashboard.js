@@ -98,3 +98,11 @@ window.logout = function () {
     window.location.replace("login.html");
   });
 };
+
+import { loadOrders } from "./orders.js";
+
+onAuthStateChanged(auth, user => {
+  if (user) {
+    loadOrders();
+  }
+});
