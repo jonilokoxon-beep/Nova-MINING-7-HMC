@@ -2,36 +2,50 @@
 // 🔥 FIREBASE IMPORTS
 // ===============================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { 
+  getAuth, 
+  onAuthStateChanged, 
+  signOut 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { 
+  getFirestore, 
+  collection, 
+  getDocs 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // ===============================
-// 🔹 CONFIG FIREBASE (USA LA TUYA)
+// ✅ CONFIG REAL (NOVAGROW)
 // ===============================
 const firebaseConfig = {
-  apiKey: "TU_API_KEY",
-  authDomain: "TU_DOMINIO.firebaseapp.com",
-  projectId: "TU_PROJECT_ID",
+  apiKey: "AIzaSyALrk15Qvqrq6zCVTxZ7U9wSnnZIqeSmv4",
+  authDomain: "novagrow-app.firebaseapp.com",
+  projectId: "novagrow-app",
+  storageBucket: "novagrow-app.appspot.com",
+  messagingSenderId: "976275033149",
+  appId: "1:976275033149:web:e40c6510684bd06c82ae54"
 };
 
+// ===============================
+// 🚀 INIT
+// ===============================
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
 // ===============================
-// 🔐 PROTECCIÓN DE SESIÓN
+// 🔐 AUTH GUARD (SIN LOOP)
 // ===============================
 onAuthStateChanged(auth, (user) => {
   if (!user) {
     window.location.replace("login.html");
   } else {
-    mostrarInicio();
+    go("inicio");
     cargarPlanes();
   }
 });
 
 // ===============================
-// 📌 NAVEGACIÓN ENTRE SECCIONES
+// 📌 NAVEGACIÓN
 // ===============================
 window.go = function (id) {
   document.querySelectorAll(".page").forEach(p => {
@@ -39,17 +53,11 @@ window.go = function (id) {
   });
 
   const page = document.getElementById(id);
-  if (page) {
-    page.style.display = "block";
-  }
+  if (page) page.style.display = "block";
 };
 
-function mostrarInicio() {
-  go("inicio");
-}
-
 // ===============================
-// 💰 CARGAR PLANES DESDE FIRESTORE
+// 💰 PLANES
 // ===============================
 async function cargarPlanes() {
   const plansDiv = document.getElementById("plans");
