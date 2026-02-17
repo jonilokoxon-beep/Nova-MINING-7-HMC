@@ -1,1 +1,65 @@
-<!DOCTYPE html> <html lang="es"> <head> <meta charset="UTF-8"> <title>Dashboard</title> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <link rel="stylesheet" href="css/style.css"> </head> <body> <header class="top"> <span>Nova <b>MINING 7</b> HMC</span> <button onclick="logout()">Salir</button> </header> <div class="stats"> <div class="box blue">Saldo<br><b id="saldo">$0</b></div> <div class="box green">Ganancias<br><b id="ganancias">$0</b></div> <div class="box gold">Retirado<br><b id="retirado">$0</b></div> </div> <h3>Planes de Inversión</h3> <div class="plans"> <div class="plan basic">Básico<br>$100</div> <div class="plan vip">VIP 1<br>$500</div> <div class="plan vip2">VIP 2<br>$1500</div> </div> <script type="module" src="js/dashboard.js"></script> </body> </html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Nova MINING 7 HMC</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="top">
+  <span>Nova <b>MINING 7</b> HMC</span>
+  <button onclick="logout()">Salir</button>
+</header>
+
+<div class="stats">
+  <div class="box blue">
+    Saldo<br>
+    <b>$0.00</b>
+  </div>
+  <div class="box green">
+    Ganancias<br>
+    <b>$0.00</b>
+  </div>
+  <div class="box gold">
+    Retirado<br>
+    <b>$0.00</b>
+  </div>
+</div>
+
+<h3 style="padding:15px">Planes de Inversión</h3>
+
+<div class="plans">
+  <div class="plan basic">
+    <h4>Básico</h4>
+    <p>$100</p>
+    <p>$5 diario</p>
+    <button>Comprar</button>
+  </div>
+
+  <div class="plan vip">
+    <h4>VIP 1</h4>
+    <p>$500</p>
+    <p>$50 diario</p>
+    <button>Comprar</button>
+  </div>
+
+  <div class="plan vip2">
+    <h4>VIP 2</h4>
+    <p>$1500</p>
+    <p>$150 diario</p>
+    <button>Comprar</button>
+  </div>
+</div>
+
+<nav class="bottom">
+  <span>Inicio</span>
+  <span>Órdenes</span>
+  <span>Retiros</span>
+  <span>Cuenta</span>
+</nav>
+
+<script src="js/dashboard.js"></script>
+</body>
+</html>
