@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body class="login-bg">
 
   <div class="login-card">
@@ -19,13 +20,26 @@
 
     <button onclick="login()">Ingresar</button>
 
-    <!-- 🔥 REGISTRO FORZADO -->
-    <div class="register-box">
-      <span>¿No tienes cuenta?</span><br>
-      <a href="register.html">Crear cuenta</a>
+    <!-- 🔥 REGISTRO FORZADO PLAN B -->
+    <div style="
+      margin-top:20px;
+      text-align:center;
+      font-size:14px;
+    ">
+      <div style="color:#cbd5f5;">¿No tienes cuenta?</div>
+      <a href="register.html" style="
+        display:inline-block;
+        margin-top:8px;
+        color:#facc15;
+        font-weight:700;
+        text-decoration:none;
+      ">
+        Crear cuenta
+      </a>
     </div>
 
     <p id="status" class="status"></p>
+
   </div>
 
   <script type="module" src="js/auth.js"></script>
