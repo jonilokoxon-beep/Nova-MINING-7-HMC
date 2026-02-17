@@ -217,3 +217,46 @@ body.login-bg {
   margin: 0 auto 12px;
   background: transparent !important;
 }
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0b0f2b;
+  color: #fff;
+}
+
+#content {
+  padding: 20px;
+  padding-bottom: 80px;
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 65px;
+  background: #12174d;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border-top: 1px solid #2a2f7a;
+}
+
+.bottom-nav button {
+  background: none;
+  border: none;
+  color: #aaa;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.bottom-nav button.active {
+  color: #8b5cf6;
+}
+
+.bottom-nav span {
+  font-size: 11px;
+}
