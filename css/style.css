@@ -176,3 +176,44 @@ h3 {
   font-size: 13px;
   opacity: .9;
 }
+
+/* ===== LOGIN FIX FINAL (NO ROMPE NADA) ===== */
+
+/* Forzar fondo solo en login */
+body.login-bg {
+  background: radial-gradient(circle at top, #064e3b, #020617) !important;
+  color: white !important;
+}
+
+/* Forzar tarjeta */
+.login-bg .login-card {
+  background: linear-gradient(180deg,#0f172a,#020617) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 0 40px rgba(0,0,0,.8) !important;
+}
+
+/* Forzar texto */
+.login-bg h2 {
+  color: #facc15 !important; /* dorado */
+}
+
+/* Forzar inputs */
+.login-bg input {
+  background: #020617 !important;
+  color: white !important;
+}
+
+/* Forzar botón */
+.login-bg button {
+  background: linear-gradient(90deg,#16a34a,#d97706) !important;
+  color: white !important;
+}
+
+/* Arreglar logo grande + fondo blanco */
+.login-bg .logo {
+  width: 75px !important;
+  height: auto !important;
+  display: block;
+  margin: 0 auto 12px;
+  background: transparent !important;
+}
