@@ -2,19 +2,11 @@
 // 🔥 FIREBASE IMPORTS
 // ===============================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { 
-  getAuth, 
-  onAuthStateChanged, 
-  signOut 
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { 
-  getFirestore, 
-  collection, 
-  getDocs 
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // ===============================
-// ✅ CONFIG REAL (NOVAGROW)
+// 🔹 CONFIG FIREBASE REAL
 // ===============================
 const firebaseConfig = {
   apiKey: "AIzaSyALrk15Qvqrq6zCVTxZ7U9wSnnZIqeSmv4",
@@ -26,14 +18,12 @@ const firebaseConfig = {
 };
 
 // ===============================
-// 🚀 INIT
-// ===============================
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
 // ===============================
-// 🔐 AUTH GUARD (SIN LOOP)
+// 🔐 SESIÓN
 // ===============================
 onAuthStateChanged(auth, (user) => {
   if (!user) {
@@ -51,13 +41,12 @@ window.go = function (id) {
   document.querySelectorAll(".page").forEach(p => {
     p.style.display = "none";
   });
-
   const page = document.getElementById(id);
   if (page) page.style.display = "block";
 };
 
 // ===============================
-// 💰 PLANES
+// 💰 CARGAR PLANES
 // ===============================
 async function cargarPlanes() {
   const plansDiv = document.getElementById("plans");
@@ -67,22 +56,29 @@ async function cargarPlanes() {
 
   try {
     const snapshot = await getDocs(collection(db, "products"));
+
+    if (snapshot.empty) {
+      plansDiv.innerHTML = "No hay planes disponibles";
+      return;
+    }
+
     plansDiv.innerHTML = "";
 
     snapshot.forEach(doc => {
       const p = doc.data();
       plansDiv.innerHTML += `
-        <div class="plan ${p.tipo || ''}">
+        <div class="plan ${p.tipo}">
           <h4>${p.nombre}</h4>
           <p>$${p.precio}</p>
-          <p>${p.ingreso || ''}</p>
+          <p>${p.ingreso}</p>
           <button>Invertir</button>
         </div>
       `;
     });
-  } catch (e) {
+
+  } catch (error) {
+    console.error("Firestore error:", error);
     plansDiv.innerHTML = "Error al cargar planes";
-    console.error(e);
   }
 }
 
