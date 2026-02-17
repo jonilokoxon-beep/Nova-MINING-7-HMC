@@ -65,9 +65,61 @@
   </div>
 <body>
   <div id="app">
-  <div id="content"></div>
+  <div id="content">
+
+  <!-- ===== INICIO ===== -->
+  <section id="inicio" class="page active">
+
+    <!-- Banner / GIF -->
+    <div class="banner">
+      <img src="assets/banner.gif" alt="Banner">
+    </div>
+
+    <!-- Botones rápidos -->
+    <div class="quick-actions">
+      <button onclick="go('vip')">VIP</button>
+      <button onclick="go('registro')">Registro diario</button>
+      <button onclick="go('deposito')">Depósito</button>
+      <button onclick="go('retiro')">Retiro</button>
+      <button onclick="go('equipo')">
+        Tamaño del equipo<br>
+        <b id="teamCount">0</b>
+      </button>
+    </div>
+
+  </section>
+
+  <!-- ===== PRODUCTOS ===== -->
+  <section id="productos" class="page">
+
+    <h3>Productos de Inversión</h3>
+
+    <div class="products">
+
+      <div class="product-card">
+        <img src="assets/product1.jpg">
+        <h4>Proyecto Minería ATOM</h4>
+        <p><b>$700</b></p>
+        <p>Ciclo: 200 días</p>
+        <p>Ingreso diario: $24.50</p>
+        <button>Comprar</button>
+      </div>
+
+      <div class="product-card">
+        <img src="assets/product2.jpg">
+        <h4>Proyecto BTC Pool</h4>
+        <p><b>$1500</b></p>
+        <p>Ciclo: 180 días</p>
+        <p>Ingreso diario: $40.00</p>
+        <button>Comprar</button>
+      </div>
+
+    </div>
+
+  </section>
+
 </div>
-  
+
   <nav class="bottom">
     <button onclick="loadPage('home')">🏠<span>Inicio</span></button>
     <button onclick="loadPage('products')">🛒<span>Productos</span></button>
