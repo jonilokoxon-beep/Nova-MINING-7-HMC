@@ -8,12 +8,12 @@ import {
 
 // ⚠️ TU CONFIG REAL DE FIREBASE
 const firebaseConfig = {
-  apiKey: "TU_API_KEY",
-  authDomain: "TU_PROYECTO.firebaseapp.com",
-  projectId: "TU_PROYECTO",
-  storageBucket: "TU_PROYECTO.appspot.com",
-  messagingSenderId: "XXXX",
-  appId: "XXXX"
+  apiKey: "AIzaSyALrk15Qvqrq6zCVTxZ7U9wSnnZIqeSmv4",
+  authDomain: "novagrow-app.firebaseapp.com",
+  projectId: "novagrow-app",
+  storageBucket: "novagrow-app.firebasestorage.app",
+  messagingSenderId: "976275033149",
+  appId: "1:976275033149:web:e40c6510684bd06c82ae54"
 };
 
 // 🔥 Init
