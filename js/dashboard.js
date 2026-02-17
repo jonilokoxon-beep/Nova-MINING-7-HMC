@@ -4,6 +4,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { loadOrders } from "./orders.js";
 
 // ===============================
 // 🔹 CONFIG FIREBASE
@@ -18,20 +19,24 @@ const firebaseConfig = {
 };
 
 // ===============================
+// 🔥 INIT
+// ===============================
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
 // ===============================
-// 🔐 SESIÓN
+// 🔐 SESIÓN (ÚNICA Y CORRECTA)
 // ===============================
 onAuthStateChanged(auth, (user) => {
   if (!user) {
     window.location.replace("login.html");
-  } else {
-    go("inicio");
-    cargarPlanes();
+    return;
   }
+
+  go("inicio");
+  cargarPlanes();   // products
+  loadOrders();     // orders
 });
 
 // ===============================
@@ -70,14 +75,13 @@ async function cargarPlanes() {
 
     snapshot.forEach(doc => {
       const p = doc.data();
-
       if (p.active !== true) return;
 
       plansDiv.innerHTML += `
-        <div class="plan ${p.type}">
+        <div class="plan ${p.type || ""}">
           <h4>${p.name}</h4>
           <p>Precio: $${p.price}</p>
-          <p>Ganancia diaria: $${p.profit}</p>
+          <p>Ganancia diaria: $${p.dailyProfit}</p>
           <p>Duración: ${p.duration} días</p>
           <button>Invertir</button>
         </div>
@@ -98,11 +102,3 @@ window.logout = function () {
     window.location.replace("login.html");
   });
 };
-
-import { loadOrders } from "./orders.js";
-
-onAuthStateChanged(auth, user => {
-  if (user) {
-    loadOrders();
-  }
-});
