@@ -216,3 +216,62 @@ body.login-bg {
 .login-card .register-box a:hover {
   text-decoration: underline !important;
 }
+
+.page {
+  display: none;
+}
+
+.page.active {
+  display: block;
+}
+
+/* ===== INICIO ===== */
+.banner img {
+  width: 100%;
+  border-radius: 16px;
+  margin-bottom: 20px;
+}
+
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+  gap: 15px;
+}
+
+.quick-actions button {
+  padding: 20px;
+  border-radius: 16px;
+  border: none;
+  font-weight: bold;
+  color: white;
+  background: linear-gradient(135deg,#7c3aed,#22c55e);
+}
+
+/* ===== PRODUCTOS ===== */
+.products {
+  display: grid;
+  gap: 20px;
+}
+
+.product-card {
+  background: #0f172a;
+  padding: 15px;
+  border-radius: 18px;
+}
+
+.product-card img {
+  width: 100%;
+  border-radius: 14px;
+  margin-bottom: 10px;
+}
+
+.product-card button {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(90deg,#16a34a,#d97706);
+  color: white;
+  font-weight: bold;
+}
