@@ -43,9 +43,16 @@ window.register = function () {
 
   createUserWithEmailAndPassword(auth, email, password)
   .then((userCredential) => {
+    // ✅ Usuario creado
     document.getElementById("status").innerText = "Cuenta creada correctamente";
+
+    // 🔥 REDIRIGIR AUTOMÁTICAMENTE
+    setTimeout(() => {
+      window.location.href = "dashboard.html";
+    }, 800);
   })
   .catch((error) => {
     document.getElementById("status").innerText = error.message;
   });
+
 };
