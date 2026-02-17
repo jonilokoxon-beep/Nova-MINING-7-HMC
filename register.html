@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro | Nova MINING 7 HMC</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="login-bg">
+  <div class="login-card">
+
+    <img src="img/logo.png" class="logo" alt="Nova Mining">
+    
+    <h2>Crear cuenta</h2>
+
+    <input type="text" id="name" placeholder="Nombre completo">
+
+    <input type="email" id="email" placeholder="Correo electrónico">
+
+    <input type="password" id="password" placeholder="Contraseña">
+
+    <input type="password" id="confirm" placeholder="Confirmar contraseña">
+
+    <button onclick="register()">Registrarse</button>
+
+    <div class="status" id="status"></div>
+
+    <div style="margin-top:15px;font-size:13px">
+      ¿Ya tienes cuenta?  
+      <a href="login.html" style="color:#facc15;text-decoration:none">
+        Iniciar sesión
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<script src="js/auth.js"></script>
+</body>
+</html>
