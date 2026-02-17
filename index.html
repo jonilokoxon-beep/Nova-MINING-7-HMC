@@ -1,47 +1,89 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Nova MINING 7 HMC</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="css/style.css">
+<meta charset="UTF-8">
+<title>Nova MINING 7 HMC</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: radial-gradient(circle at top, #064e3b, #020617);
+    color: white;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .login-card {
+    background: linear-gradient(180deg,#0f172a,#020617);
+    width: 320px;
+    padding: 32px;
+    border-radius: 18px;
+    text-align: center;
+    box-shadow: 0 0 40px rgba(0,0,0,.8);
+    border: 1px solid rgba(217,119,6,.35);
+  }
+
+  .login-card img {
+    width: 70px;
+    margin-bottom: 10px;
+  }
+
+  h2 {
+    color: #facc15;
+    margin-bottom: 20px;
+  }
+
+  input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+    border: none;
+    background: #020617;
+    color: white;
+    outline: none;
+  }
+
+  input::placeholder {
+    color: #9ca3af;
+  }
+
+  button {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    font-weight: bold;
+    font-size: 15px;
+    color: white;
+    background: linear-gradient(90deg,#16a34a,#d97706);
+    box-shadow: 0 0 15px rgba(217,119,6,.5);
+  }
+
+  #status {
+    margin-top: 10px;
+    font-size: 13px;
+  }
+</style>
 </head>
 
-<body class="login-bg">
+<body>
 
-  <div class="login-card">
+<div class="login-card">
+  <img src="assets/logo.jpeg">
+  <h2>Nova MINING 7 HMC</h2>
 
-    <img src="assets/WhatsApp Image 2026-02-16 at 11.40.46 AM.jpeg" class="logo">
+  <input type="email" id="email" placeholder="Correo">
+  <input type="password" id="password" placeholder="Contraseña">
+  <button onclick="login()">Ingresar</button>
 
-    <h2>Nova MINING 7 HMC</h2>
+  <p id="status"></p>
+</div>
 
-    <input type="email" id="email" placeholder="Correo">
-    <input type="password" id="password" placeholder="Contraseña">
-
-    <button onclick="login()">Ingresar</button>
-
-    <!-- 🔥 REGISTRO FORZADO PLAN B -->
-    <div style="
-      margin-top:20px;
-      text-align:center;
-      font-size:14px;
-    ">
-      <div style="color:#cbd5f5;">¿No tienes cuenta?</div>
-      <a href="register.html" style="
-        display:inline-block;
-        margin-top:8px;
-        color:#facc15;
-        font-weight:700;
-        text-decoration:none;
-      ">
-        Crear cuenta
-      </a>
-    </div>
-
-    <p id="status" class="status"></p>
-
-  </div>
-
-  <script type="module" src="js/auth.js"></script>
+<script type="module" src="js/auth.js"></script>
 </body>
 </html>
