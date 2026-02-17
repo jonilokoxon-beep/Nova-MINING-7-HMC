@@ -260,3 +260,19 @@ body {
 .bottom-nav span {
   font-size: 11px;
 }
+
+.register-link {
+  margin-top: 15px;
+  font-size: 14px;
+  color: #cbd5f5;
+}
+
+.register-link a {
+  color: #facc15;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.register-link a:hover {
+  text-decoration: underline;
+}
