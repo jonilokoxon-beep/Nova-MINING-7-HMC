@@ -1,14 +1,3 @@
-<script type="module">
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-  const auth = getAuth();
-  onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      window.location.href = "login.html";
-    }
-  });
-</script>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -16,118 +5,131 @@
   <title>Nova MINING 7 HMC</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="css/style.css">
+
+  <!-- Firebase Auth Guard -->
+  <script type="module">
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+      }
+    });
+  </script>
 </head>
+
 <body>
 
-  <header class="top">
-    <span>Nova <b>MINING 7</b> HMC</span>
-    <button onclick="logout()">Salir</button>
-  </header>
+<!-- ===== HEADER ===== -->
+<header class="top">
+  <span>Nova <b>MINING 7</b> HMC</span>
+  <button onclick="logout()">Salir</button>
+</header>
 
-  <div class="stats">
-    <div class="box blue">
-      Saldo<br>
-      <b>$0.00</b>
-    </div>
-    <div class="box green">
-      Ganancias<br>
-      <b>$0.00</b>
-    </div>
-    <div class="box gold">
-      Retirado<br>
-      <b>$0.00</b>
-    </div>
+<!-- ===== STATS ===== -->
+<div class="stats">
+  <div class="box blue">
+    Saldo<br>
+    <b>$0.00</b>
   </div>
-
-  <h3 style="padding:15px">Planes de Inversión</h3>
-
-  <div class="plans">
-    <div class="plan basic">
-      <h4>Básico</h4>
-      <p>$100</p>
-      <p>$5 diario</p>
-      <button>Comprar</button>
-    </div>
-
-    <div class="plan vip">
-      <h4>VIP 1</h4>
-      <p>$500</p>
-      <p>$50 diario</p>
-      <button>Comprar</button>
-    </div>
-
-    <div class="plan vip2">
-      <h4>VIP 2</h4>
-      <p>$2500</p>
-      <p>$150 diario</p>
-      <button>Comprar</button>
-    </div>
+  <div class="box green">
+    Ganancias<br>
+    <b>$0.00</b>
   </div>
-<body>
-  <div id="app">
-  <div id="content">
-
-  <!-- ===== INICIO ===== -->
-  <section id="inicio" class="page active">
-
-    <!-- Banner / GIF -->
-    <div class="banner">
-      <img src="assets/banner.gif" alt="Banner">
-    </div>
-
-    <!-- Botones rápidos -->
-    <div class="quick-actions">
-      <button onclick="go('vip')">VIP</button>
-      <button onclick="go('registro')">Registro diario</button>
-      <button onclick="go('deposito')">Depósito</button>
-      <button onclick="go('retiro')">Retiro</button>
-      <button onclick="go('equipo')">
-        Tamaño del equipo<br>
-        <b id="teamCount">0</b>
-      </button>
-    </div>
-
-  </section>
-
-  <!-- ===== PRODUCTOS ===== -->
-  <section id="productos" class="page">
-
-    <h3>Productos de Inversión</h3>
-
-    <div class="products">
-
-      <div class="product-card">
-        <img src="assets/product1.jpg">
-        <h4>Proyecto Minería ATOM</h4>
-        <p><b>$700</b></p>
-        <p>Ciclo: 200 días</p>
-        <p>Ingreso diario: $24.50</p>
-        <button>Comprar</button>
-      </div>
-
-      <div class="product-card">
-        <img src="assets/product2.jpg">
-        <h4>Proyecto BTC Pool</h4>
-        <p><b>$1500</b></p>
-        <p>Ciclo: 180 días</p>
-        <p>Ingreso diario: $40.00</p>
-        <button>Comprar</button>
-      </div>
-
-    </div>
-
-  </section>
-
+  <div class="box gold">
+    Retirado<br>
+    <b>$0.00</b>
+  </div>
 </div>
 
-  <nav class="bottom">
-    <button onclick="loadPage('home')">🏠<span>Inicio</span></button>
-    <button onclick="loadPage('products')">🛒<span>Productos</span></button>
-    <button onclick="loadPage('orders')">📦<span>Órdenes</span></button>
-    <button onclick="loadPage('profile')">👤<span>Perfil</span></button>
-  </nav>
+<!-- ===== CONTENIDO ===== -->
+<div id="app">
+  <div id="content">
 
-  <script src="js/dashboard.js"></script>
-  <script src="js/app.js"></script>
+    <!-- ===== INICIO ===== -->
+    <section id="inicio" class="page active">
+
+      <div class="banner">
+        <img src="assets/banner.gif" alt="Banner">
+      </div>
+
+      <div class="quick-actions">
+        <button onclick="go('productos')">VIP</button>
+        <button onclick="go('registro')">Registro diario</button>
+        <button onclick="go('deposito')">Depósito</button>
+        <button onclick="go('retiro')">Retiro</button>
+        <button>
+          Tamaño del equipo<br>
+          <b id="teamCount">0</b>
+        </button>
+      </div>
+
+      <h3 style="padding:15px">Planes de Inversión</h3>
+
+      <div class="plans">
+        <div class="plan basic">
+          <h4>Básico</h4>
+          <p>$100</p>
+          <p>$5 diario</p>
+          <button>Comprar</button>
+        </div>
+
+        <div class="plan vip">
+          <h4>VIP 1</h4>
+          <p>$500</p>
+          <p>$50 diario</p>
+          <button>Comprar</button>
+        </div>
+
+        <div class="plan vip2">
+          <h4>VIP 2</h4>
+          <p>$2500</p>
+          <p>$150 diario</p>
+          <button>Comprar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== PRODUCTOS ===== -->
+    <section id="productos" class="page">
+      <h3>Productos de Inversión</h3>
+
+      <div class="products">
+        <div class="product-card">
+          <img src="assets/product1.jpg">
+          <h4>Proyecto Minería ATOM</h4>
+          <p><b>$700</b></p>
+          <p>Ciclo: 200 días</p>
+          <p>Ingreso diario: $24.50</p>
+          <button>Comprar</button>
+        </div>
+
+        <div class="product-card">
+          <img src="assets/product2.jpg">
+          <h4>Proyecto BTC Pool</h4>
+          <p><b>$1500</b></p>
+          <p>Ciclo: 180 días</p>
+          <p>Ingreso diario: $40.00</p>
+          <button>Comprar</button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<!-- ===== NAV ===== -->
+<nav class="bottom">
+  <button onclick="go('inicio')">🏠<span>Inicio</span></button>
+  <button onclick="go('productos')">🛒<span>Productos</span></button>
+  <button>📦<span>Órdenes</span></button>
+  <button>👤<span>Perfil</span></button>
+</nav>
+
+<!-- ===== JS ===== -->
+<script src="js/dashboard.js"></script>
+<script src="js/app.js"></script>
+
 </body>
 </html>
