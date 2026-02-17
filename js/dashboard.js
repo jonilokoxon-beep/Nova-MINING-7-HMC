@@ -15,50 +15,38 @@
 
 <div class="stats">
   <div class="box blue">
-    Saldo<br>
-    <b>$0.00</b>
+    Saldo<br><b>$0.00</b>
   </div>
   <div class="box green">
-    Ganancias<br>
-    <b>$0.00</b>
+    Ganancias<br><b>$0.00</b>
   </div>
   <div class="box gold">
-    Retirado<br>
-    <b>$0.00</b>
+    Retirado<br><b>$0.00</b>
   </div>
 </div>
 
-<h3 style="padding:15px">Planes de Inversión</h3>
+<!-- ===== SECCIONES ===== -->
 
-<!-- 👇 AQUÍ SE CARGAN DESDE FIRESTORE -->
-<div class="plans" id="plans"></div>
+<section id="inicio" class="page">
+  <h3 style="padding:15px">Inicio</h3>
+  <p style="padding:15px">VIP · Registro Diario · Depósito · Retiro · Tamaño del equipo</p>
+</section>
 
+<section id="productos" class="page">
+  <h3 style="padding:15px">Planes de Inversión</h3>
+  <div class="plans" id="plans"></div>
+</section>
+
+<!-- ===== NAV ===== -->
 <nav class="bottom">
-  <span>Inicio</span>
+  <span onclick="go('inicio')">Inicio</span>
+  <span onclick="go('productos')">Productos</span>
   <span>Órdenes</span>
-  <span>Retiros</span>
   <span>Cuenta</span>
 </nav>
 
-<!-- IMPORTANTE: module -->
+<!-- SOLO ESTE SCRIPT -->
 <script type="module" src="js/dashboard.js"></script>
 
-  function showPage(id) {
-  document.querySelectorAll('.page').forEach(p => {
-    p.classList.remove('active');
-  });
-  document.getElementById(id).classList.add('active');
-}
-
-// navegación bottom
-function go(page) {
-  if (page === 'inicio') showPage('inicio');
-  if (page === 'productos') showPage('productos');
-}
-
-// por defecto
-showPage('inicio');
-
-  
 </body>
 </html>
