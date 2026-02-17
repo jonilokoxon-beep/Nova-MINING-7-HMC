@@ -1,8 +1,8 @@
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  export const firebaseConfig = {
+const firebaseConfig = {
   apiKey: "AIzaSyALrk15Qvqrq6zCVTxZ7U9wSnnZIqeSmv4",
   authDomain: "novagrow-app.firebaseapp.com",
   projectId: "novagrow-app",
@@ -11,18 +11,7 @@
   appId: "1:976275033149:web:e40c6510684bd06c82ae54"
 };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
+const app = initializeApp(firebaseConfig);
 
-  onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      window.location.href = "login.html";
-    }
-  });
-
-  window.logout = () => {
-    signOut(auth).then(() => {
-      window.location.href = "login.html";
-    });
-  };
-</script>
+export const auth = getAuth(app);
+export const db = getFirestore(app);
