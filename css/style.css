@@ -217,14 +217,6 @@ body.login-bg {
   text-decoration: underline !important;
 }
 
-.page {
-  display: none;
-}
-
-.page.active {
-  display: block;
-}
-
 /* ===== INICIO ===== */
 .banner img {
   width: 100%;
