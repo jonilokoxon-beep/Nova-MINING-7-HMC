@@ -1,11 +1,18 @@
 // ===============================
-// 🔥 FIREBASE
+// 📦 ÓRDENES (SOLO LÓGICA)
 // ===============================
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  collection,
+  query,
+  where,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// 🔹 CONFIG REAL
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+// 🔹 MISMA CONFIG (solo para obtener instancia)
 const firebaseConfig = {
   apiKey: "AIzaSyALrk15Qvqrq6zCVTxZ7U9wSnnZIqeSmv4",
   authDomain: "novagrow-app.firebaseapp.com",
@@ -16,23 +23,24 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 // ===============================
-// 📦 CARGAR ÓRDENES
+// 📦 EXPORTAR FUNCIÓN
 // ===============================
-onAuthStateChanged(auth, user => {
-  if (user) loadOrders(user);
-});
+export async function loadOrders() {
+  const user = auth.currentUser;
+  if (!user) return;
 
-async function loadOrders(user) {
   const ordersDiv = document.getElementById("ordersList");
   const totalDiv = document.getElementById("totalProfit");
 
-  if (!ordersDiv) return;
+  if (!ordersDiv || !totalDiv) return;
 
   ordersDiv.innerHTML = "Cargando órdenes...";
+  totalDiv.innerText = "$0.00";
+
   let totalGanancia = 0;
 
   const q = query(
@@ -44,7 +52,6 @@ async function loadOrders(user) {
 
   if (snap.empty) {
     ordersDiv.innerHTML = "No tienes órdenes activas";
-    totalDiv.innerText = "$0.00";
     return;
   }
 
@@ -53,10 +60,11 @@ async function loadOrders(user) {
   snap.forEach(doc => {
     const o = doc.data();
 
-    const precio = o.amount || 0;
-    const gananciaDiaria = precio * 0.05; // 5% ejemplo
-    const dias = 30;
+    const precio = Number(o.amount) || 0;
+    const gananciaDiaria = Number(o.dailyProfit) || (precio * 0.05);
+    const dias = Number(o.duration) || 30;
     const gananciaTotal = gananciaDiaria * dias;
+
     totalGanancia += gananciaTotal;
 
     const inicio = o.createdAt?.toMillis() || Date.now();
@@ -64,14 +72,12 @@ async function loadOrders(user) {
 
     ordersDiv.innerHTML += `
       <div class="order-card">
-        <div class="order-info">
-          <b>${o.productName}</b><br>
-          Precio: $${precio}<br>
-          Ganancia diaria: $${gananciaDiaria.toFixed(2)}<br>
-          Ciclo: ${dias} días<br>
-          Ganancia total: $${gananciaTotal.toFixed(2)}<br>
-          <div class="timer" data-end="${proximoPago}">--:--:--</div>
-        </div>
+        <b>${o.productName}</b><br>
+        Inversión: $${precio}<br>
+        Ganancia diaria: $${gananciaDiaria.toFixed(2)}<br>
+        Duración: ${dias} días<br>
+        Total a ganar: $${gananciaTotal.toFixed(2)}<br>
+        <div class="timer" data-end="${proximoPago}">--:--:--</div>
       </div>
     `;
   });
@@ -86,9 +92,9 @@ async function loadOrders(user) {
 function startTimers() {
   setInterval(() => {
     document.querySelectorAll(".timer").forEach(el => {
-      const end = parseInt(el.dataset.end);
+      const end = Number(el.dataset.end);
       const now = Date.now();
-      let diff = end - now;
+      const diff = end - now;
 
       if (diff <= 0) {
         el.innerText = "Disponible";
