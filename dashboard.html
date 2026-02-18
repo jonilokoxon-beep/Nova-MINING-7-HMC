@@ -52,28 +52,39 @@
 
     <!-- ===== PRODUCTOS ===== -->
     <section id="productos" class="page">
-  <h3 style="padding:15px">Mis Órdenes</h3>
+      <h3 style="padding:15px">Productos VIP</h3>
+      <div id="productsList"></div>
+    </section>
 
-  <!-- TOTAL A GANAR -->
-  <div class="total-box">
-    <span>Total a ganar</span>
-    <b id="totalProfit">$0.00</b>
+    <!-- ===== ÓRDENES ===== -->
+    <section id="orders" class="page">
+      <h3 style="padding:15px">Mis Órdenes</h3>
+
+      <div class="total-box">
+        <span>Total a ganar</span>
+        <b id="totalProfit">$0.00</b>
+      </div>
+
+      <div class="orders" id="ordersList"></div>
+    </section>
+
+    <!-- ===== PERFIL ===== -->
+    <section id="profile" class="page">
+      <h3 style="padding:15px">Mi Perfil</h3>
+    </section>
+
   </div>
-
-  <!-- ÓRDENES -->
-  <div class="orders" id="ordersList"></div>
-</section>
-
+</div>
 
 <!-- ===== NAV ===== -->
 <nav class="bottom">
   <button onclick="go('inicio')">🏠<span>Inicio</span></button>
   <button onclick="go('productos')">🛒<span>Productos</span></button>
-  <button>📦<span>Órdenes</span></button>
-  <button>👤<span>Perfil</span></button>
+  <button onclick="go('orders')">📦<span>Órdenes</span></button>
+  <button onclick="go('profile')">👤<span>Perfil</span></button>
 </nav>
 
-<!-- ✅ SCRIPT ÚNICO -->
+<!-- ===== SCRIPT ===== -->
 <script type="module" src="js/dashboard.js"></script>
 
 </body>
