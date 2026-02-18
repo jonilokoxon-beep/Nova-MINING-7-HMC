@@ -15,7 +15,6 @@
     <h3>Solicitar Depósito</h3>
 
     <input type="number" id="depositAmount" placeholder="Monto" />
-
     <input type="file" id="depositProof" accept="image/*" />
 
     <button id="confirmDeposit">Enviar</button>
@@ -28,15 +27,28 @@
   <button onclick="logout()">Salir</button>
 </header>
 
+<!-- 📊 ESTADÍSTICAS SUPERIORES -->
 <div class="stats">
-  <div class="box blue">Saldo<br><b>$0.00</b></div>
-  <div class="box green">Ganancias<br><b>$0.00</b></div>
-  <div class="box gold">Retirado<br><b>$0.00</b></div>
+  <div class="box blue">
+    Saldo<br>
+    <b>$<span id="stat-balance">0.00</span></b>
+  </div>
+
+  <div class="box green">
+    Ganancias<br>
+    <b>$<span id="stat-profit">0.00</span></b>
+  </div>
+
+  <div class="box gold">
+    Retirado<br>
+    <b>$<span id="stat-withdrawn">0.00</span></b>
+  </div>
 </div>
 
 <div id="app">
   <div id="content">
 
+    <!-- 🏠 INICIO -->
     <section id="inicio" class="page" style="display:block">
       <div class="banner">
         <img src="assets/banner.gif">
@@ -45,8 +57,8 @@
       <div class="quick-actions">
         <button onclick="go('productos')">VIP</button>
         <button>Registro diario</button>
-        <button>Depósito</button>
-        <button>Retiro</button>
+        <button id="quick-deposit">Depósito</button>
+        <button id="quick-withdraw">Retiro</button>
         <button>
           Tamaño del equipo<br>
           <b id="teamCount">0</b>
@@ -54,11 +66,13 @@
       </div>
     </section>
 
+    <!-- 🛒 PRODUCTOS -->
     <section id="productos" class="page">
       <h3 style="padding:15px">Productos VIP</h3>
       <div id="productsList"></div>
     </section>
 
+    <!-- 📦 ÓRDENES -->
     <section id="orders" class="page">
       <h3 style="padding:15px">Mis Órdenes</h3>
 
@@ -120,6 +134,27 @@
 </nav>
 
 <script type="module" src="js/dashboard.js"></script>
+
+<script>
+  // 🔥 CONECTAR BOTONES RÁPIDOS
+  document.addEventListener("DOMContentLoaded", () => {
+
+    const depositBtn = document.getElementById("btn-deposit");
+    const withdrawBtn = document.getElementById("btn-withdraw");
+
+    const quickDeposit = document.getElementById("quick-deposit");
+    const quickWithdraw = document.getElementById("quick-withdraw");
+
+    if (quickDeposit && depositBtn) {
+      quickDeposit.onclick = () => depositBtn.click();
+    }
+
+    if (quickWithdraw && withdrawBtn) {
+      quickWithdraw.onclick = () => withdrawBtn.click();
+    }
+
+  });
+</script>
 
 </body>
 </html>
