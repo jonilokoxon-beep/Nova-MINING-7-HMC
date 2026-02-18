@@ -1,0 +1,5 @@
+{
+  "email": "usuario@email.com",
+  "balance": 500,
+  "createdAt": Timestamp
+}
