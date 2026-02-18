@@ -2,22 +2,31 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Usuarios
     match /users/{userId} {
-      allow read: if request.auth != null && request.auth.uid == userId;
-      allow write: if request.auth != null && request.auth.token.admin == true;
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Configuración general
-    match /app_config/{doc} {
+    match /deposits/{docId} {
+      allow create: if request.auth != null;
       allow read: if request.auth != null;
-      allow write: if request.auth.token.admin == true;
+      allow update: if request.auth.token.email == "TU_CORREO_ADMIN@gmail.com";
     }
 
-    // Planes de inversión
-    match /plans/{planId} {
-      allow read: if true;
-      allow write: if request.auth.token.admin == true;
+    match /withdrawals/{docId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null;
+      allow update: if request.auth.token.email == "TU_CORREO_ADMIN@gmail.com";
     }
+
+    match /transactions/{docId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.uid;
+      allow create: if request.auth.token.email == "TU_CORREO_ADMIN@gmail.com";
+    }
+
+    match /rescueCodes/{docId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth.token.email == "TU_CORREO_ADMIN@gmail.com";
+    }
+
   }
 }
