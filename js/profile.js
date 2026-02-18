@@ -37,7 +37,15 @@ export async function loadProfile() {
 
   const userRef = doc(db, "users", user.uid);
   let userSnap = await getDoc(userRef);
+  
+if (user.email === "TU_CORREO_ADMIN@gmail.com") {
+  const btn = document.createElement("button");
+  btn.innerText = "👑 Panel Admin";
+  btn.onclick = () => location.href = "admin.html";
+  document.querySelector(".profile-menu").appendChild(btn);
+}
 
+  
   // 🆔 CREAR PERFIL SI NO EXISTE
   if (!userSnap.exists()) {
     const generatedId = Math.floor(100000 + Math.random() * 900000);
