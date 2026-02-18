@@ -147,3 +147,34 @@ window.invertir = async function (productId) {
 window.logout = function () {
   signOut(auth).then(() => location.replace("login.html"));
 };
+
+document.addEventListener("click", async (e) => {
+  if (!e.target.classList.contains("btn-invertir")) return;
+
+  const productId = e.target.dataset.id;
+  const user = auth.currentUser;
+
+  if (!user) {
+    alert("Usuario no encontrado. Inicia sesión nuevamente.");
+    return;
+  }
+
+  try {
+    const order = {
+      uid: user.uid,
+      userEmail: user.email,
+      productId,
+      createdAt: new Date(),
+      status: "active"
+    };
+
+    await addDoc(collection(db, "orders"), order);
+
+    alert("✅ Inversión realizada con éxito");
+    loadOrders();
+
+  } catch (err) {
+    console.error(err);
+    alert("Error al invertir");
+  }
+});
