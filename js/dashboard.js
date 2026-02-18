@@ -172,44 +172,69 @@ async function cargarOrdenes() {
 // ===============================
 // 💰 INVERTIR
 // ===============================
-document.addEventListener("click", async e => {
+document.addEventListener("click", async (e) => {
   if (!e.target.classList.contains("btn-invertir")) return;
 
   const productId = e.target.dataset.id;
   const user = auth.currentUser;
 
-  const userRef = doc(db, "users", user.uid);
-  const userSnap = await getDoc(userRef);
-
-  const saldo = userSnap.data().balance || 0;
-
-  const prodRef = doc(db, "products", productId);
-  const prodSnap = await getDoc(prodRef);
-  const p = prodSnap.data();
-
-  if (saldo < p.price) {
-    alert("❌ Saldo insuficiente");
+  if (!user) {
+    alert("❌ Usuario no autenticado");
     return;
   }
 
-  await updateDoc(userRef, {
-    balance: saldo - p.price
-  });
+  try {
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
 
-  await addDoc(collection(db, "orders"), {
-    uid: user.uid,
-    productId,
-    productName: p.name,
-    dailyProfit: p.profit,
-    duration: p.duration,
-    createdAt: serverTimestamp()
-  });
+    if (!userSnap.exists()) {
+      alert("❌ Usuario no encontrado en base de datos");
+      return;
+    }
 
-  await cargarDashboard();
-  await cargarOrdenes();
+    const saldo = Number(userSnap.data().balance || 0);
 
-  alert("✅ Inversión realizada");
-  go("orders");
+    const prodRef = doc(db, "products", productId);
+    const prodSnap = await getDoc(prodRef);
+
+    if (!prodSnap.exists()) {
+      alert("❌ Producto no encontrado");
+      return;
+    }
+
+    const p = prodSnap.data();
+
+    if (saldo < p.price) {
+      alert("❌ Saldo insuficiente");
+      return;
+    }
+
+    await updateDoc(userRef, {
+      balance: saldo - p.price
+    });
+
+    await addDoc(collection(db, "orders"), {
+      uid: user.uid,
+      userEmail: user.email,
+      productId: productId,
+      productName: p.name,
+      amount: p.price,
+      dailyProfit: p.profit,
+      duration: p.duration,
+      createdAt: serverTimestamp(),
+      lastClaim: serverTimestamp(),
+      status: "active"
+    });
+
+    alert("✅ Inversión realizada con éxito");
+
+    loadOrders();
+    go("orders");
+
+  } catch (err) {
+    console.error("Error al invertir:", err);
+    alert("❌ Error al realizar la inversión");
+  }
 });
 
 // ===============================
