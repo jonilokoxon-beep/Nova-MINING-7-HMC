@@ -1,5 +1,5 @@
 // ===============================
-// 👤 PROFILE LOGIC
+// 👤 PROFILE LOGIC COMPLETO PRO
 // ===============================
 
 import { auth, db } from "./firebase.js";
@@ -31,6 +31,7 @@ export async function loadProfile() {
   const inviteBtn = document.getElementById("btn-invite");
   const rescueBtn = document.getElementById("btn-rescue");
   const depositBtn = document.getElementById("btn-deposit");
+  const withdrawBtn = document.getElementById("btn-withdraw");
 
   const userRef = doc(db, "users", user.uid);
   let userSnap = await getDoc(userRef);
@@ -57,7 +58,9 @@ export async function loadProfile() {
   if (idEl) idEl.innerText = u.publicId || "000000";
   if (balanceEl) balanceEl.innerText = Number(u.balance || 0).toFixed(2);
 
-  // 👥 REFERIDOS → VIP
+  // ===============================
+  // 👥 VIP POR REFERIDOS
+  // ===============================
   const referralsQuery = query(
     collection(db, "users"),
     where("referredBy", "==", user.uid)
@@ -65,11 +68,13 @@ export async function loadProfile() {
 
   const referralsSnap = await getDocs(referralsQuery);
   const totalRefs = referralsSnap.size;
-
   const vipLevel = Math.floor(totalRefs / 3);
+
   if (vipEl) vipEl.innerText = vipLevel;
 
+  // ===============================
   // 🔗 INVITAR
+  // ===============================
   if (inviteBtn) {
     inviteBtn.onclick = () => {
       const link = `${location.origin}/register.html?ref=${user.uid}`;
@@ -78,18 +83,77 @@ export async function loadProfile() {
     };
   }
 
-  // 🎁 RESCUE (placeholder)
+  // ===============================
+  // 🎁 RESCUE REAL
+  // ===============================
   if (rescueBtn) {
-    rescueBtn.onclick = () => {
-      alert("🎁 Próximamente: códigos de recompensa");
+    rescueBtn.onclick = async () => {
+      const code = prompt("Ingresa código de recompensa:");
+      if (!code) return;
+
+      const q = query(
+        collection(db, "rescueCodes"),
+        where("code", "==", code),
+        where("active", "==", true)
+      );
+
+      const snap = await getDocs(q);
+
+      if (snap.empty) {
+        alert("❌ Código inválido");
+        return;
+      }
+
+      const reward = snap.docs[0].data().reward || 0;
+
+      await updateDoc(userRef, {
+        balance: (u.balance || 0) + reward
+      });
+
+      alert("🎉 Premio acreditado");
+
+      loadProfile();
     };
   }
 
-  // 💰 ABRIR MODAL DEPÓSITO
+  // ===============================
+  // 💰 DEPÓSITO
+  // ===============================
   if (depositBtn) {
     depositBtn.onclick = () => {
       const modal = document.getElementById("depositModal");
       if (modal) modal.style.display = "block";
+    };
+  }
+
+  // ===============================
+  // 💸 RETIRO
+  // ===============================
+  if (withdrawBtn) {
+    withdrawBtn.onclick = async () => {
+      const amount = Number(prompt("Monto a retirar:"));
+
+      if (!amount || amount <= 0) {
+        alert("Monto inválido");
+        return;
+      }
+
+      const currentSnap = await getDoc(userRef);
+      const currentBalance = currentSnap.data().balance || 0;
+
+      if (amount > currentBalance) {
+        alert("❌ Saldo insuficiente");
+        return;
+      }
+
+      await addDoc(collection(db, "withdrawals"), {
+        uid: user.uid,
+        amount,
+        status: "pending",
+        createdAt: serverTimestamp()
+      });
+
+      alert("✅ Solicitud enviada. Esperando aprobación.");
     };
   }
 }
@@ -103,7 +167,7 @@ window.closeDeposit = function () {
 };
 
 // ===============================
-// 💰 ENVIAR DEPÓSITO
+// 💰 CONFIRMAR DEPÓSITO
 // ===============================
 document.addEventListener("click", async (e) => {
   if (e.target.id !== "confirmDeposit") return;
