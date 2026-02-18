@@ -22,6 +22,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import { loadOrders } from "./orders.js";
+import { loadProfile } from "./profile.js";
 
 // ===============================
 // 🔹 CONFIG FIREBASE
@@ -72,6 +73,7 @@ onAuthStateChanged(auth, async user => {
   go("inicio");
   await cargarProductos();
   await cargarDashboard();
+  await loadProfile();
   loadOrders(); // 👈 SOLO UNA FUENTE DE ÓRDENES
 });
 
