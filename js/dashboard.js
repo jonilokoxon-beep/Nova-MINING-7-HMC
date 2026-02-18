@@ -16,7 +16,9 @@ import {
   setDoc,
   updateDoc,
   addDoc,
-  serverTimestamp
+  serverTimestamp,
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import { loadOrders } from "./orders.js";
@@ -33,7 +35,6 @@ const firebaseConfig = {
   appId: "1:976275033149:web:e40c6510684bd06c82ae54"
 };
 
-// ===============================
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -42,15 +43,13 @@ const db = getFirestore(app);
 // 📌 NAVEGACIÓN
 // ===============================
 window.go = function (id) {
-  document.querySelectorAll(".page").forEach(p => {
-    p.style.display = "none";
-  });
+  document.querySelectorAll(".page").forEach(p => p.style.display = "none");
   const page = document.getElementById(id);
   if (page) page.style.display = "block";
 };
 
 // ===============================
-// 🔐 SESIÓN (CREA USUARIO SI NO EXISTE)
+// 🔐 SESIÓN
 // ===============================
 onAuthStateChanged(auth, async user => {
   if (!user) {
@@ -59,9 +58,9 @@ onAuthStateChanged(auth, async user => {
   }
 
   const userRef = doc(db, "users", user.uid);
-  const userSnap = await getDoc(userRef);
+  const snap = await getDoc(userRef);
 
-  if (!userSnap.exists()) {
+  if (!snap.exists()) {
     await setDoc(userRef, {
       uid: user.uid,
       email: user.email,
@@ -72,11 +71,12 @@ onAuthStateChanged(auth, async user => {
 
   go("inicio");
   await cargarProductos();
-  loadOrders();
+  await cargarDashboard();
+  loadOrders(); // 👈 SOLO UNA FUENTE DE ÓRDENES
 });
 
 // ===============================
-// 📊 DASHBOARD (SALDO + GANANCIAS)
+// 📊 DASHBOARD
 // ===============================
 async function cargarDashboard() {
   const user = auth.currentUser;
@@ -86,28 +86,25 @@ async function cargarDashboard() {
   const gananciasBox = document.querySelector(".box.green b");
   const retiradoBox = document.querySelector(".box.gold b");
 
-  const userRef = doc(db, "users", user.uid);
-  const userSnap = await getDoc(userRef);
+  const userSnap = await getDoc(doc(db, "users", user.uid));
+  const saldo = Number(userSnap.data().balance || 0);
 
-  let saldo = userSnap.data().balance || 0;
-  let totalGanado = 0;
+  let ganancias = 0;
 
-  // 🔁 CALCULAR GANANCIAS DESDE ÓRDENES
   const q = query(collection(db, "orders"), where("uid", "==", user.uid));
-  const ordersSnap = await getDocs(q);
+  const snap = await getDocs(q);
 
-  ordersSnap.forEach(o => {
-    const d = o.data();
-    totalGanado += Number(d.dailyProfit || 0);
+  snap.forEach(d => {
+    ganancias += Number(d.data().dailyProfit || 0);
   });
 
   saldoBox.innerText = `$${saldo.toFixed(2)}`;
-  gananciasBox.innerText = `$${totalGanado.toFixed(2)}`;
+  gananciasBox.innerText = `$${ganancias.toFixed(2)}`;
   retiradoBox.innerText = `$0.00`;
 }
 
 // ===============================
-// 🛒 CARGAR PRODUCTOS
+// 🛒 PRODUCTOS
 // ===============================
 async function cargarProductos() {
   const list = document.getElementById("productsList");
@@ -115,110 +112,76 @@ async function cargarProductos() {
 
   list.innerHTML = "Cargando productos...";
 
-  try {
-    const snap = await getDocs(collection(db, "products"));
+  const snap = await getDocs(collection(db, "products"));
 
-    if (snap.empty) {
-      list.innerHTML = "No hay productos disponibles";
-      return;
-    }
-
-    list.innerHTML = "";
-
-    snap.forEach(docSnap => {
-      const p = docSnap.data();
-      if (p.active !== true) return;
-
-      list.innerHTML += `
-        <div class="plan">
-          <h4>${p.name}</h4>
-          <p>Precio: $${p.price}</p>
-          <p>Ganancia diaria: $${p.profit}</p>
-          <p>Duración: ${p.duration} días</p>
-          <button class="btn-invertir" data-id="${docSnap.id}">
-            Invertir
-          </button>
-        </div>
-      `;
-    });
-
-  } catch (err) {
-    console.error("Error cargando productos:", err);
-    list.innerHTML = "Error al cargar productos";
+  if (snap.empty) {
+    list.innerHTML = "No hay productos";
+    return;
   }
+
+  list.innerHTML = "";
+
+  snap.forEach(docSnap => {
+    const p = docSnap.data();
+    if (!p.active) return;
+
+    list.innerHTML += `
+      <div class="plan">
+        <h4>${p.name}</h4>
+        <p>Precio: $${p.price}</p>
+        <p>Ganancia diaria: $${p.profit}</p>
+        <p>Duración: ${p.duration} días</p>
+        <button class="btn-invertir" data-id="${docSnap.id}">
+          Invertir
+        </button>
+      </div>
+    `;
+  });
 }
 
 // ===============================
-// 💰 INVERTIR (EVENT DELEGATION)
+// 💰 INVERTIR
 // ===============================
 document.addEventListener("click", async (e) => {
   if (!e.target.classList.contains("btn-invertir")) return;
 
   const productId = e.target.dataset.id;
   const user = auth.currentUser;
+  if (!user) return;
 
-  if (!user) {
-    alert("❌ Usuario no autenticado");
+  const userRef = doc(db, "users", user.uid);
+  const userSnap = await getDoc(userRef);
+  const saldo = Number(userSnap.data().balance || 0);
+
+  const prodSnap = await getDoc(doc(db, "products", productId));
+  if (!prodSnap.exists()) return;
+
+  const p = prodSnap.data();
+  if (saldo < p.price) {
+    alert("❌ Saldo insuficiente");
     return;
   }
 
-  try {
-    const userRef = doc(db, "users", user.uid);
-    const userSnap = await getDoc(userRef);
+  await updateDoc(userRef, { balance: saldo - p.price });
 
-    if (!userSnap.exists()) {
-      alert("❌ Usuario no encontrado en base de datos");
-      return;
-    }
+  await addDoc(collection(db, "orders"), {
+    uid: user.uid,
+    productName: p.name,
+    amount: p.price,
+    dailyProfit: p.profit,
+    duration: p.duration,
+    createdAt: serverTimestamp(),
+    lastClaim: serverTimestamp(),
+    status: "active"
+  });
 
-    const saldo = Number(userSnap.data().balance || 0);
-
-    const prodRef = doc(db, "products", productId);
-    const prodSnap = await getDoc(prodRef);
-
-    if (!prodSnap.exists()) {
-      alert("❌ Producto no encontrado");
-      return;
-    }
-
-    const p = prodSnap.data();
-
-    if (saldo < p.price) {
-      alert("❌ Saldo insuficiente");
-      return;
-    }
-
-    await updateDoc(userRef, {
-      balance: saldo - p.price
-    });
-
-    await addDoc(collection(db, "orders"), {
-      uid: user.uid,
-      userEmail: user.email,
-      productId: productId,
-      productName: p.name,
-      amount: p.price,
-      dailyProfit: p.profit,
-      duration: p.duration,
-      createdAt: serverTimestamp(),
-      lastClaim: serverTimestamp(),
-      status: "active"
-    });
-
-    alert("✅ Inversión realizada con éxito");
-
-    loadOrders();
-    go("orders");
-
-  } catch (err) {
-    console.error("Error al invertir:", err);
-    alert("❌ Error al realizar la inversión");
-  }
+  alert("✅ Inversión realizada");
+  loadOrders();
+  cargarDashboard();
+  go("orders");
 });
 
 // ===============================
 // 🚪 LOGOUT
 // ===============================
-window.logout = function () {
-  signOut(auth).then(() => location.replace("login.html"));
-};
+window.logout = () => signOut(auth).then(() => location.replace("login.html"));
