@@ -70,8 +70,8 @@ onAuthStateChanged(auth, async user => {
   }
 
   go("inicio");
-  await cargarProductos();
   await cargarDashboard();
+  await cargarProductos();
   loadOrders(); // 👈 SOLO UNA FUENTE DE ÓRDENES
   await loadProfile();
 
