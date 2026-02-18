@@ -16,10 +16,10 @@ import {
   setDoc,
   updateDoc,
   addDoc,
-  serverTimestamp
+  serverTimestamp,
+  query,
+  where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-import { loadOrders } from "./orders.js";
 
 // ===============================
 // 🔹 CONFIG FIREBASE
@@ -33,7 +33,6 @@ const firebaseConfig = {
   appId: "1:976275033149:web:e40c6510684bd06c82ae54"
 };
 
-// ===============================
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -42,15 +41,12 @@ const db = getFirestore(app);
 // 📌 NAVEGACIÓN
 // ===============================
 window.go = function (id) {
-  document.querySelectorAll(".page").forEach(p => {
-    p.style.display = "none";
-  });
-  const page = document.getElementById(id);
-  if (page) page.style.display = "block";
+  document.querySelectorAll(".page").forEach(p => p.style.display = "none");
+  document.getElementById(id).style.display = "block";
 };
 
 // ===============================
-// 🔐 SESIÓN (CREA USUARIO SI NO EXISTE)
+// 🔐 SESIÓN
 // ===============================
 onAuthStateChanged(auth, async user => {
   if (!user) {
@@ -58,136 +54,162 @@ onAuthStateChanged(auth, async user => {
     return;
   }
 
-  // ✅ CREAR USUARIO AUTOMÁTICAMENTE
   const userRef = doc(db, "users", user.uid);
-  const userSnap = await getDoc(userRef);
+  const snap = await getDoc(userRef);
 
-  if (!userSnap.exists()) {
+  if (!snap.exists()) {
     await setDoc(userRef, {
       uid: user.uid,
       email: user.email,
       balance: 0,
+      totalEarned: 0,
       createdAt: serverTimestamp()
     });
   }
 
-  go("inicio");
+  await cargarDashboard();
   await cargarProductos();
-  loadOrders();
+  await cargarOrdenes();
+
+  go("inicio");
 });
 
 // ===============================
-// 🛒 CARGAR PRODUCTOS
+// 📊 DASHBOARD (SALDO + GANANCIAS)
 // ===============================
-async function cargarProductos() {
-  const list = document.getElementById("productsList");
-  if (!list) return;
+async function cargarDashboard() {
+  const user = auth.currentUser;
+  if (!user) return;
 
-  list.innerHTML = "Cargando productos...";
+  const saldoBox = document.querySelector(".box.blue b");
+  const gananciasBox = document.querySelector(".box.green b");
+  const retiradoBox = document.querySelector(".box.gold b");
 
-  try {
-    const snap = await getDocs(collection(db, "products"));
+  const userRef = doc(db, "users", user.uid);
+  const userSnap = await getDoc(userRef);
 
-    if (snap.empty) {
-      list.innerHTML = "No hay productos disponibles";
-      return;
-    }
+  let saldo = userSnap.data().balance || 0;
+  let totalGanado = 0;
 
-    list.innerHTML = "";
+  // 🔁 CALCULAR GANANCIAS DESDE ÓRDENES
+  const q = query(collection(db, "orders"), where("uid", "==", user.uid));
+  const ordersSnap = await getDocs(q);
 
-    snap.forEach(docSnap => {
-      const p = docSnap.data();
-      if (p.active !== true) return;
+  ordersSnap.forEach(o => {
+    const d = o.data();
+    totalGanado += Number(d.dailyProfit || 0);
+  });
 
-      list.innerHTML += `
-        <div class="plan">
-          <h4>${p.name}</h4>
-          <p>Precio: $${p.price}</p>
-          <p>Ganancia diaria: $${p.profit}</p>
-          <p>Duración: ${p.duration} días</p>
-          <button class="btn-invertir" data-id="${docSnap.id}">
-            Invertir
-          </button>
-        </div>
-      `;
-    });
-
-  } catch (err) {
-    console.error("Error cargando productos:", err);
-    list.innerHTML = "Error al cargar productos";
-  }
+  saldoBox.innerText = `$${saldo.toFixed(2)}`;
+  gananciasBox.innerText = `$${totalGanado.toFixed(2)}`;
+  retiradoBox.innerText = `$0.00`;
 }
 
 // ===============================
-// 💰 INVERTIR (EVENT DELEGATION)
+// 🛒 PRODUCTOS
 // ===============================
-document.addEventListener("click", async (e) => {
+async function cargarProductos() {
+  const list = document.getElementById("productsList");
+  list.innerHTML = "Cargando productos...";
+
+  const snap = await getDocs(collection(db, "products"));
+
+  if (snap.empty) {
+    list.innerHTML = "No hay productos";
+    return;
+  }
+
+  list.innerHTML = "";
+
+  snap.forEach(docSnap => {
+    const p = docSnap.data();
+    if (!p.active) return;
+
+    list.innerHTML += `
+      <div class="plan">
+        <h4>${p.name}</h4>
+        <p>Precio: $${p.price}</p>
+        <p>Ganancia diaria: $${p.profit}</p>
+        <p>Duración: ${p.duration} días</p>
+        <button class="btn-invertir" data-id="${docSnap.id}">
+          Invertir
+        </button>
+      </div>
+    `;
+  });
+}
+
+// ===============================
+// 📦 ÓRDENES
+// ===============================
+async function cargarOrdenes() {
+  const list = document.getElementById("ordersList");
+  const totalBox = document.getElementById("totalProfit");
+
+  list.innerHTML = "";
+  let total = 0;
+
+  const user = auth.currentUser;
+  const q = query(collection(db, "orders"), where("uid", "==", user.uid));
+  const snap = await getDocs(q);
+
+  snap.forEach(docSnap => {
+    const o = docSnap.data();
+    total += Number(o.dailyProfit);
+
+    list.innerHTML += `
+      <div class="order">
+        <b>${o.productName}</b>
+        <p>Ganancia diaria: $${o.dailyProfit}</p>
+        <p>Días: ${o.duration}</p>
+      </div>
+    `;
+  });
+
+  totalBox.innerText = `$${total.toFixed(2)}`;
+}
+
+// ===============================
+// 💰 INVERTIR
+// ===============================
+document.addEventListener("click", async e => {
   if (!e.target.classList.contains("btn-invertir")) return;
 
   const productId = e.target.dataset.id;
   const user = auth.currentUser;
 
-  if (!user) {
-    alert("❌ Usuario no autenticado");
+  const userRef = doc(db, "users", user.uid);
+  const userSnap = await getDoc(userRef);
+
+  const saldo = userSnap.data().balance || 0;
+
+  const prodRef = doc(db, "products", productId);
+  const prodSnap = await getDoc(prodRef);
+  const p = prodSnap.data();
+
+  if (saldo < p.price) {
+    alert("❌ Saldo insuficiente");
     return;
   }
 
-  try {
-    // 👤 USUARIO
-    const userRef = doc(db, "users", user.uid);
-    const userSnap = await getDoc(userRef);
+  await updateDoc(userRef, {
+    balance: saldo - p.price
+  });
 
-    if (!userSnap.exists()) {
-      alert("❌ Usuario no encontrado en base de datos");
-      return;
-    }
+  await addDoc(collection(db, "orders"), {
+    uid: user.uid,
+    productId,
+    productName: p.name,
+    dailyProfit: p.profit,
+    duration: p.duration,
+    createdAt: serverTimestamp()
+  });
 
-    const saldo = Number(userSnap.data().balance || 0);
+  await cargarDashboard();
+  await cargarOrdenes();
 
-    // 📦 PRODUCTO
-    const prodRef = doc(db, "products", productId);
-    const prodSnap = await getDoc(prodRef);
-
-    if (!prodSnap.exists()) {
-      alert("❌ Producto no encontrado");
-      return;
-    }
-
-    const p = prodSnap.data();
-
-    if (saldo < p.price) {
-      alert("❌ Saldo insuficiente");
-      return;
-    }
-
-    // 🔻 DESCONTAR SALDO
-    await updateDoc(userRef, {
-      balance: saldo - p.price
-    });
-
-    // ➕ CREAR ORDEN
-    await addDoc(collection(db, "orders"), {
-      uid: user.uid,
-      userEmail: user.email,
-      productId: productId,
-      productName: p.name,
-      amount: p.price,
-      dailyProfit: p.profit,
-      duration: p.duration,
-      createdAt: serverTimestamp(),
-      lastClaim: serverTimestamp(),
-      status: "active"
-    });
-
-    alert("✅ Inversión realizada con éxito");
-
-    loadOrders();
-    go("orders");
-
-  } catch (err) {
-    console.error("Error al invertir:", err);
-    alert("❌ Error al realizar la inversión");
-  }
+  alert("✅ Inversión realizada");
+  go("orders");
 });
 
 // ===============================
