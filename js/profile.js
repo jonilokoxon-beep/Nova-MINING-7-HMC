@@ -51,23 +51,6 @@ export async function loadProfile() {
   uidEl.innerText = user.uid;
   balanceEl.innerText = Number(u.balance || 0).toFixed(2);
 
-  // 📦 ÓRDENES
-  let totalEarned = 0;
-  let active = 0;
-  let finished = 0;
-
-  const q = query(collection(db, "orders"), where("uid", "==", user.uid));
-  const snap = await getDocs(q);
-
-  snap.forEach(d => {
-    const o = d.data();
-    if (o.status === "active") active++;
-    if (o.status === "finished") finished++;
-
-    totalEarned +=
-      Number(o.dailyProfit || 0) * Number(o.duration || 0);
-  });
-
   earnedEl.innerText = totalEarned.toFixed(2);
   activeEl.innerText = active;
   finishedEl.innerText = finished;
