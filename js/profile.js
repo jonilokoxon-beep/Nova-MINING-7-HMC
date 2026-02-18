@@ -38,7 +38,7 @@ export async function loadProfile() {
   const userRef = doc(db, "users", user.uid);
   let userSnap = await getDoc(userRef);
   
-if (user.email === "TU_CORREO_ADMIN@gmail.com") {
+if (user.email === "joni.lokoxon@gmail.com") {
   const btn = document.createElement("button");
   btn.innerText = "👑 Panel Admin";
   btn.onclick = () => location.href = "admin.html";
