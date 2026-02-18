@@ -1,26 +1,24 @@
-function loadPage(page) {
-  fetch(`js/${page}.js`)
-    .then(res => res.text())
-    .then(js => {
-      document.getElementById("content").innerHTML = "";
-      eval(js);
-      setActive(page);
-    });
-}
+import { auth } from "./firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-function setActive(page) {
-  document.querySelectorAll(".bottom-nav button").forEach(btn => {
-    btn.classList.remove("active");
-  });
+import { loadProducts } from "./products.js";
+import { loadOrders } from "./orders.js";
+import { loadProfile } from "./profile.js";
 
-  const map = {
-    home: 0,
-    products: 1,
-    orders: 2,
-    profile: 3
-  };
+window.go = function (id) {
+  document.querySelectorAll(".page").forEach(p => p.style.display = "none");
+  document.getElementById(id).style.display = "block";
+};
 
-  document.querySelectorAll(".bottom-nav button")[map[page]].classList.add("active");
-}
+onAuthStateChanged(auth, user => {
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
 
-loadPage("home");
+  go("home");
+
+  loadProducts();
+  loadOrders();
+  loadProfile();
+});
