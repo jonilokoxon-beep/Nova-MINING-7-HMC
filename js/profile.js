@@ -85,3 +85,26 @@ depositBtn.onclick = () => {
 window.closeDeposit = function () {
   document.getElementById("depositModal").style.display = "none";
 };
+document.addEventListener("click", async (e) => {
+  if (e.target.id !== "confirmDeposit") return;
+
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const amount = Number(document.getElementById("depositAmount").value);
+
+  if (!amount || amount <= 0) {
+    alert("Monto inválido");
+    return;
+  }
+
+  await addDoc(collection(db, "deposits"), {
+    uid: user.uid,
+    amount,
+    status: "pending",
+    createdAt: serverTimestamp()
+  });
+
+  alert("✅ Solicitud enviada. Esperando aprobación.");
+  closeDeposit();
+});
