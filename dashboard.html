@@ -9,6 +9,20 @@
 
 <body>
 
+<!-- 💰 MODAL DEPÓSITO -->
+<div id="depositModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h3>Solicitar Depósito</h3>
+
+    <input type="number" id="depositAmount" placeholder="Monto" />
+
+    <input type="file" id="depositProof" accept="image/*" />
+
+    <button id="confirmDeposit">Enviar</button>
+    <button onclick="closeDeposit()">Cancelar</button>
+  </div>
+</div>
+
 <header class="top">
   <span>Nova <b>MINING 7</b> HMC</span>
   <button onclick="logout()">Salir</button>
