@@ -1,5 +1,5 @@
 // ===============================
-// 📦 ÓRDENES (LÓGICA COMPLETA)
+// 📦 ÓRDENES (MODO SEGURO)
 // ===============================
 
 import { db, auth } from "./firebase.js";
@@ -11,12 +11,10 @@ import {
   getDocs,
   doc,
   updateDoc,
-  serverTimestamp
+  serverTimestamp,
+  increment
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// ===============================
-// 📦 CARGAR ÓRDENES
-// ===============================
 export async function loadOrders() {
   const user = auth.currentUser;
   if (!user) return;
@@ -24,95 +22,88 @@ export async function loadOrders() {
   const ordersDiv = document.getElementById("ordersList");
   const totalDiv = document.getElementById("totalProfit");
 
-  if (!ordersDiv || !totalDiv) return;
-
-  ordersDiv.innerHTML = "Cargando órdenes...";
+  ordersDiv.innerHTML = "Cargando...";
   totalDiv.innerText = "$0.00";
 
-  let totalGanancia = 0;
+  let total = 0;
 
-  try {
-    const q = query(
-      collection(db, "orders"),
-      where("uid", "==", user.uid),
-      where("status", "==", "active")
-    );
+  const q = query(
+    collection(db, "orders"),
+    where("uid", "==", user.uid)
+  );
 
-    const snap = await getDocs(q);
+  const snap = await getDocs(q);
 
-    if (snap.empty) {
-      ordersDiv.innerHTML = "No tienes órdenes activas";
-      return;
-    }
-
-    ordersDiv.innerHTML = "";
-
-    snap.forEach(docSnap => {
-      const o = docSnap.data();
-      const orderId = docSnap.id;
-
-      const precio = Number(o.amount) || 0;
-      const gananciaDiaria = Number(o.dailyProfit) || 0;
-      const diasTotales = Number(o.duration) || 0;
-
-      const inicio = o.createdAt?.toMillis?.() || Date.now();
-      const hoy = Date.now();
-      const diasPasados = Math.floor((hoy - inicio) / 86400000);
-      const diasRestantes = Math.max(diasTotales - diasPasados, 0);
-
-      const gananciaGenerada = Math.min(
-        diasPasados * gananciaDiaria,
-        diasTotales * gananciaDiaria
-      );
-
-      totalGanancia += gananciaGenerada;
-
-      const proximoPago =
-        (o.lastClaim?.toMillis?.() || inicio) + 86400000;
-
-      ordersDiv.innerHTML += `
-        <div class="order-card">
-          <b>${o.productName}</b><br>
-          Inversión: $${precio}<br>
-          Ganancia diaria: $${gananciaDiaria}<br>
-          Días restantes: ${diasRestantes}<br>
-          Ganancia generada: $${gananciaGenerada.toFixed(2)}<br>
-
-          <div class="timer" data-end="${proximoPago}" data-id="${orderId}">
-            --:--:--
-          </div>
-
-          <button 
-            class="btn-claim" 
-            data-id="${orderId}" 
-            data-profit="${gananciaDiaria}">
-            Disponer
-          </button>
-        </div>
-      `;
-    });
-
-    totalDiv.innerText = `$${totalGanancia.toFixed(2)}`;
-    startTimers();
-
-  } catch (err) {
-    console.error("Error cargando órdenes:", err);
-    ordersDiv.innerHTML = "Error al cargar órdenes";
+  if (snap.empty) {
+    ordersDiv.innerHTML = "No hay órdenes";
+    return;
   }
+
+  ordersDiv.innerHTML = "";
+
+  snap.forEach(d => {
+    const o = d.data();
+
+    const name = o.productName ?? "SIN NOMBRE";
+    const amount = Number(o.amount ?? 0);
+    const daily = Number(o.dailyProfit ?? 0);
+    const duration = Number(o.duration ?? 0);
+
+    const created =
+      o.createdAt?.toMillis?.() ?? Date.now();
+
+    const lastClaim =
+      o.lastClaim?.toMillis?.() ?? created;
+
+    const daysPassed =
+      Math.floor((Date.now() - created) / 86400000);
+
+    const remaining =
+      Math.max(duration - daysPassed, 0);
+
+    const earned =
+      Math.min(daysPassed * daily, duration * daily);
+
+    total += earned;
+
+    const nextClaim = lastClaim + 86400000;
+
+    ordersDiv.innerHTML += `
+      <div class="order-card">
+        <b>${name}</b><br>
+        Inversión: $${amount}<br>
+        Ganancia diaria: $${daily}<br>
+        Duración: ${duration} días<br>
+        Días restantes: ${remaining}<br>
+        Ganancia generada: $${earned.toFixed(2)}<br>
+
+        <div class="timer" data-end="${nextClaim}" data-id="${d.id}">
+          --:--:--
+        </div>
+
+        <button class="claim" 
+          data-id="${d.id}" 
+          data-profit="${daily}">
+          Disponer
+        </button>
+      </div>
+    `;
+  });
+
+  totalDiv.innerText = `$${total.toFixed(2)}`;
+  startTimers();
 }
 
 // ===============================
-// ⏱ CONTADORES
+// ⏱ CONTADOR
 // ===============================
 function startTimers() {
   setInterval(() => {
-    document.querySelectorAll(".timer").forEach(el => {
-      const end = Number(el.dataset.end);
-      const diff = end - Date.now();
+    document.querySelectorAll(".timer").forEach(t => {
+      const diff = t.dataset.end - Date.now();
 
       if (diff <= 0) {
-        el.innerText = "Disponible";
-        el.classList.add("ready");
+        t.innerText = "Disponible";
         return;
       }
 
@@ -120,42 +111,33 @@ function startTimers() {
       const m = Math.floor((diff % 3600000) / 60000);
       const s = Math.floor((diff % 60000) / 1000);
 
-      el.innerText = `${h}h ${m}m ${s}s`;
+      t.innerText = `${h}h ${m}m ${s}s`;
     });
   }, 1000);
 }
 
 // ===============================
-// 💸 DISPONER GANANCIA
+// 💸 DISPONER
 // ===============================
-document.addEventListener("click", async (e) => {
-  if (!e.target.classList.contains("btn-claim")) return;
+document.addEventListener("click", async e => {
+  if (!e.target.classList.contains("claim")) return;
 
-  const orderId = e.target.dataset.id;
+  const id = e.target.dataset.id;
   const profit = Number(e.target.dataset.profit);
   const user = auth.currentUser;
 
   if (!user) return;
 
-  try {
-    const userRef = doc(db, "users", user.uid);
-    const orderRef = doc(db, "orders", orderId);
+  await updateDoc(
+    doc(db, "users", user.uid),
+    { balance: increment(profit) }
+  );
 
-    await updateDoc(userRef, {
-      balance: window.firebaseIncrement
-        ? window.firebaseIncrement(profit)
-        : profit
-    });
+  await updateDoc(
+    doc(db, "orders", id),
+    { lastClaim: serverTimestamp() }
+  );
 
-    await updateDoc(orderRef, {
-      lastClaim: serverTimestamp()
-    });
-
-    alert("✅ Ganancia acreditada");
-    loadOrders();
-
-  } catch (err) {
-    console.error("Error al disponer:", err);
-    alert("❌ No se pudo disponer la ganancia");
-  }
+  alert("✅ Ganancia agregada");
+  loadOrders();
 });
