@@ -60,3 +60,54 @@ window.approveDeposit = async (depositId, uid, amount) => {
 };
 
 loadDeposits();
+
+async function loadWithdrawals() {
+  const snapshot = await getDocs(collection(db, "withdrawals"));
+  const container = document.getElementById("admin-withdrawals");
+
+  container.innerHTML = "";
+
+  snapshot.forEach(docSnap => {
+    const d = docSnap.data();
+
+    if (d.status !== "pending") return;
+
+    const div = document.createElement("div");
+    div.innerHTML = `
+      <p>UID: ${d.uid}</p>
+      <p>Monto: $${d.amount}</p>
+      <button onclick="approveWithdraw('${docSnap.id}', '${d.uid}', ${d.amount})">
+        Aprobar
+      </button>
+      <hr/>
+    `;
+
+    container.appendChild(div);
+  });
+}
+
+window.approveWithdraw = async (withdrawId, uid, amount) => {
+  const withdrawRef = doc(db, "withdrawals", withdrawId);
+  const userRef = doc(db, "users", uid);
+
+  const userSnap = await getDoc(userRef);
+  const currentBalance = userSnap.data().balance || 0;
+
+  await updateDoc(withdrawRef, { status: "approved" });
+
+  await updateDoc(userRef, {
+    balance: currentBalance - amount
+  });
+
+  await addDoc(collection(db, "transactions"), {
+    uid,
+    type: "withdraw",
+    amount,
+    createdAt: serverTimestamp()
+  });
+
+  alert("Retiro aprobado");
+  loadWithdrawals();
+};
+
+loadWithdrawals();
