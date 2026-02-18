@@ -1,5 +1,6 @@
 // ===============================
-// 👤 PROFILE LOGIC COMPLETO PRO
+// 👤 PROFILE LOGIC COMPLETO PRO +
+// 📊 HISTORIAL + 🚀 VIP SYSTEM
 // ===============================
 
 import { auth, db } from "./firebase.js";
@@ -14,7 +15,8 @@ import {
   where,
   getDocs,
   addDoc,
-  serverTimestamp
+  serverTimestamp,
+  orderBy
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // ===============================
@@ -54,10 +56,6 @@ export async function loadProfile() {
 
   const u = userSnap.data();
 
-  // 📄 MOSTRAR DATOS
-  if (idEl) idEl.innerText = u.publicId || "000000";
-  if (balanceEl) balanceEl.innerText = Number(u.balance || 0).toFixed(2);
-
   // ===============================
   // 👥 VIP POR REFERIDOS
   // ===============================
@@ -68,9 +66,22 @@ export async function loadProfile() {
 
   const referralsSnap = await getDocs(referralsQuery);
   const totalRefs = referralsSnap.size;
-  const vipLevel = Math.floor(totalRefs / 3);
+
+  const vipLevel = Math.floor(totalRefs / 3); // 1 VIP cada 3 referidos
+  const vipRate = getVipRate(vipLevel);
 
   if (vipEl) vipEl.innerText = vipLevel;
+
+  // ===============================
+  // 📄 MOSTRAR DATOS
+  // ===============================
+  if (idEl) idEl.innerText = u.publicId || "000000";
+  if (balanceEl) balanceEl.innerText = Number(u.balance || 0).toFixed(2);
+
+  // ===============================
+  // 📊 HISTORIAL AUTOMÁTICO
+  // ===============================
+  loadTransactions(user.uid);
 
   // ===============================
   // 🔗 INVITAR
@@ -84,7 +95,7 @@ export async function loadProfile() {
   }
 
   // ===============================
-  // 🎁 RESCUE REAL
+  // 🎁 RESCUE REAL + HISTORIAL
   // ===============================
   if (rescueBtn) {
     rescueBtn.onclick = async () => {
@@ -110,8 +121,14 @@ export async function loadProfile() {
         balance: (u.balance || 0) + reward
       });
 
-      alert("🎉 Premio acreditado");
+      await addDoc(collection(db, "transactions"), {
+        uid: user.uid,
+        type: "rescue",
+        amount: reward,
+        createdAt: serverTimestamp()
+      });
 
+      alert("🎉 Premio acreditado");
       loadProfile();
     };
   }
@@ -127,7 +144,7 @@ export async function loadProfile() {
   }
 
   // ===============================
-  // 💸 RETIRO
+  // 💸 RETIRO + HISTORIAL
   // ===============================
   if (withdrawBtn) {
     withdrawBtn.onclick = async () => {
@@ -153,9 +170,70 @@ export async function loadProfile() {
         createdAt: serverTimestamp()
       });
 
+      await addDoc(collection(db, "transactions"), {
+        uid: user.uid,
+        type: "withdraw_request",
+        amount,
+        createdAt: serverTimestamp()
+      });
+
       alert("✅ Solicitud enviada. Esperando aprobación.");
     };
   }
+}
+
+// ===============================
+// 🚀 SISTEMA VIP POR NIVEL
+// ===============================
+function getVipRate(level) {
+  const rates = {
+    0: 0.02,
+    1: 0.03,
+    2: 0.05,
+    3: 0.07,
+    4: 0.10,
+    5: 0.15
+  };
+
+  return rates[level] || 0.02;
+}
+
+// 👉 Usa esta función cuando calcules ganancias:
+export function calculateVipProfit(investment, vipLevel) {
+  const rate = getVipRate(vipLevel);
+  return investment * rate;
+}
+
+// ===============================
+// 📊 CARGAR HISTORIAL
+// ===============================
+async function loadTransactions(uid) {
+
+  const container = document.getElementById("transactionHistory");
+  if (!container) return;
+
+  const q = query(
+    collection(db, "transactions"),
+    where("uid", "==", uid),
+    orderBy("createdAt", "desc")
+  );
+
+  const snap = await getDocs(q);
+
+  container.innerHTML = "";
+
+  snap.forEach(docSnap => {
+    const data = docSnap.data();
+
+    const div = document.createElement("div");
+    div.className = "tx-item";
+    div.innerHTML = `
+      <span>${data.type}</span>
+      <b>$${Number(data.amount).toFixed(2)}</b>
+    `;
+
+    container.appendChild(div);
+  });
 }
 
 // ===============================
@@ -187,6 +265,13 @@ document.addEventListener("click", async (e) => {
       uid: user.uid,
       amount,
       status: "pending",
+      createdAt: serverTimestamp()
+    });
+
+    await addDoc(collection(db, "transactions"), {
+      uid: user.uid,
+      type: "deposit_request",
+      amount,
       createdAt: serverTimestamp()
     });
 
