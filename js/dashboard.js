@@ -41,12 +41,25 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // ===============================
-// 📌 NAVEGACIÓN
+// 📌 NAVEGACIÓN (CORREGIDA)
 // ===============================
 window.go = function (id) {
-  document.querySelectorAll(".page").forEach(p => p.style.display = "none");
+  document.querySelectorAll(".page").forEach(p => {
+    p.style.display = "none";
+  });
+
   const page = document.getElementById(id);
   if (page) page.style.display = "block";
+
+  // 👤 PERFIL solo cuando se abre
+  if (id === "profile") {
+    loadProfile();
+  }
+
+  // 📦 ÓRDENES solo cuando se abre
+  if (id === "orders") {
+    loadOrders();
+  }
 };
 
 // ===============================
@@ -73,8 +86,6 @@ onAuthStateChanged(auth, async user => {
   go("inicio");
   await cargarProductos();
   await cargarDashboard();
-  await loadProfile();
-  loadOrders(); // 👈 SOLO UNA FUENTE DE ÓRDENES
 });
 
 // ===============================
@@ -178,9 +189,10 @@ document.addEventListener("click", async (e) => {
   });
 
   alert("✅ Inversión realizada");
+
+  go("orders");
   loadOrders();
   cargarDashboard();
-  go("orders");
 });
 
 // ===============================
