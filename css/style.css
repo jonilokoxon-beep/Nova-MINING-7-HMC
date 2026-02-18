@@ -306,3 +306,18 @@ body.login-bg {
   display: inline-block;
   margin-top: 5px;
 }
+
+.transaction-box {
+  margin: 15px;
+  background: #111;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.tx-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+  border-bottom: 1px solid #333;
+  font-size: 14px;
+}
