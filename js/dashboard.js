@@ -76,6 +76,37 @@ onAuthStateChanged(auth, async user => {
 });
 
 // ===============================
+// 📊 DASHBOARD (SALDO + GANANCIAS)
+// ===============================
+async function cargarDashboard() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const saldoBox = document.querySelector(".box.blue b");
+  const gananciasBox = document.querySelector(".box.green b");
+  const retiradoBox = document.querySelector(".box.gold b");
+
+  const userRef = doc(db, "users", user.uid);
+  const userSnap = await getDoc(userRef);
+
+  let saldo = userSnap.data().balance || 0;
+  let totalGanado = 0;
+
+  // 🔁 CALCULAR GANANCIAS DESDE ÓRDENES
+  const q = query(collection(db, "orders"), where("uid", "==", user.uid));
+  const ordersSnap = await getDocs(q);
+
+  ordersSnap.forEach(o => {
+    const d = o.data();
+    totalGanado += Number(d.dailyProfit || 0);
+  });
+
+  saldoBox.innerText = `$${saldo.toFixed(2)}`;
+  gananciasBox.innerText = `$${totalGanado.toFixed(2)}`;
+  retiradoBox.innerText = `$0.00`;
+}
+
+// ===============================
 // 🛒 CARGAR PRODUCTOS
 // ===============================
 async function cargarProductos() {
