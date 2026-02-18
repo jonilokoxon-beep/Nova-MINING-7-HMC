@@ -32,6 +32,12 @@ export async function loadProfile() {
   const userRef = doc(db, "users", user.uid);
   let userSnap = await getDoc(userRef);
 
+  const depositBtn = document.getElementById("btn-deposit");
+
+depositBtn.onclick = () => {
+  document.getElementById("depositModal").style.display = "block";
+};
+
   // 🆔 CREAR PERFIL SI NO EXISTE
   if (!userSnap.exists()) {
     const generatedId = Math.floor(100000 + Math.random() * 900000);
@@ -76,3 +82,6 @@ export async function loadProfile() {
     alert("🎁 Próximamente: códigos de recompensa");
   };
 }
+window.closeDeposit = function () {
+  document.getElementById("depositModal").style.display = "none";
+};
