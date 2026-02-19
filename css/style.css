@@ -385,3 +385,40 @@ body.login-bg {
   gap:10px;
   margin:15px;
 }
+.main-btn {
+  width:100%;
+  padding:15px;
+  margin:10px 0;
+  border:none;
+  border-radius:15px;
+  background:linear-gradient(45deg,#6a11cb,#2575fc);
+  color:white;
+  font-size:16px;
+  font-weight:bold;
+}
+
+.card {
+  background:linear-gradient(45deg,#1e3c72,#2a5298);
+  margin:10px;
+  padding:15px;
+  border-radius:15px;
+  color:white;
+}
+
+.rules {
+  background:#111;
+  padding:10px;
+  margin:10px;
+  border-radius:10px;
+  font-size:13px;
+}
+
+.check-btn {
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:12px;
+  background:linear-gradient(45deg,#ff512f,#dd2476);
+  color:white;
+  font-weight:bold;
+}
