@@ -1,3 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Nova MINING 7 HMC</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+<!-- 💰 MODAL DEPÓSITO -->
+<div id="depositModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h3>Solicitar Depósito</h3>
+    <input type="number" id="depositAmount" placeholder="Monto" />
+    <input type="file" id="depositProof" accept="image/*" />
+    <button id="confirmDeposit">Enviar</button>
+    <button onclick="closeDeposit()">Cancelar</button>
+  </div>
+</div>
+
+<header class="top">
+  <span>Nova <b>MINING 7</b> HMC</span>
+  <button onclick="logout()">Salir</button>
+</header>
+
+<!-- 📊 ESTADÍSTICAS -->
+<div class="stats">
+  <div class="box blue">
+    Saldo<br>
+    <b>$<span id="stat-balance">0.00</span></b>
+  </div>
+
+  <div class="box green">
+    Ganancias<br>
+    <b>$<span id="stat-profit">0.00</span></b>
+  </div>
+
+  <div class="box gold">
+    Retirado<br>
+    <b>$<span id="stat-withdrawn">0.00</span></b>
+  </div>
+</div>
+
+<div id="app">
+<div id="content">
+
+<!-- 🏠 INICIO -->
+<section id="inicio" class="page" style="display:block">
+
+  <div class="banner">
+    <img src="assets/ezgif.gif" style="width:100%;">
+  </div>
+
+  <div class="quick-actions">
+
+    <button onclick="go('vipPage')" class="main-btn">
+      💎 VIP
+    </button>
+
+    <button onclick="go('dailyPage')" class="main-btn">
+      🎁 Registro Diario
+    </button>
+
+    <button id="quick-deposit" class="main-btn">
+      💰 Depósito
+    </button>
+
+    <button id="quick-withdraw" class="main-btn">
+      💸 Retiro
+    </button>
+
+    <button onclick="go('equipoPage')" class="main-btn">
+      👥 Tamaño del equipo<br>
+      <b id="teamCount">0</b>
+    </button>
+
+  </div>
+</section>
+
+<!-- 💎 VIP -->
+<section id="vipPage" class="page">
+  <h2 style="padding:15px">👑 Niveles VIP</h2>
+
+  <div class="card">
+    <h3>VIP 1</h3>
+    <p>Inversión mínima: $100</p>
+    <p>Ganancia diaria: 5%</p>
+  </div>
+
+  <div class="card">
+    <h3>VIP 2</h3>
+    <p>Inversión mínima: $500</p>
+    <p>Ganancia diaria: 7%</p>
+  </div>
+
+  <div class="card">
+    <h3>VIP 3</h3>
+    <p>Inversión mínima: $1000</p>
+    <p>Ganancia diaria: 10%</p>
   </div>
 
   <div class="rules">
