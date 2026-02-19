@@ -321,3 +321,67 @@ body.login-bg {
   border-bottom: 1px solid #333;
   font-size: 14px;
 }
+
+.vip-tabs {
+  display:flex;
+  gap:8px;
+  margin:15px;
+}
+
+.vip-btn {
+  flex:1;
+  padding:10px;
+  border-radius:10px;
+  background:#222;
+  color:white;
+  border:none;
+}
+
+.vip-btn.active {
+  background:linear-gradient(45deg,#7b2ff7,#f107a3);
+}
+
+.vip-content {
+  margin:15px;
+  padding:15px;
+  background:#111;
+  border-radius:15px;
+}
+
+.daily-box {
+  margin:15px;
+  padding:15px;
+  background:#1a1a1a;
+  border-radius:15px;
+}
+
+#calendar {
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:5px;
+  margin:10px 0;
+}
+
+.day {
+  background:#333;
+  padding:8px;
+  text-align:center;
+  border-radius:6px;
+}
+
+.day.checked {
+  background:#7b2ff7;
+}
+
+.team-box {
+  margin:15px;
+  padding:15px;
+  background:#111;
+  border-radius:15px;
+}
+
+.finance-buttons {
+  display:flex;
+  gap:10px;
+  margin:15px;
+}
