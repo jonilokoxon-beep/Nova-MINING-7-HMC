@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <meta charset="UTF-8">
+  <title>Nova MINING 7 HMC</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/style.css">
 <meta charset="UTF-8">
 <title>Nova MINING 7 HMC</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -46,23 +50,46 @@
 <div id="app">
 <div id="content">
 
+<!-- ============================= -->
 <!-- 🏠 INICIO -->
+<!-- ============================= -->
 <section id="inicio" class="page" style="display:block">
 
   <div class="banner">
+    <img src="assets/ezgif.gif">
     <img src="assets/ezgif.gif" style="width:100%;">
   </div>
 
+  <!-- 👑 BLOQUE VIP -->
+  <div class="vip-section">
+    <h3 style="padding:10px">👑 Niveles VIP</h3>
   <div class="quick-actions">
 
+    <div class="vip-tabs">
+      <button class="vip-btn active" data-vip="1">VIP1</button>
+      <button class="vip-btn" data-vip="2">VIP2</button>
+      <button class="vip-btn" data-vip="3">VIP3</button>
+      <button class="vip-btn" data-vip="4">VIP4</button>
+      <button class="vip-btn" data-vip="5">VIP5</button>
+    </div>
     <button onclick="go('vipPage')" class="main-btn">
       💎 VIP
     </button>
 
+    <div id="vipContent" class="vip-content"></div>
+  </div>
     <button onclick="go('dailyPage')" class="main-btn">
       🎁 Registro Diario
     </button>
 
+  <!-- ⚡ ACCIONES RÁPIDAS -->
+  <div class="quick-actions">
+    <button onclick="go('productos')">💎 VIP</button>
+    <button id="btn-daily">🎁 Servicio Diario</button>
+    <button id="quick-deposit">💰 Depósito</button>
+    <button id="quick-withdraw">💸 Retiro</button>
+    <button onclick="go('equipo')">
+      👥 Equipo<br>
     <button id="quick-deposit" class="main-btn">
       💰 Depósito
     </button>
@@ -124,7 +151,6 @@
       📌 Reglas:
       <br>• Solo 1 check-in cada 24 horas.
       <br>• Recibes $5 por día.
-      <br>• Recibes $1 por día.
       <br>• Si faltas un día, reinicia.
     </div>
   </div>
@@ -147,13 +173,17 @@
   </div>
 </section>
 
+<!-- ============================= -->
 <!-- 🛒 PRODUCTOS -->
+<!-- ============================= -->
 <section id="productos" class="page">
   <h3 style="padding:15px">Productos VIP</h3>
   <div id="productsList"></div>
 </section>
 
+<!-- ============================= -->
 <!-- 📦 ÓRDENES -->
+<!-- ============================= -->
 <section id="orders" class="page">
   <h3 style="padding:15px">Mis Órdenes</h3>
 
@@ -165,7 +195,23 @@
   <div class="orders" id="ordersList"></div>
 </section>
 
+<!-- ============================= -->
+<!-- 👥 EQUIPO -->
+<!-- ============================= -->
+<section id="equipo" class="page">
+  <h3 style="padding:15px">Mi Equipo</h3>
+
+  <div class="team-box">
+    <p>Total referidos:</p>
+    <h2 id="teamTotal">0</h2>
+  </div>
+
+  <div id="teamList"></div>
+</section>
+
+<!-- ============================= -->
 <!-- 👤 PERFIL -->
+<!-- ============================= -->
 <section id="profile" class="page">
 
   <div class="profile-header">
@@ -191,6 +237,20 @@
     </div>
   </div>
 
+  <!-- 🎁 RESCUE -->
+  <div class="rescue">
+    <h4>🎁 Rescue Presents</h4>
+    <button id="btn-rescue">Ingresar código</button>
+  </div>
+
+  <!-- 📋 MENÚ PERFIL -->
+  <div class="profile-menu">
+    <button onclick="go('orders')">📄 Registro de ingresos</button>
+    <button onclick="go('equipo')">👥 Detalles de comisión</button>
+    <button id="btn-invite">📢 Invitar</button>
+  </div>
+
+  <!-- 📊 HISTORIAL -->
   <div class="transaction-box">
     <h4 style="padding:10px">Historial</h4>
     <div id="transactionHistory"></div>
@@ -201,6 +261,9 @@
 </div>
 </div>
 
+<!-- ============================= -->
+<!-- 🔻 MENÚ INFERIOR -->
+<!-- ============================= -->
 <!-- 🔻 NAV INFERIOR -->
 <nav class="bottom">
   <button onclick="go('inicio')">🏠<span>Inicio</span></button>
@@ -213,8 +276,10 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+
   const depositBtn = document.getElementById("btn-deposit");
   const withdrawBtn = document.getElementById("btn-withdraw");
+
   const quickDeposit = document.getElementById("quick-deposit");
   const quickWithdraw = document.getElementById("quick-withdraw");
 
@@ -225,6 +290,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (quickWithdraw && withdrawBtn) {
     quickWithdraw.onclick = () => withdrawBtn.click();
   }
+
 });
 </script>
 
