@@ -1,58 +1,31 @@
-// 🔥 Firebase SDK
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { 
-  getAuth, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword 
-} from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+// js/auth.js
 
-// ⚠️ TU CONFIG REAL DE FIREBASE
-const firebaseConfig = {
-  apiKey: "AIzaSyALrk15Qvqrq6zCVTxZ7U9wSnnZIqeSmv4",
-  authDomain: "novagrow-app.firebaseapp.com",
-  projectId: "novagrow-app",
-  storageBucket: "novagrow-app.firebasestorage.app",
-  messagingSenderId: "976275033149",
-  appId: "1:976275033149:web:e40c6510684bd06c82ae54"
+import { auth } from "./firebase.js";
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+window.login = async function () {
+  const email = email.value;
+  const password = password.value;
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    location.href = "dashboard.html";
+  } catch (err) {
+    alert(err.message);
+  }
 };
 
-// 🔥 Init
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+window.register = async function () {
+  const email = email.value;
+  const password = password.value;
 
-// 🔐 LOGIN
-window.login = function () {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  const status = document.getElementById("status");
-
-  signInWithEmailAndPassword(auth, email, password)
-    .then(() => {
-      window.location.href = "dashboard.html";
-    })
-    .catch(err => {
-      status.innerText = err.message;
-    });
-};
-
-// 🆕 REGISTER
-window.register = function () {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  const status = document.getElementById("status");
-
-  createUserWithEmailAndPassword(auth, email, password)
-  .then((userCredential) => {
-    // ✅ Usuario creado
-    document.getElementById("status").innerText = "Cuenta creada correctamente";
-
-    // 🔥 REDIRIGIR AUTOMÁTICAMENTE
-    setTimeout(() => {
-      window.location.href = "dashboard.html";
-    }, 800);
-  })
-  .catch((error) => {
-    document.getElementById("status").innerText = error.message;
-  });
-
+  try {
+    await createUserWithEmailAndPassword(auth, email, password);
+    location.href = "dashboard.html";
+  } catch (err) {
+    alert(err.message);
+  }
 };
