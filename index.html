@@ -1,7 +1,21 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <meta http-equiv="refresh" content="0; url=login.html">
+  <meta charset="UTF-8">
+  <title>Login - Nova</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body></body>
+<body style="background:#0f172a;color:white;text-align:center;padding-top:100px;">
+
+  <h2>Nova MINING 7 HMC</h2>
+
+  <input type="email" id="email" placeholder="Correo"><br><br>
+  <input type="password" id="password" placeholder="Contraseña"><br><br>
+
+  <button onclick="login()">Entrar</button>
+
+  <p id="status"></p>
+
+  <script type="module" src="js/auth.js"></script>
+</body>
 </html>
