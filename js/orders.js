@@ -1,10 +1,8 @@
 // ===============================
-// 📦 ÓRDENES - SISTEMA REAL AUTOMÁTICO
+// 🔥 FIREBASE IMPORTS
 // ===============================
-
-import { db, auth } from "./firebase.js";
-
 import {
+  getFirestore,
   collection,
   query,
   where,
@@ -12,150 +10,179 @@ import {
   doc,
   updateDoc,
   getDoc,
-  serverTimestamp
+  addDoc,
+  serverTimestamp,
+  increment
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const db = getFirestore();
+const auth = getAuth();
+
 // ===============================
-// 🚀 CARGAR ÓRDENES
+// 📦 CARGAR ÓRDENES
 // ===============================
 export async function loadOrders() {
   const user = auth.currentUser;
   if (!user) return;
 
-  const ordersDiv = document.getElementById("ordersList");
-  const totalDiv = document.getElementById("totalProfit");
+  const list = document.getElementById("ordersList");
+  if (!list) return;
 
-  if (!ordersDiv || !totalDiv) return;
+  list.innerHTML = "";
 
-  ordersDiv.innerHTML = "Cargando órdenes...";
-  totalDiv.innerText = "$0.00";
-
-  let totalGanado = 0;
-
-  const q = query(
-    collection(db, "orders"),
-    where("uid", "==", user.uid),
-    where("status", "==", "active")
-  );
-
+  const q = query(collection(db, "orders"), where("uid", "==", user.uid));
   const snap = await getDocs(q);
 
   if (snap.empty) {
-    ordersDiv.innerHTML = "No tienes inversiones activas";
+    list.innerHTML = "<p>No tienes órdenes activas</p>";
     return;
   }
 
-  ordersDiv.innerHTML = "";
-
   snap.forEach(docSnap => {
     const o = docSnap.data();
-    const orderId = docSnap.id;
 
-    const daily = Number(o.dailyProfit || 0);
-    const duration = Number(o.duration || 0);
+    if (o.status !== "active") return;
 
-    const created = o.createdAt.toMillis();
-    const lastClaim = o.lastClaim.toMillis();
-
+    const created = o.createdAt?.toMillis?.() || 0;
     const now = Date.now();
-    const passedDays = Math.floor((now - created) / 86400000);
-    const daysLeft = Math.max(duration - passedDays, 0);
+    const daysPassed = Math.floor((now - created) / 86400000);
 
-    totalGanado += daily * passedDays;
+    const canClaim =
+      now - (o.lastClaim?.toMillis?.() || 0) >= 86400000;
 
-    const nextClaim = lastClaim + 86400000;
-
-    ordersDiv.innerHTML += `
+    list.innerHTML += `
       <div class="order-card">
-        <b>${o.productName}</b><br>
-        Ganancia diaria: $${daily.toFixed(2)}<br>
-        Días restantes: ${daysLeft}<br>
-        Ganancia acumulada: $${(daily * passedDays).toFixed(2)}<br>
-        <div class="timer" 
-             data-id="${orderId}" 
-             data-next="${nextClaim}">
-          --:--:--
-        </div>
+        <h4>${o.productName}</h4>
+        <p>Invertido: $${o.amount}</p>
+        <p>Ganancia diaria: $${o.dailyProfit}</p>
+        <p>Días transcurridos: ${daysPassed}/${o.duration}</p>
+        <button 
+          class="btn-claim"
+          data-id="${docSnap.id}"
+          ${canClaim ? "" : "disabled"}
+        >
+          ${canClaim ? "Cobrar" : "Esperando 24h"}
+        </button>
       </div>
     `;
   });
-
-  totalDiv.innerText = `$${totalGanado.toFixed(2)}`;
-
-  startTimers();
 }
 
 // ===============================
-// ⏱ CONTADORES + COBRO AUTOMÁTICO
+// 💰 COBRAR GANANCIA DIARIA
 // ===============================
-function startTimers() {
-  setInterval(async () => {
-    const timers = document.querySelectorAll(".timer");
-    if (!timers.length) return;
+document.addEventListener("click", async (e) => {
+  if (!e.target.classList.contains("btn-claim")) return;
 
-    for (const el of timers) {
-      const orderId = el.dataset.id;
-      const next = Number(el.dataset.next);
-      const now = Date.now();
-      const diff = next - now;
-
-      if (diff <= 0) {
-        await cobrarOrden(orderId);
-        el.innerText = "Procesando...";
-        continue;
-      }
-
-      const h = Math.floor(diff / 3600000);
-      const m = Math.floor((diff % 3600000) / 60000);
-      const s = Math.floor((diff % 60000) / 1000);
-
-      el.innerText = `${h}h ${m}m ${s}s`;
-    }
-  }, 1000);
-}
-
-// ===============================
-// 💰 COBRAR ORDEN AUTOMÁTICAMENTE
-// ===============================
-async function cobrarOrden(orderId) {
+  const orderId = e.target.dataset.id;
   const user = auth.currentUser;
   if (!user) return;
 
   const orderRef = doc(db, "orders", orderId);
   const orderSnap = await getDoc(orderRef);
+
   if (!orderSnap.exists()) return;
 
   const o = orderSnap.data();
-  if (o.status !== "active") return;
 
   const now = Date.now();
-  const last = o.lastClaim.toMillis();
+  const last = o.lastClaim?.toMillis?.() || 0;
 
-  // 🔒 Ya cobró hoy
-  if (now - last < 86400000) return;
+  if (now - last < 86400000) {
+    alert("⏳ Aún no pasan 24h");
+    return;
+  }
 
-  const created = o.createdAt.toMillis();
-  const passedDays = Math.floor((now - created) / 86400000);
+  // Verificar duración
+  const created = o.createdAt?.toMillis?.() || 0;
+  const daysPassed = Math.floor((now - created) / 86400000);
 
-  // 🔁 ORDEN TERMINADA
-  if (passedDays >= o.duration) {
+  if (daysPassed >= o.duration) {
     await updateDoc(orderRef, { status: "finished" });
+    alert("Orden finalizada");
     loadOrders();
     return;
   }
 
-  // 💸 SUMAR GANANCIA
+  // Pagar ganancia
   const userRef = doc(db, "users", user.uid);
   const userSnap = await getDoc(userRef);
-  const saldo = Number(userSnap.data().balance || 0);
+  const userData = userSnap.data();
 
   await updateDoc(userRef, {
-    balance: saldo + Number(o.dailyProfit)
+    balance: increment(o.dailyProfit)
   });
 
+  await addDoc(collection(db, "transactions"), {
+    uid: user.uid,
+    type: "daily_profit",
+    amount: o.dailyProfit,
+    createdAt: serverTimestamp()
+  });
+
+  // Actualizar último cobro
   await updateDoc(orderRef, {
     lastClaim: serverTimestamp()
   });
 
+  // 🔥 MULTINIVEL TAMBIÉN EN GANANCIA
+  await pagarComisiones(userData.refBy, o.dailyProfit);
+
+  alert("💸 Ganancia acreditada");
   loadOrders();
+});
+
+// ===============================
+// 🔥 MULTINIVEL 3 NIVELES
+// ===============================
+async function pagarComisiones(refUid, amount) {
+  if (!refUid) return;
+
+  const nivel1Ref = doc(db, "users", refUid);
+  const snap1 = await getDoc(nivel1Ref);
+  if (!snap1.exists()) return;
+
+  const com1 = amount * 0.10;
+  await updateDoc(nivel1Ref, { balance: increment(com1) });
+
+  await addDoc(collection(db, "transactions"), {
+    uid: refUid,
+    type: "nivel1_profit",
+    amount: com1,
+    createdAt: serverTimestamp()
+  });
+
+  const nivel2Uid = snap1.data().refBy;
+  if (!nivel2Uid) return;
+
+  const nivel2Ref = doc(db, "users", nivel2Uid);
+  const snap2 = await getDoc(nivel2Ref);
+  if (!snap2.exists()) return;
+
+  const com2 = amount * 0.05;
+  await updateDoc(nivel2Ref, { balance: increment(com2) });
+
+  await addDoc(collection(db, "transactions"), {
+    uid: nivel2Uid,
+    type: "nivel2_profit",
+    amount: com2,
+    createdAt: serverTimestamp()
+  });
+
+  const nivel3Uid = snap2.data().refBy;
+  if (!nivel3Uid) return;
+
+  const com3 = amount * 0.01;
+  await updateDoc(doc(db, "users", nivel3Uid), {
+    balance: increment(com3)
+  });
+
+  await addDoc(collection(db, "transactions"), {
+    uid: nivel3Uid,
+    type: "nivel3_profit",
+    amount: com3,
+    createdAt: serverTimestamp()
+  });
 }
