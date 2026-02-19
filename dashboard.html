@@ -9,17 +9,6 @@
 
 <body>
 
-<!-- 💰 MODAL DEPÓSITO -->
-<div id="depositModal" class="modal" style="display:none;">
-  <div class="modal-content">
-    <h3>Solicitar Depósito</h3>
-    <input type="number" id="depositAmount" placeholder="Monto" />
-    <input type="file" id="depositProof" accept="image/*" />
-    <button id="confirmDeposit">Enviar</button>
-    <button onclick="closeDeposit()">Cancelar</button>
-  </div>
-</div>
-
 <header class="top">
   <span>Nova <b>MINING 7</b> HMC</span>
   <button onclick="logout()">Salir</button>
@@ -29,17 +18,17 @@
 <div class="stats">
   <div class="box blue">
     Saldo<br>
-    <b>$<span id="stat-balance">0.00</span></b>
+    <b>$<span id="balance">0.00</span></b>
   </div>
 
   <div class="box green">
-    Ganancias<br>
-    <b>$<span id="stat-profit">0.00</span></b>
+    Ganancias Totales<br>
+    <b>$<span id="totalEarned">0.00</span></b>
   </div>
 
   <div class="box gold">
-    Retirado<br>
-    <b>$<span id="stat-withdrawn">0.00</span></b>
+    Comisión Equipo<br>
+    <b>$<span id="levelCommission">0.00</span></b>
   </div>
 </div>
 
@@ -63,20 +52,13 @@
       🎁 Registro Diario
     </button>
 
-    <button id="quick-deposit" class="main-btn">
-      💰 Depósito
-    </button>
-
-    <button id="quick-withdraw" class="main-btn">
-      💸 Retiro
-    </button>
-
     <button onclick="go('equipoPage')" class="main-btn">
       👥 Tamaño del equipo<br>
-      <b id="teamCount">0</b>
+      <b id="teamCountHome">0</b>
     </button>
 
   </div>
+
 </section>
 
 <!-- 💎 VIP -->
@@ -119,13 +101,6 @@
     </button>
 
     <div id="check-status"></div>
-
-    <div class="rules">
-      📌 Reglas:
-      <br>• Solo 1 check-in cada 24 horas.
-      <br>• Recibes $1 por día.
-      <br>• Si faltas un día, reinicia.
-    </div>
   </div>
 </section>
 
@@ -138,12 +113,6 @@
   </p>
 
   <div id="teamList"></div>
-
-  <div class="rules">
-    📌 Solo cuentan usuarios que:
-    <br>• Se registran con tu enlace
-    <br>• Realizan una inversión
-  </div>
 </section>
 
 <!-- 🛒 PRODUCTOS -->
@@ -185,8 +154,14 @@
 
       <div class="actions">
         <button id="btn-deposit">Depósito</button>
-        <button id="btn-withdraw">Retiro</button>
       </div>
+
+      <!-- 🔥 RETIRO REAL -->
+      <div style="margin-top:15px;">
+        <input type="number" id="withdrawAmount" placeholder="Monto a retirar" />
+        <button id="withdrawBtn">Solicitar Retiro</button>
+      </div>
+
     </div>
   </div>
 
@@ -209,23 +184,6 @@
 </nav>
 
 <script type="module" src="js/dashboard.js"></script>
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const depositBtn = document.getElementById("btn-deposit");
-  const withdrawBtn = document.getElementById("btn-withdraw");
-  const quickDeposit = document.getElementById("quick-deposit");
-  const quickWithdraw = document.getElementById("quick-withdraw");
-
-  if (quickDeposit && depositBtn) {
-    quickDeposit.onclick = () => depositBtn.click();
-  }
-
-  if (quickWithdraw && withdrawBtn) {
-    quickWithdraw.onclick = () => withdrawBtn.click();
-  }
-});
-</script>
 
 </body>
 </html>
