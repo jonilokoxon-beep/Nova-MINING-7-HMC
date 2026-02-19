@@ -1,3 +1,46 @@
+// ===============================
+// 🔥 FIREBASE IMPORTS
+// ===============================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  addDoc,
+  serverTimestamp,
+  query,
+  where
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+import { loadOrders } from "./orders.js";
+import { loadProfile } from "./profile.js";
+
+// ===============================
+// 🔹 CONFIG FIREBASE
+// ===============================
+const firebaseConfig = {
+  apiKey: "AIzaSyALrk15Qvqrq6zCVTxZ7U9wSnnZIqeSmv4",
+  authDomain: "novagrow-app.firebaseapp.com",
+  projectId: "novagrow-app",
+  storageBucket: "novagrow-app.appspot.com",
+  messagingSenderId: "976275033149",
+  appId: "1:976275033149:web:e40c6510684bd06c82ae54"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// ===============================
 // 📌 NAVEGACIÓN
 // ===============================
 window.go = function (id) {
