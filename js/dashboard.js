@@ -21,7 +21,6 @@ import {
   where
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-import { loadOrders } from "./orders.js";
 
 // ===============================
 // 📌 NAVEGACIÓN
