@@ -1,7 +1,7 @@
-// ===============================
-// 👤 PROFILE LOGIC COMPLETO PRO +
-// 📊 HISTORIAL + 🚀 VIP SYSTEM
-// ===============================
+// =====================================================
+// 👤 PROFILE SYSTEM PRO
+// 📊 HISTORIAL + 🚀 VIP SYSTEM + 💰 DEPOSIT/WITHDRAW
+// =====================================================
 
 import { auth, db } from "./firebase.js";
 import {
@@ -19,35 +19,30 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 
-// ===============================
+// =====================================================
 // 🚀 LOAD PROFILE
-// ===============================
+// =====================================================
 export async function loadProfile() {
 
   const user = auth.currentUser;
   if (!user) return;
 
-  const idEl = document.getElementById("p-id");
-  const vipEl = document.getElementById("p-vip");
-  const balanceEl = document.getElementById("p-balance");
-
-  const inviteBtn = document.getElementById("btn-invite");
-  const rescueBtn = document.getElementById("btn-rescue");
-  const depositBtn = document.getElementById("btn-deposit");
-  const withdrawBtn = document.getElementById("btn-withdraw");
-
   const userRef = doc(db, "users", user.uid);
   let userSnap = await getDoc(userRef);
 
-  // 👑 PANEL ADMIN
+  // =============================
+  // 👑 ADMIN BUTTON
+  // =============================
   if (user.email === "joni.lokoxon@gmail.com") {
-    const btn = document.createElement("button");
-    btn.innerText = "👑 Panel Admin";
-    btn.onclick = () => location.href = "admin.html";
-    document.querySelector(".profile-menu")?.appendChild(btn);
+    const adminBtn = document.createElement("button");
+    adminBtn.textContent = "👑 Panel Admin";
+    adminBtn.onclick = () => location.href = "admin.html";
+    document.querySelector(".profile-menu")?.appendChild(adminBtn);
   }
 
-  // 🆔 CREAR PERFIL SI NO EXISTE
+  // =============================
+  // 🆔 CREATE USER IF NOT EXISTS
+  // =============================
   if (!userSnap.exists()) {
 
     const generatedId = Math.floor(100000 + Math.random() * 900000);
@@ -64,11 +59,11 @@ export async function loadProfile() {
     userSnap = await getDoc(userRef);
   }
 
-  const u = userSnap.data();
+  const userData = userSnap.data();
 
-  // ===============================
-  // 👥 VIP POR REFERIDOS
-  // ===============================
+  // =============================
+  // 👥 VIP SYSTEM BY REFERRALS
+  // =============================
   const referralsQuery = query(
     collection(db, "users"),
     where("referredBy", "==", user.uid)
@@ -77,126 +72,115 @@ export async function loadProfile() {
   const referralsSnap = await getDocs(referralsQuery);
   const totalRefs = referralsSnap.size;
 
-  const vipLevel = Math.floor(totalRefs / 3); // 1 VIP cada 3 referidos
+  const vipLevel = Math.floor(totalRefs / 3);
   const vipRate = getVipRate(vipLevel);
 
-  if (vipEl) vipEl.innerText = vipLevel;
+  document.getElementById("p-vip")?.innerText = vipLevel;
+  document.getElementById("p-id")?.innerText = userData.publicId || "000000";
+  document.getElementById("p-balance")?.innerText =
+    Number(userData.balance || 0).toFixed(2);
 
-  // ===============================
-  // 📄 MOSTRAR DATOS
-  // ===============================
-  if (idEl) idEl.innerText = u.publicId || "000000";
-  if (balanceEl) balanceEl.innerText = Number(u.balance || 0).toFixed(2);
-
-  // ===============================
-  // 📊 HISTORIAL AUTOMÁTICO
-  // ===============================
+  // =============================
+  // 📊 LOAD TRANSACTIONS
+  // =============================
   loadTransactions(user.uid);
 
-  // ===============================
-  // 🔗 INVITAR
-  // ===============================
-  if (inviteBtn) {
-    inviteBtn.onclick = () => {
-      const link = `${location.origin}/register.html?ref=${user.uid}`;
-      navigator.clipboard.writeText(link);
-      alert("✅ Enlace copiado para invitar");
-    };
-  }
+  // =============================
+  // 🔗 INVITE LINK
+  // =============================
+  document.getElementById("btn-invite")?.addEventListener("click", () => {
+    const link = `${location.origin}/register.html?ref=${user.uid}`;
+    navigator.clipboard.writeText(link);
+    alert("✅ Enlace copiado");
+  });
 
-  // ===============================
-  // 🎁 RESCATE + HISTORIAL
-  // ===============================
-  if (rescueBtn) {
-    rescueBtn.onclick = async () => {
+  // =============================
+  // 🎁 RESCUE CODE
+  // =============================
+  document.getElementById("btn-rescue")?.addEventListener("click", async () => {
 
-      const code = prompt("Ingresa código de recompensa:");
-      if (!code) return;
+    const code = prompt("Ingresa código:");
+    if (!code) return;
 
-      const q = query(
-        collection(db, "rescueCodes"),
-        where("code", "==", code),
-        where("active", "==", true)
-      );
+    const q = query(
+      collection(db, "rescueCodes"),
+      where("code", "==", code),
+      where("active", "==", true)
+    );
 
-      const snap = await getDocs(q);
+    const snap = await getDocs(q);
 
-      if (snap.empty) {
-        alert("❌ Código inválido");
-        return;
-      }
+    if (snap.empty) {
+      alert("❌ Código inválido");
+      return;
+    }
 
-      const reward = snap.docs[0].data().reward || 0;
+    const reward = snap.docs[0].data().reward || 0;
 
-      await updateDoc(userRef, {
-        balance: (u.balance || 0) + reward
-      });
+    await updateDoc(userRef, {
+      balance: (userData.balance || 0) + reward
+    });
 
-      await addDoc(collection(db, "transactions"), {
-        uid: user.uid,
-        type: "rescue",
-        amount: reward,
-        createdAt: serverTimestamp()
-      });
+    await addDoc(collection(db, "transactions"), {
+      uid: user.uid,
+      type: "rescue",
+      amount: reward,
+      createdAt: serverTimestamp()
+    });
 
-      alert("🎉 Premio acreditado");
-      loadProfile();
-    };
-  }
+    alert("🎉 Premio acreditado");
+    loadProfile();
+  });
 
-  // ===============================
-  // 💰 DEPÓSITO
-  // ===============================
-  if (depositBtn) {
-    depositBtn.onclick = () => {
-      const modal = document.getElementById("depositModal");
-      if (modal) modal.style.display = "block";
-    };
-  }
+  // =============================
+  // 💰 DEPOSIT MODAL
+  // =============================
+  document.getElementById("btn-deposit")?.addEventListener("click", () => {
+    document.getElementById("depositModal")?.style.display = "block";
+  });
 
-  // ===============================
-  // 💸 RETIRO + HISTORIAL
-  // ===============================
-  if (withdrawBtn) {
-    withdrawBtn.onclick = async () => {
+  // =============================
+  // 💸 WITHDRAW REQUEST
+  // =============================
+  document.getElementById("btn-withdraw")?.addEventListener("click", async () => {
 
-      const amount = Number(prompt("Monto a retirar:"));
-      if (!amount || amount <= 0) {
-        alert("Monto inválido");
-        return;
-      }
+    const amount = Number(prompt("Monto a retirar:"));
+    if (!amount || amount <= 0) {
+      alert("Monto inválido");
+      return;
+    }
 
-      const currentSnap = await getDoc(userRef);
-      const currentBalance = currentSnap.data().balance || 0;
+    const currentSnap = await getDoc(userRef);
+    const currentBalance = currentSnap.data().balance || 0;
 
-      if (amount > currentBalance) {
-        alert("❌ Saldo insuficiente");
-        return;
-      }
+    if (amount > currentBalance) {
+      alert("❌ Saldo insuficiente");
+      return;
+    }
 
-      await addDoc(collection(db, "withdrawals"), {
-        uid: user.uid,
-        amount,
-        status: "pending",
-        createdAt: serverTimestamp()
-      });
+    await addDoc(collection(db, "withdrawals"), {
+      uid: user.uid,
+      amount,
+      status: "pending",
+      createdAt: serverTimestamp()
+    });
 
-      await addDoc(collection(db, "transactions"), {
-        uid: user.uid,
-        type: "withdraw_request",
-        amount,
-        createdAt: serverTimestamp()
-      });
+    await addDoc(collection(db, "transactions"), {
+      uid: user.uid,
+      type: "withdraw_request",
+      amount,
+      createdAt: serverTimestamp()
+    });
 
-      alert("✅ Solicitud enviada. Esperando aprobación.");
-    };
-  }
+    alert("✅ Solicitud enviada");
+  });
+
 }
 
 
-// ===============================
-// 🚀 SISTEMA VIP POR NIVEL
-// ===============================
+// =====================================================
+// 🚀 VIP RATE TABLE
+// =====================================================
 function getVipRate(level) {
   const rates = {
     0: 0.02,
@@ -211,16 +195,17 @@ function getVipRate(level) {
 }
 
 
-// 👉 Usar para calcular ganancias
+// =====================================================
+// 💎 VIP PROFIT CALCULATOR
+// =====================================================
 export function calculateVipProfit(investment, vipLevel) {
-  const rate = getVipRate(vipLevel);
-  return investment * rate;
+  return investment * getVipRate(vipLevel);
 }
 
 
-// ===============================
-// 📊 CARGAR HISTORIAL
-// ===============================
+// =====================================================
+// 📊 LOAD TRANSACTION HISTORY
+// =====================================================
 async function loadTransactions(uid) {
 
   const container = document.getElementById("transactionHistory");
@@ -240,31 +225,30 @@ async function loadTransactions(uid) {
 
     const data = docSnap.data();
 
-    const div = document.createElement("div");
-    div.className = "tx-item";
+    const item = document.createElement("div");
+    item.className = "tx-item";
 
-    div.innerHTML = `
+    item.innerHTML = `
       <span>${data.type}</span>
-      <b>$${Number(data.amount).toFixed(2)}</b>
+      <strong>$${Number(data.amount).toFixed(2)}</strong>
     `;
 
-    container.appendChild(div);
+    container.appendChild(item);
   });
 }
 
 
-// ===============================
-// ❌ CERRAR MODAL
-// ===============================
+// =====================================================
+// ❌ CLOSE DEPOSIT MODAL
+// =====================================================
 window.closeDeposit = function () {
-  const modal = document.getElementById("depositModal");
-  if (modal) modal.style.display = "none";
+  document.getElementById("depositModal")?.style.display = "none";
 };
 
 
-// ===============================
-// 💰 CONFIRMAR DEPÓSITO
-// ===============================
+// =====================================================
+// 💰 CONFIRM DEPOSIT
+// =====================================================
 document.addEventListener("click", async (e) => {
 
   if (e.target.id !== "confirmDeposit") return;
@@ -295,7 +279,7 @@ document.addEventListener("click", async (e) => {
       createdAt: serverTimestamp()
     });
 
-    alert("✅ Solicitud enviada. Esperando aprobación.");
+    alert("✅ Solicitud enviada");
     closeDeposit();
 
   } catch (error) {
