@@ -2,14 +2,26 @@
 // 🔥 FIREBASE IMPORTS
 // ===============================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  doc,
+  getDoc,
+  updateDoc,
+  addDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// 📦 ÓRDENES
 import { loadOrders } from "./orders.js";
 
 // ===============================
-// 🔹 CONFIG FIREBASE
+// 🔹 CONFIG
 // ===============================
 const firebaseConfig = {
   apiKey: "AIzaSyALrk15Qvqrq6zCVTxZ7U9wSnnZIqeSmv4",
@@ -20,98 +32,118 @@ const firebaseConfig = {
   appId: "1:976275033149:web:e40c6510684bd06c82ae54"
 };
 
-// ===============================
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
 // ===============================
-// 📌 NAVEGACIÓN GLOBAL
+// 📌 NAVEGACIÓN
 // ===============================
-window.go = async function (id) {
-  document.querySelectorAll(".page").forEach(p => {
-    p.style.display = "none";
-  });
-
+window.go = function (id) {
+  document.querySelectorAll(".page").forEach(p => p.style.display = "none");
   const page = document.getElementById(id);
   if (page) page.style.display = "block";
-
-  // 🔥 LÓGICA POR SECCIÓN
-  if (id === "orders") {
-    await loadOrders();
-  }
-
-  if (id === "productos") {
-    await cargarPlanes();
-  }
 };
 
 // ===============================
 // 🔐 SESIÓN
 // ===============================
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async user => {
   if (!user) {
-    window.location.replace("login.html");
+    location.replace("login.html");
     return;
   }
 
-  // ⏳ Esperar DOM
-  setTimeout(() => {
-    go("inicio");
-  }, 100);
+  go("inicio");
+  await cargarProductos();
+  loadOrders();
 });
 
 // ===============================
-// 💰 CARGAR PRODUCTOS
+// 🛒 CARGAR PRODUCTOS
 // ===============================
-async function cargarPlanes() {
-  const productsDiv = document.getElementById("productsList");
+async function cargarProductos() {
+  const list = document.getElementById("productsList");
+  list.innerHTML = "Cargando productos...";
 
-  if (!productsDiv) {
-    console.error("❌ No existe #productsList");
+  const snap = await getDocs(collection(db, "products"));
+  if (snap.empty) {
+    list.innerHTML = "No hay productos";
     return;
   }
 
-  productsDiv.innerHTML = "Cargando productos...";
+  list.innerHTML = "";
 
-  try {
-    const snapshot = await getDocs(collection(db, "products"));
+  snap.forEach(d => {
+    const p = d.data();
+    if (!p.active) return;
 
-    if (snapshot.empty) {
-      productsDiv.innerHTML = "No hay productos disponibles";
-      return;
-    }
-
-    productsDiv.innerHTML = "";
-
-    snapshot.forEach(doc => {
-      const p = doc.data();
-      if (p.active !== true) return;
-
-      productsDiv.innerHTML += `
-        <div class="plan">
-          <h4>${p.name}</h4>
-          <p>Precio: $${p.price}</p>
-          <p>Ganancia diaria: $${p.profit}</p>
-          <p>Duración: ${p.duration} días</p>
-          <button onclick="alert('Invertir próximamente')">
-            Invertir
-          </button>
-        </div>
-      `;
-    });
-
-  } catch (err) {
-    console.error("🔥 Firestore:", err);
-    productsDiv.innerHTML = "Error al cargar productos";
-  }
+    list.innerHTML += `
+      <div class="plan">
+        <h4>${p.name}</h4>
+        <p>Precio: $${p.price}</p>
+        <p>Ganancia diaria: $${p.profit}</p>
+        <p>Duración: ${p.duration} días</p>
+        <button onclick="invertir('${d.id}')">Invertir</button>
+      </div>
+    `;
+  });
 }
+
+// ===============================
+// 💰 INVERTIR
+// ===============================
+window.invertir = async function (productId) {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const userRef = doc(db, "users", user.uid);
+  const userSnap = await getDoc(userRef);
+
+  if (!userSnap.exists()) {
+    alert("Usuario no encontrado");
+    return;
+  }
+
+  const saldo = userSnap.data().balance || 0;
+
+  const prodRef = doc(db, "products", productId);
+  const prodSnap = await getDoc(prodRef);
+  if (!prodSnap.exists()) return;
+
+  const p = prodSnap.data();
+
+  if (saldo < p.price) {
+    alert("Saldo insuficiente");
+    return;
+  }
+
+  // Descontar saldo
+  await updateDoc(userRef, {
+    balance: saldo - p.price
+  });
+
+  // Crear orden
+  await addDoc(collection(db, "orders"), {
+    userId: user.uid,
+    userEmail: user.email,
+    productName: p.name,
+    amount: p.price,
+    dailyProfit: p.profit,
+    duration: p.duration,
+    createdAt: serverTimestamp(),
+    lastClaim: serverTimestamp(),
+    status: "active"
+  });
+
+  alert("Inversión realizada");
+  loadOrders();
+  go("orders");
+};
 
 // ===============================
 // 🚪 LOGOUT
 // ===============================
 window.logout = function () {
-  signOut(auth).then(() => {
-    window.location.replace("login.html");
-  });
+  signOut(auth).then(() => location.replace("login.html"));
 };
