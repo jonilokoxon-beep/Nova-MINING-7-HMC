@@ -4,7 +4,6 @@
 // ===============================
 
 import { auth, db } from "./firebase.js";
-
 import {
   doc,
   getDoc,
@@ -19,10 +18,12 @@ import {
   orderBy
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+
 // ===============================
 // 🚀 LOAD PROFILE
 // ===============================
 export async function loadProfile() {
+
   const user = auth.currentUser;
   if (!user) return;
 
@@ -38,17 +39,17 @@ export async function loadProfile() {
   const userRef = doc(db, "users", user.uid);
   let userSnap = await getDoc(userRef);
 
-if (user.email === "TU_CORREO_ADMIN@gmail.com") {
-if (user.email === "joni.lokoxon@gmail.com") {
-  const btn = document.createElement("button");
-  btn.innerText = "👑 Panel Admin";
-  btn.onclick = () => location.href = "admin.html";
-  document.querySelector(".profile-menu").appendChild(btn);
-}
-
+  // 👑 PANEL ADMIN
+  if (user.email === "joni.lokoxon@gmail.com") {
+    const btn = document.createElement("button");
+    btn.innerText = "👑 Panel Admin";
+    btn.onclick = () => location.href = "admin.html";
+    document.querySelector(".profile-menu")?.appendChild(btn);
+  }
 
   // 🆔 CREAR PERFIL SI NO EXISTE
   if (!userSnap.exists()) {
+
     const generatedId = Math.floor(100000 + Math.random() * 900000);
 
     await setDoc(userRef, {
@@ -104,10 +105,11 @@ if (user.email === "joni.lokoxon@gmail.com") {
   }
 
   // ===============================
-  // 🎁 RESCUE REAL + HISTORIAL
+  // 🎁 RESCATE + HISTORIAL
   // ===============================
   if (rescueBtn) {
     rescueBtn.onclick = async () => {
+
       const code = prompt("Ingresa código de recompensa:");
       if (!code) return;
 
@@ -157,8 +159,8 @@ if (user.email === "joni.lokoxon@gmail.com") {
   // ===============================
   if (withdrawBtn) {
     withdrawBtn.onclick = async () => {
-      const amount = Number(prompt("Monto a retirar:"));
 
+      const amount = Number(prompt("Monto a retirar:"));
       if (!amount || amount <= 0) {
         alert("Monto inválido");
         return;
@@ -191,6 +193,7 @@ if (user.email === "joni.lokoxon@gmail.com") {
   }
 }
 
+
 // ===============================
 // 🚀 SISTEMA VIP POR NIVEL
 // ===============================
@@ -207,11 +210,13 @@ function getVipRate(level) {
   return rates[level] || 0.02;
 }
 
-// 👉 Usa esta función cuando calcules ganancias:
+
+// 👉 Usar para calcular ganancias
 export function calculateVipProfit(investment, vipLevel) {
   const rate = getVipRate(vipLevel);
   return investment * rate;
 }
+
 
 // ===============================
 // 📊 CARGAR HISTORIAL
@@ -232,10 +237,12 @@ async function loadTransactions(uid) {
   container.innerHTML = "";
 
   snap.forEach(docSnap => {
+
     const data = docSnap.data();
 
     const div = document.createElement("div");
     div.className = "tx-item";
+
     div.innerHTML = `
       <span>${data.type}</span>
       <b>$${Number(data.amount).toFixed(2)}</b>
@@ -245,6 +252,7 @@ async function loadTransactions(uid) {
   });
 }
 
+
 // ===============================
 // ❌ CERRAR MODAL
 // ===============================
@@ -253,10 +261,12 @@ window.closeDeposit = function () {
   if (modal) modal.style.display = "none";
 };
 
+
 // ===============================
 // 💰 CONFIRMAR DEPÓSITO
 // ===============================
 document.addEventListener("click", async (e) => {
+
   if (e.target.id !== "confirmDeposit") return;
 
   const user = auth.currentUser;
@@ -270,6 +280,7 @@ document.addEventListener("click", async (e) => {
   }
 
   try {
+
     await addDoc(collection(db, "deposits"), {
       uid: user.uid,
       amount,
@@ -286,8 +297,10 @@ document.addEventListener("click", async (e) => {
 
     alert("✅ Solicitud enviada. Esperando aprobación.");
     closeDeposit();
+
   } catch (error) {
     console.error(error);
     alert("Error al enviar depósito");
   }
+
 });
