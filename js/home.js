@@ -1,4 +1,5 @@
 import { auth, db } from "./firebase.js";
+
 import {
   doc,
   getDoc,
@@ -9,7 +10,8 @@ import {
   getDocs,
   addDoc,
   serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
 
 // ==========================
 // VIP CONTENIDO DINÁMICO
@@ -29,8 +31,13 @@ document.addEventListener("click", e => {
   e.target.classList.add("active");
 
   const level = e.target.dataset.vip;
-  document.getElementById("vipContent").innerText = vipInfo[level];
+  const content = document.getElementById("vipContent");
+
+  if (content && vipInfo[level]) {
+    content.innerText = vipInfo[level];
+  }
 });
+
 
 // ==========================
 // CHECK IN DIARIO
@@ -41,16 +48,25 @@ export async function initDaily() {
 
   const userRef = doc(db, "users", user.uid);
   const snap = await getDoc(userRef);
+
+  if (!snap.exists()) return;
+
   const data = snap.data();
 
   let streak = data.streak || 0;
   let lastCheck = data.lastCheck || null;
+  let balance = data.balance || 0;
 
-  document.getElementById("streakCount").innerText = streak;
+  const streakEl = document.getElementById("streakCount");
+  if (streakEl) streakEl.innerText = streak;
 
   renderCalendar(streak);
 
-  document.getElementById("checkinBtn").onclick = async () => {
+  const btn = document.getElementById("checkinBtn");
+  if (!btn) return;
+
+  btn.onclick = async () => {
+
     const today = new Date().toDateString();
 
     if (lastCheck === today) {
@@ -65,10 +81,12 @@ export async function initDaily() {
     if (streak === 15) reward = 30;
     if (streak === 30) reward = 60;
 
+    const newBalance = balance + reward;
+
     await updateDoc(userRef, {
       streak,
       lastCheck: today,
-      balance: (data.balance || 0) + reward
+      balance: newBalance
     });
 
     if (reward > 0) {
@@ -81,22 +99,36 @@ export async function initDaily() {
     }
 
     alert("Check-in exitoso");
-    location.reload();
+
+    // Actualizar visual sin recargar
+    if (streakEl) streakEl.innerText = streak;
+    renderCalendar(streak);
   };
 }
 
+
+// ==========================
+// CALENDARIO VISUAL
+// ==========================
 function renderCalendar(streak) {
   const cal = document.getElementById("calendar");
+  if (!cal) return;
+
   cal.innerHTML = "";
 
   for (let i = 1; i <= 30; i++) {
     const div = document.createElement("div");
     div.className = "day";
     div.innerText = i;
-    if (i <= streak) div.classList.add("checked");
+
+    if (i <= streak) {
+      div.classList.add("checked");
+    }
+
     cal.appendChild(div);
   }
 }
+
 
 // ==========================
 // EQUIPO ACTIVO
@@ -115,13 +147,21 @@ export async function loadTeamSize() {
   let active = 0;
 
   for (const docSnap of snap.docs) {
+
     const ordersQ = query(
       collection(db, "orders"),
       where("uid", "==", docSnap.id)
     );
+
     const ordersSnap = await getDocs(ordersQ);
-    if (!ordersSnap.empty) active++;
+
+    if (!ordersSnap.empty) {
+      active++;
+    }
   }
 
-  document.getElementById("teamSize").innerText = active;
+  const teamEl = document.getElementById("teamSize");
+  if (teamEl) {
+    teamEl.innerText = active;
+  }
 }
