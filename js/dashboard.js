@@ -1,12 +1,16 @@
 // ===============================
-// IMPORTS FIREBASE
+// ESPERAR QUE CARGUE TODO
 // ===============================
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+document.addEventListener("DOMContentLoaded", () => {
+
+import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js").then(async ({ initializeApp }) => {
+
+const { getAuth, signOut, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+const { getFirestore, doc, getDoc, updateDoc, collection, addDoc, getDocs, query, where } =
+await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
 
 // ===============================
-// CONFIG (USA LA TUYA)
+// TU CONFIG FIREBASE
 // ===============================
 const firebaseConfig = {
   apiKey: "TU_API_KEY",
@@ -24,11 +28,12 @@ const db = getFirestore(app);
 let currentUser = null;
 
 // ===============================
-// NAVEGACIÓN ENTRE PESTAÑAS
+// NAVEGACIÓN PESTAÑAS
 // ===============================
 window.go = function(pageId) {
   document.querySelectorAll(".page").forEach(p => p.style.display = "none");
-  document.getElementById(pageId).style.display = "block";
+  const page = document.getElementById(pageId);
+  if (page) page.style.display = "block";
 };
 
 // ===============================
@@ -40,63 +45,108 @@ window.logout = async function() {
 };
 
 // ===============================
-// CARGAR DATOS USUARIO
+// CARGAR DATOS
 // ===============================
 async function loadUser(uid) {
-  const userRef = doc(db, "users", uid);
-  const snap = await getDoc(userRef);
-
+  const snap = await getDoc(doc(db, "users", uid));
   if (!snap.exists()) return;
 
   const data = snap.data();
 
-  document.getElementById("stat-balance").innerText = data.balance?.toFixed(2) || "0.00";
-  document.getElementById("stat-profit").innerText = data.totalProfit?.toFixed(2) || "0.00";
-  document.getElementById("stat-withdrawn").innerText = data.totalWithdrawn?.toFixed(2) || "0.00";
+  document.getElementById("stat-balance").innerText = (data.balance || 0).toFixed(2);
+  document.getElementById("stat-profit").innerText = (data.totalProfit || 0).toFixed(2);
+  document.getElementById("stat-withdrawn").innerText = (data.totalWithdrawn || 0).toFixed(2);
 
   document.getElementById("p-id").innerText = uid.slice(0,6);
   document.getElementById("p-vip").innerText = data.vip || 0;
-  document.getElementById("p-balance").innerText = data.balance?.toFixed(2) || "0.00";
+  document.getElementById("p-balance").innerText = (data.balance || 0).toFixed(2);
+}
+
+// ===============================
+// PRODUCTOS
+// ===============================
+const products = [
+  { name: "VIP 1", price: 100, daily: 10 },
+  { name: "VIP 2", price: 300, daily: 35 },
+  { name: "VIP 3", price: 600, daily: 80 }
+];
+
+function renderProducts() {
+  const container = document.getElementById("productsList");
+  if (!container) return;
+  container.innerHTML = "";
+
+  products.forEach(p => {
+    const div = document.createElement("div");
+    div.innerHTML = `
+      <h4>${p.name}</h4>
+      <p>Precio: $${p.price}</p>
+      <p>Ganancia diaria: $${p.daily}</p>
+      <button class="buy-btn">Comprar</button>
+    `;
+    div.querySelector(".buy-btn").addEventListener("click", async () => {
+      const userRef = doc(db, "users", currentUser.uid);
+      const snap = await getDoc(userRef);
+      const data = snap.data();
+
+      if (p.price > data.balance) return alert("Saldo insuficiente");
+
+      await updateDoc(userRef, {
+        balance: data.balance - p.price
+      });
+
+      await addDoc(collection(db, "orders"), {
+        uid: currentUser.uid,
+        product: p.name,
+        daily: p.daily,
+        created: Date.now()
+      });
+
+      alert("Producto comprado");
+      loadUser(currentUser.uid);
+      renderOrders();
+    });
+
+    container.appendChild(div);
+  });
+}
+
+// ===============================
+// ÓRDENES
+// ===============================
+async function renderOrders() {
+  const container = document.getElementById("ordersList");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const q = query(collection(db, "orders"), where("uid", "==", currentUser.uid));
+  const snap = await getDocs(q);
+
+  snap.forEach(docu => {
+    const data = docu.data();
+    const div = document.createElement("div");
+    div.innerHTML = `
+      <p>${data.product}</p>
+      <p>Ganancia diaria: $${data.daily}</p>
+    `;
+    container.appendChild(div);
+  });
 }
 
 // ===============================
 // DEPÓSITO
 // ===============================
-window.closeDeposit = function() {
-  document.getElementById("depositModal").style.display = "none";
-};
-
 document.getElementById("quick-deposit")?.addEventListener("click", () => {
-  document.getElementById("depositModal").style.display = "block";
-});
+  const amount = parseFloat(prompt("Monto a depositar"));
+  if (!amount || amount <= 0) return;
 
-document.getElementById("btn-deposit")?.addEventListener("click", () => {
-  document.getElementById("depositModal").style.display = "block";
-});
-
-document.getElementById("confirmDeposit")?.addEventListener("click", async () => {
-  const amount = parseFloat(document.getElementById("depositAmount").value);
-  if (!amount || amount <= 0) return alert("Monto inválido");
-
-  const userRef = doc(db, "users", currentUser.uid);
-  const snap = await getDoc(userRef);
-  const data = snap.data();
-
-  await updateDoc(userRef, {
-    balance: (data.balance || 0) + amount
-  });
-
-  closeDeposit();
-  loadUser(currentUser.uid);
+  updateBalance(amount);
 });
 
 // ===============================
 // RETIRO
 // ===============================
-document.getElementById("quick-withdraw")?.addEventListener("click", withdraw);
-document.getElementById("btn-withdraw")?.addEventListener("click", withdraw);
-
-async function withdraw() {
+document.getElementById("quick-withdraw")?.addEventListener("click", async () => {
   const amount = parseFloat(prompt("Monto a retirar"));
   if (!amount || amount <= 0) return;
 
@@ -112,53 +162,39 @@ async function withdraw() {
   });
 
   loadUser(currentUser.uid);
-}
+});
 
-// ===============================
-// PRODUCTOS VIP
-// ===============================
-const products = [
-  { name: "VIP 1", price: 100, daily: 10 },
-  { name: "VIP 2", price: 300, daily: 35 },
-  { name: "VIP 3", price: 600, daily: 80 }
-];
-
-function renderProducts() {
-  const container = document.getElementById("productsList");
-  container.innerHTML = "";
-
-  products.forEach(p => {
-    const div = document.createElement("div");
-    div.className = "product-card";
-    div.innerHTML = `
-      <h4>${p.name}</h4>
-      <p>Precio: $${p.price}</p>
-      <p>Ganancia diaria: $${p.daily}</p>
-      <button onclick="buyProduct('${p.name}', ${p.price}, ${p.daily})">Comprar</button>
-    `;
-    container.appendChild(div);
-  });
-}
-
-window.buyProduct = async function(name, price, daily) {
+async function updateBalance(amount) {
   const userRef = doc(db, "users", currentUser.uid);
   const snap = await getDoc(userRef);
   const data = snap.data();
 
-  if (price > data.balance) return alert("Saldo insuficiente");
+  await updateDoc(userRef, {
+    balance: (data.balance || 0) + amount
+  });
+
+  loadUser(currentUser.uid);
+}
+
+// ===============================
+// CHECK IN DIARIO 24H
+// ===============================
+window.dailyCheckin = async function() {
+  const userRef = doc(db, "users", currentUser.uid);
+  const snap = await getDoc(userRef);
+  const data = snap.data();
+
+  const now = Date.now();
+  if (data.lastCheckin && now - data.lastCheckin < 86400000) {
+    return alert("Ya reclamaste hoy");
+  }
 
   await updateDoc(userRef, {
-    balance: data.balance - price
+    balance: (data.balance || 0) + 5,
+    lastCheckin: now
   });
 
-  await addDoc(collection(db, "orders"), {
-    uid: currentUser.uid,
-    product: name,
-    daily: daily,
-    created: Date.now()
-  });
-
-  alert("Producto comprado");
+  alert("Recompensa diaria recibida");
   loadUser(currentUser.uid);
 };
 
@@ -172,5 +208,9 @@ onAuthStateChanged(auth, user => {
     currentUser = user;
     loadUser(user.uid);
     renderProducts();
+    renderOrders();
   }
+});
+
+});
 });
