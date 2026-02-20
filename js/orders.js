@@ -13,12 +13,16 @@ import {
   updateDoc,
   getDoc,
   serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+let timerInterval = null;
+
 
 // ===============================
 // 🚀 CARGAR ÓRDENES
 // ===============================
 export async function loadOrders() {
+
   const user = auth.currentUser;
   if (!user) return;
 
@@ -48,8 +52,11 @@ export async function loadOrders() {
   ordersDiv.innerHTML = "";
 
   snap.forEach(docSnap => {
+
     const o = docSnap.data();
     const orderId = docSnap.id;
+
+    if (!o.createdAt || !o.lastClaim) return;
 
     const daily = Number(o.dailyProfit || 0);
     const duration = Number(o.duration || 0);
@@ -58,6 +65,7 @@ export async function loadOrders() {
     const lastClaim = o.lastClaim.toMillis();
 
     const now = Date.now();
+
     const passedDays = Math.floor((now - created) / 86400000);
     const daysLeft = Math.max(duration - passedDays, 0);
 
@@ -85,23 +93,31 @@ export async function loadOrders() {
   startTimers();
 }
 
+
 // ===============================
 // ⏱ CONTADORES + COBRO AUTOMÁTICO
 // ===============================
 function startTimers() {
-  setInterval(async () => {
+
+  if (timerInterval) {
+    clearInterval(timerInterval);
+  }
+
+  timerInterval = setInterval(async () => {
+
     const timers = document.querySelectorAll(".timer");
     if (!timers.length) return;
 
     for (const el of timers) {
+
       const orderId = el.dataset.id;
       const next = Number(el.dataset.next);
       const now = Date.now();
       const diff = next - now;
 
       if (diff <= 0) {
-        await cobrarOrden(orderId);
         el.innerText = "Procesando...";
+        await cobrarOrden(orderId);
         continue;
       }
 
@@ -111,13 +127,16 @@ function startTimers() {
 
       el.innerText = `${h}h ${m}m ${s}s`;
     }
+
   }, 1000);
 }
+
 
 // ===============================
 // 💰 COBRAR ORDEN AUTOMÁTICAMENTE
 // ===============================
 async function cobrarOrden(orderId) {
+
   const user = auth.currentUser;
   if (!user) return;
 
@@ -128,10 +147,12 @@ async function cobrarOrden(orderId) {
   const o = orderSnap.data();
   if (o.status !== "active") return;
 
+  if (!o.createdAt || !o.lastClaim) return;
+
   const now = Date.now();
   const last = o.lastClaim.toMillis();
 
-  // 🔒 Ya cobró hoy
+  // 🔒 Ya cobró en menos de 24h
   if (now - last < 86400000) return;
 
   const created = o.createdAt.toMillis();
@@ -140,13 +161,16 @@ async function cobrarOrden(orderId) {
   // 🔁 ORDEN TERMINADA
   if (passedDays >= o.duration) {
     await updateDoc(orderRef, { status: "finished" });
-    loadOrders();
+    await loadOrders();
     return;
   }
 
   // 💸 SUMAR GANANCIA
   const userRef = doc(db, "users", user.uid);
   const userSnap = await getDoc(userRef);
+
+  if (!userSnap.exists()) return;
+
   const saldo = Number(userSnap.data().balance || 0);
 
   await updateDoc(userRef, {
@@ -157,5 +181,5 @@ async function cobrarOrden(orderId) {
     lastClaim: serverTimestamp()
   });
 
-  loadOrders();
+  await loadOrders();
 }
