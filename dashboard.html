@@ -2,297 +2,59 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Nova MINING 7 HMC</title>
+  <title>Nova Mining - Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="css/style.css">
-<meta charset="UTF-8">
-<title>Nova MINING 7 HMC</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
 
-<!-- 💰 MODAL DEPÓSITO -->
-<div id="depositModal" class="modal" style="display:none;">
-  <div class="modal-content">
-    <h3>Solicitar Depósito</h3>
-    <input type="number" id="depositAmount" placeholder="Monto" />
-    <input type="file" id="depositProof" accept="image/*" />
-    <button id="confirmDeposit">Enviar</button>
-    <button onclick="closeDeposit()">Cancelar</button>
-  </div>
-</div>
+  <div style="padding:20px;">
 
-<header class="top">
-  <span>Nova <b>MINING 7</b> HMC</span>
-  <button onclick="logout()">Salir</button>
-</header>
+    <h2>Panel Principal</h2>
 
-<!-- 📊 ESTADÍSTICAS -->
-<div class="stats">
-  <div class="box blue">
-    Saldo<br>
-    <b>$<span id="stat-balance">0.00</span></b>
-  </div>
-
-  <div class="box green">
-    Ganancias<br>
-    <b>$<span id="stat-profit">0.00</span></b>
-  </div>
-
-  <div class="box gold">
-    Retirado<br>
-    <b>$<span id="stat-withdrawn">0.00</span></b>
-  </div>
-</div>
-
-<div id="app">
-<div id="content">
-
-<!-- ============================= -->
-<!-- 🏠 INICIO -->
-<!-- ============================= -->
-<section id="inicio" class="page" style="display:block">
-
-  <div class="banner">
-    <img src="assets/ezgif.gif">
-    <img src="assets/ezgif.gif" style="width:100%;">
-  </div>
-
-  <!-- 👑 BLOQUE VIP -->
-  <div class="vip-section">
-    <h3 style="padding:10px">👑 Niveles VIP</h3>
-  <div class="quick-actions">
-
-    <div class="vip-tabs">
-      <button class="vip-btn active" data-vip="1">VIP1</button>
-      <button class="vip-btn" data-vip="2">VIP2</button>
-      <button class="vip-btn" data-vip="3">VIP3</button>
-      <button class="vip-btn" data-vip="4">VIP4</button>
-      <button class="vip-btn" data-vip="5">VIP5</button>
-    </div>
-    <button onclick="go('vipPage')" class="main-btn">
-      💎 VIP
-    </button>
-
-    <div id="vipContent" class="vip-content"></div>
-  </div>
-    <button onclick="go('dailyPage')" class="main-btn">
-      🎁 Registro Diario
-    </button>
-
-  <!-- ⚡ ACCIONES RÁPIDAS -->
-  <div class="quick-actions">
-    <button onclick="go('productos')">💎 VIP</button>
-    <button id="btn-daily">🎁 Servicio Diario</button>
-    <button id="quick-deposit">💰 Depósito</button>
-    <button id="quick-withdraw">💸 Retiro</button>
-    <button onclick="go('equipo')">
-      👥 Equipo<br>
-    <button id="quick-deposit" class="main-btn">
-      💰 Depósito
-    </button>
-
-    <button id="quick-withdraw" class="main-btn">
-      💸 Retiro
-    </button>
-
-    <button onclick="go('equipoPage')" class="main-btn">
-      👥 Tamaño del equipo<br>
-      <b id="teamCount">0</b>
-    </button>
-
-  </div>
-</section>
-
-<!-- 💎 VIP -->
-<section id="vipPage" class="page">
-  <h2 style="padding:15px">👑 Niveles VIP</h2>
-
-  <div class="card">
-    <h3>VIP 1</h3>
-    <p>Inversión mínima: $100</p>
-    <p>Ganancia diaria: 5%</p>
-  </div>
-
-  <div class="card">
-    <h3>VIP 2</h3>
-    <p>Inversión mínima: $500</p>
-    <p>Ganancia diaria: 7%</p>
-  </div>
-
-  <div class="card">
-    <h3>VIP 3</h3>
-    <p>Inversión mínima: $1000</p>
-    <p>Ganancia diaria: 10%</p>
-  </div>
-
-  <div class="rules">
-    📌 Reglas:
-    <br>• Las ganancias se generan diariamente.
-    <br>• Mientras mayor el VIP mayor rentabilidad.
-    <br>• Solo órdenes activas generan beneficios.
-  </div>
-</section>
-
-<!-- 🎁 REGISTRO DIARIO -->
-<section id="dailyPage" class="page">
-  <h2 style="padding:15px">🎁 Check-In Diario</h2>
-
-  <div class="card">
-    <button id="btn-daily" class="check-btn">
-      Hacer Check-In
-    </button>
-
-    <div id="check-status"></div>
-
-    <div class="rules">
-      📌 Reglas:
-      <br>• Solo 1 check-in cada 24 horas.
-      <br>• Recibes $5 por día.
-      <br>• Si faltas un día, reinicia.
-    </div>
-  </div>
-</section>
-
-<!-- 👥 EQUIPO -->
-<section id="equipoPage" class="page">
-  <h2 style="padding:15px">👥 Mi Equipo</h2>
-
-  <p style="padding:10px">
-    Miembros activos: <b id="teamCount">0</b>
-  </p>
-
-  <div id="teamList"></div>
-
-  <div class="rules">
-    📌 Solo cuentan usuarios que:
-    <br>• Se registran con tu enlace
-    <br>• Realizan una inversión
-  </div>
-</section>
-
-<!-- ============================= -->
-<!-- 🛒 PRODUCTOS -->
-<!-- ============================= -->
-<section id="productos" class="page">
-  <h3 style="padding:15px">Productos VIP</h3>
-  <div id="productsList"></div>
-</section>
-
-<!-- ============================= -->
-<!-- 📦 ÓRDENES -->
-<!-- ============================= -->
-<section id="orders" class="page">
-  <h3 style="padding:15px">Mis Órdenes</h3>
-
-  <div class="total-box">
-    <span>Total a ganar</span>
-    <b id="totalProfit">$0.00</b>
-  </div>
-
-  <div class="orders" id="ordersList"></div>
-</section>
-
-<!-- ============================= -->
-<!-- 👥 EQUIPO -->
-<!-- ============================= -->
-<section id="equipo" class="page">
-  <h3 style="padding:15px">Mi Equipo</h3>
-
-  <div class="team-box">
-    <p>Total referidos:</p>
-    <h2 id="teamTotal">0</h2>
-  </div>
-
-  <div id="teamList"></div>
-</section>
-
-<!-- ============================= -->
-<!-- 👤 PERFIL -->
-<!-- ============================= -->
-<section id="profile" class="page">
-
-  <div class="profile-header">
-    <h2>NOVA MINING</h2>
-  </div>
-
-  <div class="profile-card">
-    <div class="user-info">
-      <span>ID: <b id="p-id">----</b></span>
-      <span class="vip">VIP <b id="p-vip">0</b></span>
+    <div class="card">
+      <p>ID Usuario: <b id="p-id">----</b></p>
+      <p>VIP: <b id="p-vip">0</b></p>
+      <p>Balance:</p>
+      <h1>$<span id="p-balance">0.00</span></h1>
     </div>
 
-    <div class="balance-box">
-      <div>
-        <small>MXN</small>
-        <h3>$<span id="p-balance">0.00</span></h3>
-      </div>
+    <div style="margin-top:20px;">
+      <button onclick="location.href='admin.html'" id="adminBtn" style="display:none;">
+        Panel Admin
+      </button>
 
-      <div class="actions">
-        <button id="btn-deposit">Depósito</button>
-        <button id="btn-withdraw">Retiro</button>
-      </div>
+      <button onclick="logout()" style="margin-top:10px;">
+        Cerrar sesión
+      </button>
     </div>
+
   </div>
 
-  <!-- 🎁 RESCUE -->
-  <div class="rescue">
-    <h4>🎁 Rescue Presents</h4>
-    <button id="btn-rescue">Ingresar código</button>
-  </div>
+  <script type="module">
+    import { auth } from "./js/firebase.js";
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-  <!-- 📋 MENÚ PERFIL -->
-  <div class="profile-menu">
-    <button onclick="go('orders')">📄 Registro de ingresos</button>
-    <button onclick="go('equipo')">👥 Detalles de comisión</button>
-    <button id="btn-invite">📢 Invitar</button>
-  </div>
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+      }
 
-  <!-- 📊 HISTORIAL -->
-  <div class="transaction-box">
-    <h4 style="padding:10px">Historial</h4>
-    <div id="transactionHistory"></div>
-  </div>
+      if (user.email === "joni.lokoxon@gmail.com") {
+        document.getElementById("adminBtn").style.display = "block";
+      }
 
-</section>
+      document.getElementById("p-id").innerText = user.uid;
+    });
 
-</div>
-</div>
+    window.logout = async function() {
+      await signOut(auth);
+      window.location.href = "index.html";
+    };
+  </script>
 
-<!-- ============================= -->
-<!-- 🔻 MENÚ INFERIOR -->
-<!-- ============================= -->
-<!-- 🔻 NAV INFERIOR -->
-<nav class="bottom">
-  <button onclick="go('inicio')">🏠<span>Inicio</span></button>
-  <button onclick="go('productos')">🛒<span>Productos</span></button>
-  <button onclick="go('orders')">📦<span>Órdenes</span></button>
-  <button onclick="go('profile')">👤<span>Perfil</span></button>
-</nav>
-
-<script type="module" src="js/dashboard.js"></script>
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-
-  const depositBtn = document.getElementById("btn-deposit");
-  const withdrawBtn = document.getElementById("btn-withdraw");
-
-  const quickDeposit = document.getElementById("quick-deposit");
-  const quickWithdraw = document.getElementById("quick-withdraw");
-
-  if (quickDeposit && depositBtn) {
-    quickDeposit.onclick = () => depositBtn.click();
-  }
-
-  if (quickWithdraw && withdrawBtn) {
-    quickWithdraw.onclick = () => withdrawBtn.click();
-  }
-
-});
-</script>
+  <script type="module" src="js/dashboard.js"></script>
 
 </body>
 </html>
