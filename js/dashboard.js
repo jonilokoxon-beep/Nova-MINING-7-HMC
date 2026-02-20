@@ -13,6 +13,7 @@ import {
   getDocs,
   doc,
   getDoc,
+  setDoc,
   updateDoc,
   addDoc,
   serverTimestamp
@@ -32,6 +33,7 @@ const firebaseConfig = {
   appId: "1:976275033149:web:e40c6510684bd06c82ae54"
 };
 
+// ===============================
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -48,12 +50,25 @@ window.go = function (id) {
 };
 
 // ===============================
-// 🔐 SESIÓN
+// 🔐 SESIÓN (CREA USUARIO SI NO EXISTE)
 // ===============================
 onAuthStateChanged(auth, async user => {
   if (!user) {
     location.replace("login.html");
     return;
+  }
+
+  // ✅ CREAR USUARIO AUTOMÁTICAMENTE
+  const userRef = doc(db, "users", user.uid);
+  const userSnap = await getDoc(userRef);
+
+  if (!userSnap.exists()) {
+    await setDoc(userRef, {
+      uid: user.uid,
+      email: user.email,
+      balance: 0,
+      createdAt: serverTimestamp()
+    });
   }
 
   go("inicio");
@@ -113,12 +128,12 @@ document.addEventListener("click", async (e) => {
   const user = auth.currentUser;
 
   if (!user) {
-    alert("❌ Usuario no encontrado. Inicia sesión nuevamente.");
+    alert("❌ Usuario no autenticado");
     return;
   }
 
   try {
-    // 🔹 Usuario
+    // 👤 USUARIO
     const userRef = doc(db, "users", user.uid);
     const userSnap = await getDoc(userRef);
 
@@ -129,7 +144,7 @@ document.addEventListener("click", async (e) => {
 
     const saldo = Number(userSnap.data().balance || 0);
 
-    // 🔹 Producto
+    // 📦 PRODUCTO
     const prodRef = doc(db, "products", productId);
     const prodSnap = await getDoc(prodRef);
 
@@ -145,12 +160,12 @@ document.addEventListener("click", async (e) => {
       return;
     }
 
-    // 🔻 Descontar saldo
+    // 🔻 DESCONTAR SALDO
     await updateDoc(userRef, {
       balance: saldo - p.price
     });
 
-    // ➕ Crear orden
+    // ➕ CREAR ORDEN
     await addDoc(collection(db, "orders"), {
       uid: user.uid,
       userEmail: user.email,
