@@ -37,7 +37,7 @@ window.go = function (id) {
 // ===============================
 onAuthStateChanged(auth, async user => {
   if (!user) {
-    location.replace("index.html");
+    location.replace("login.html");
     return;
   }
 
