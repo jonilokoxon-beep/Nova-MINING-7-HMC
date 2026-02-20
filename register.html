@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Crear cuenta | Nova MINING 7 HMC</title>
+  <title>Nova Mining - Registro</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -10,26 +10,22 @@
 <body class="login-bg">
 
   <div class="login-card">
-
-    <img src="assets/logo.jpeg"> 
-
-    <h2>Crear cuenta</h2>
+    <img src="assets/logo.jpeg" width="80">
+    <h2>Crear Cuenta</h2>
 
     <input type="email" id="email" placeholder="Correo">
     <input type="password" id="password" placeholder="Contraseña">
 
-    <button onclick="register()">Registrarse</button>
+    <button onclick="register()">Registrarme</button>
 
-    <div class="register-box">
-      <a href="index.html">← Volver a iniciar sesión</a>
-    </div>
+    <p style="margin-top:15px;">
+      ¿Ya tienes cuenta?
+      <a href="index.html" style="color:#a78bfa;">Iniciar sesión</a>
+    </p>
 
-    <p id="status" class="status"></p>
-
+    <p id="status"></p>
   </div>
 
-  <!-- 🔥 JS CORRECTO -->
   <script type="module" src="js/auth.js"></script>
-
 </body>
 </html>
