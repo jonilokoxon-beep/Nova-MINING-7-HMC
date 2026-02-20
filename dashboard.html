@@ -9,33 +9,23 @@
 
 <body>
 
-<!-- ===== HEADER ===== -->
 <header class="top">
   <span>Nova <b>MINING 7</b> HMC</span>
   <button onclick="logout()">Salir</button>
 </header>
 
-<!-- ===== STATS ===== -->
 <div class="stats">
-  <div class="box blue">
-    Saldo<br><b>$0.00</b>
-  </div>
-  <div class="box green">
-    Ganancias<br><b>$0.00</b>
-  </div>
-  <div class="box gold">
-    Retirado<br><b>$0.00</b>
-  </div>
+  <div class="box blue">Saldo<br><b>$0.00</b></div>
+  <div class="box green">Ganancias<br><b>$0.00</b></div>
+  <div class="box gold">Retirado<br><b>$0.00</b></div>
 </div>
 
-<!-- ===== CONTENIDO ===== -->
 <div id="app">
   <div id="content">
 
-    <!-- ===== INICIO ===== -->
     <section id="inicio" class="page" style="display:block">
       <div class="banner">
-        <img src="assets/banner.gif" alt="Banner">
+        <img src="assets/banner.gif">
       </div>
 
       <div class="quick-actions">
@@ -50,13 +40,11 @@
       </div>
     </section>
 
-    <!-- ===== PRODUCTOS ===== -->
     <section id="productos" class="page">
       <h3 style="padding:15px">Productos VIP</h3>
       <div id="productsList"></div>
     </section>
 
-    <!-- ===== ÓRDENES ===== -->
     <section id="orders" class="page">
       <h3 style="padding:15px">Mis Órdenes</h3>
 
@@ -68,7 +56,6 @@
       <div class="orders" id="ordersList"></div>
     </section>
 
-    <!-- ===== PERFIL ===== -->
     <section id="profile" class="page">
       <h3 style="padding:15px">Mi Perfil</h3>
     </section>
@@ -76,7 +63,6 @@
   </div>
 </div>
 
-<!-- ===== NAV ===== -->
 <nav class="bottom">
   <button onclick="go('inicio')">🏠<span>Inicio</span></button>
   <button onclick="go('productos')">🛒<span>Productos</span></button>
@@ -84,7 +70,6 @@
   <button onclick="go('profile')">👤<span>Perfil</span></button>
 </nav>
 
-<!-- ===== SCRIPT ===== -->
 <script type="module" src="js/dashboard.js"></script>
 
 </body>
