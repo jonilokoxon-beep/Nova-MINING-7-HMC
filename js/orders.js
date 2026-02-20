@@ -1,5 +1,5 @@
 // ===============================
-// 📦 ÓRDENES (LÓGICA COMPLETA)
+// 📦 ÓRDENES - SISTEMA REAL AUTOMÁTICO
 // ===============================
 
 import { db, auth } from "./firebase.js";
@@ -11,11 +11,12 @@ import {
   getDocs,
   doc,
   updateDoc,
+  getDoc,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // ===============================
-// 📦 CARGAR ÓRDENES
+// 🚀 CARGAR ÓRDENES
 // ===============================
 export async function loadOrders() {
   const user = auth.currentUser;
@@ -29,91 +30,79 @@ export async function loadOrders() {
   ordersDiv.innerHTML = "Cargando órdenes...";
   totalDiv.innerText = "$0.00";
 
-  let totalGanancia = 0;
+  let totalGanado = 0;
 
-  try {
-    const q = query(
-      collection(db, "orders"),
-      where("uid", "==", user.uid),
-      where("status", "==", "active")
-    );
+  const q = query(
+    collection(db, "orders"),
+    where("uid", "==", user.uid),
+    where("status", "==", "active")
+  );
 
-    const snap = await getDocs(q);
+  const snap = await getDocs(q);
 
-    if (snap.empty) {
-      ordersDiv.innerHTML = "No tienes órdenes activas";
-      return;
-    }
-
-    ordersDiv.innerHTML = "";
-
-    snap.forEach(docSnap => {
-      const o = docSnap.data();
-      const orderId = docSnap.id;
-
-      const precio = Number(o.amount) || 0;
-      const gananciaDiaria = Number(o.dailyProfit) || 0;
-      const diasTotales = Number(o.duration) || 0;
-
-      const inicio = o.createdAt?.toMillis?.() || Date.now();
-      const hoy = Date.now();
-      const diasPasados = Math.floor((hoy - inicio) / 86400000);
-      const diasRestantes = Math.max(diasTotales - diasPasados, 0);
-
-      const gananciaGenerada = Math.min(
-        diasPasados * gananciaDiaria,
-        diasTotales * gananciaDiaria
-      );
-
-      totalGanancia += gananciaGenerada;
-
-      const proximoPago =
-        (o.lastClaim?.toMillis?.() || inicio) + 86400000;
-
-      ordersDiv.innerHTML += `
-        <div class="order-card">
-          <b>${o.productName}</b><br>
-          Inversión: $${precio}<br>
-          Ganancia diaria: $${gananciaDiaria}<br>
-          Días restantes: ${diasRestantes}<br>
-          Ganancia generada: $${gananciaGenerada.toFixed(2)}<br>
-
-          <div class="timer" data-end="${proximoPago}" data-id="${orderId}">
-            --:--:--
-          </div>
-
-          <button 
-            class="btn-claim" 
-            data-id="${orderId}" 
-            data-profit="${gananciaDiaria}">
-            Disponer
-          </button>
-        </div>
-      `;
-    });
-
-    totalDiv.innerText = `$${totalGanancia.toFixed(2)}`;
-    startTimers();
-
-  } catch (err) {
-    console.error("Error cargando órdenes:", err);
-    ordersDiv.innerHTML = "Error al cargar órdenes";
+  if (snap.empty) {
+    ordersDiv.innerHTML = "No tienes inversiones activas";
+    return;
   }
+
+  ordersDiv.innerHTML = "";
+
+  snap.forEach(docSnap => {
+    const o = docSnap.data();
+    const orderId = docSnap.id;
+
+    const daily = Number(o.dailyProfit || 0);
+    const duration = Number(o.duration || 0);
+
+    const created = o.createdAt.toMillis();
+    const lastClaim = o.lastClaim.toMillis();
+
+    const now = Date.now();
+    const passedDays = Math.floor((now - created) / 86400000);
+    const daysLeft = Math.max(duration - passedDays, 0);
+
+    totalGanado += daily * passedDays;
+
+    const nextClaim = lastClaim + 86400000;
+
+    ordersDiv.innerHTML += `
+      <div class="order-card">
+        <b>${o.productName}</b><br>
+        Ganancia diaria: $${daily.toFixed(2)}<br>
+        Días restantes: ${daysLeft}<br>
+        Ganancia acumulada: $${(daily * passedDays).toFixed(2)}<br>
+        <div class="timer" 
+             data-id="${orderId}" 
+             data-next="${nextClaim}">
+          --:--:--
+        </div>
+      </div>
+    `;
+  });
+
+  totalDiv.innerText = `$${totalGanado.toFixed(2)}`;
+
+  startTimers();
 }
 
 // ===============================
-// ⏱ CONTADORES
+// ⏱ CONTADORES + COBRO AUTOMÁTICO
 // ===============================
 function startTimers() {
-  setInterval(() => {
-    document.querySelectorAll(".timer").forEach(el => {
-      const end = Number(el.dataset.end);
-      const diff = end - Date.now();
+  setInterval(async () => {
+    const timers = document.querySelectorAll(".timer");
+    if (!timers.length) return;
+
+    for (const el of timers) {
+      const orderId = el.dataset.id;
+      const next = Number(el.dataset.next);
+      const now = Date.now();
+      const diff = next - now;
 
       if (diff <= 0) {
-        el.innerText = "Disponible";
-        el.classList.add("ready");
-        return;
+        await cobrarOrden(orderId);
+        el.innerText = "Procesando...";
+        continue;
       }
 
       const h = Math.floor(diff / 3600000);
@@ -121,41 +110,52 @@ function startTimers() {
       const s = Math.floor((diff % 60000) / 1000);
 
       el.innerText = `${h}h ${m}m ${s}s`;
-    });
+    }
   }, 1000);
 }
 
 // ===============================
-// 💸 DISPONER GANANCIA
+// 💰 COBRAR ORDEN AUTOMÁTICAMENTE
 // ===============================
-document.addEventListener("click", async (e) => {
-  if (!e.target.classList.contains("btn-claim")) return;
-
-  const orderId = e.target.dataset.id;
-  const profit = Number(e.target.dataset.profit);
+async function cobrarOrden(orderId) {
   const user = auth.currentUser;
-
   if (!user) return;
 
-  try {
-    const userRef = doc(db, "users", user.uid);
-    const orderRef = doc(db, "orders", orderId);
+  const orderRef = doc(db, "orders", orderId);
+  const orderSnap = await getDoc(orderRef);
+  if (!orderSnap.exists()) return;
 
-    await updateDoc(userRef, {
-      balance: window.firebaseIncrement
-        ? window.firebaseIncrement(profit)
-        : profit
-    });
+  const o = orderSnap.data();
+  if (o.status !== "active") return;
 
-    await updateDoc(orderRef, {
-      lastClaim: serverTimestamp()
-    });
+  const now = Date.now();
+  const last = o.lastClaim.toMillis();
 
-    alert("✅ Ganancia acreditada");
+  // 🔒 Ya cobró hoy
+  if (now - last < 86400000) return;
+
+  const created = o.createdAt.toMillis();
+  const passedDays = Math.floor((now - created) / 86400000);
+
+  // 🔁 ORDEN TERMINADA
+  if (passedDays >= o.duration) {
+    await updateDoc(orderRef, { status: "finished" });
     loadOrders();
-
-  } catch (err) {
-    console.error("Error al disponer:", err);
-    alert("❌ No se pudo disponer la ganancia");
+    return;
   }
-});
+
+  // 💸 SUMAR GANANCIA
+  const userRef = doc(db, "users", user.uid);
+  const userSnap = await getDoc(userRef);
+  const saldo = Number(userSnap.data().balance || 0);
+
+  await updateDoc(userRef, {
+    balance: saldo + Number(o.dailyProfit)
+  });
+
+  await updateDoc(orderRef, {
+    lastClaim: serverTimestamp()
+  });
+
+  loadOrders();
+}
