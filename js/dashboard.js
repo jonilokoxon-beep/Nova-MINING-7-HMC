@@ -4,6 +4,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// ⬅️ IMPORTS SIEMPRE ARRIBA
 import { loadOrders } from "./orders.js";
 
 // ===============================
@@ -19,28 +21,12 @@ const firebaseConfig = {
 };
 
 // ===============================
-// 🔥 INIT
-// ===============================
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
 // ===============================
-// 🔐 SESIÓN (ÚNICA Y CORRECTA)
-// ===============================
-onAuthStateChanged(auth, (user) => {
-  if (!user) {
-    window.location.replace("login.html");
-    return;
-  }
-
-  go("inicio");
-  cargarPlanes();   // products
-  loadOrders();     // orders
-});
-
-// ===============================
-// 📌 NAVEGACIÓN
+// 📌 NAVEGACIÓN GLOBAL
 // ===============================
 window.go = function (id) {
   document.querySelectorAll(".page").forEach(p => {
@@ -52,12 +38,30 @@ window.go = function (id) {
 };
 
 // ===============================
+// 🔐 SESIÓN (UNA SOLA VEZ)
+// ===============================
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    window.location.replace("login.html");
+    return;
+  }
+
+  // ⏳ Esperar a que el DOM esté listo
+  setTimeout(() => {
+    go("inicio");
+    cargarPlanes();
+    loadOrders();
+  }, 100);
+});
+
+// ===============================
 // 💰 CARGAR PLANES (products)
 // ===============================
 async function cargarPlanes() {
   const plansDiv = document.getElementById("plans");
+
   if (!plansDiv) {
-    console.error("No existe el div #plans");
+    console.error("❌ No existe #plans");
     return;
   }
 
@@ -78,18 +82,18 @@ async function cargarPlanes() {
       if (p.active !== true) return;
 
       plansDiv.innerHTML += `
-        <div class="plan ${p.type || ""}">
+        <div class="plan">
           <h4>${p.name}</h4>
           <p>Precio: $${p.price}</p>
-          <p>Ganancia diaria: $${p.dailyProfit}</p>
+          <p>Ganancia diaria: $${p.profit}</p>
           <p>Duración: ${p.duration} días</p>
-          <button>Invertir</button>
+          <button onclick="alert('Invertir próximamente')">Invertir</button>
         </div>
       `;
     });
 
-  } catch (error) {
-    console.error("Firestore error:", error);
+  } catch (err) {
+    console.error("🔥 Firestore:", err);
     plansDiv.innerHTML = "Error al cargar planes";
   }
 }
