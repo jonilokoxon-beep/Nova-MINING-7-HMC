@@ -201,16 +201,20 @@ window.dailyCheckin = async function() {
 // ===============================
 // AUTENTICACIÓN
 // ===============================
-onAuthStateChanged(auth, user => {
-  if (!user) {
-    window.location.href = "index.html";
-  } else {
+onAuthStateChanged(auth, (user) => {
+
+  if (user) {
     currentUser = user;
     loadUser(user.uid);
     renderProducts();
     renderOrders();
+  } else {
+    // Espera 500ms antes de redirigir
+    setTimeout(() => {
+      if (!auth.currentUser) {
+        window.location.href = "index.html";
+      }
+    }, 500);
   }
-});
 
-});
 });
