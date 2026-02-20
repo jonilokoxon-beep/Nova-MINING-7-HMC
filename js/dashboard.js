@@ -1,14 +1,14 @@
 // ===============================
-// 🔥 FIREBASE IMPORTS
+// 🔥 IMPORTAR FIREBASE YA INICIALIZADO
 // ===============================
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { auth, db } from "./firebase.js";
+
 import {
-  getAuth,
   onAuthStateChanged,
   signOut
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
 import {
-  getFirestore,
   collection,
   getDocs,
   doc,
@@ -19,7 +19,7 @@ import {
   serverTimestamp,
   query,
   where
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 
 // ===============================
@@ -31,12 +31,13 @@ window.go = function (id) {
   if (page) page.style.display = "block";
 };
 
+
 // ===============================
-// 🔐 SESIÓN
+// 🔐 CONTROL DE SESIÓN
 // ===============================
 onAuthStateChanged(auth, async user => {
   if (!user) {
-    location.replace("login.html");
+    location.replace("./index.html");
     return;
   }
 
@@ -48,6 +49,9 @@ onAuthStateChanged(auth, async user => {
       uid: user.uid,
       email: user.email,
       balance: 0,
+      totalInvested: 0,
+      totalProfit: 0,
+      totalWithdrawn: 0,
       createdAt: serverTimestamp()
     });
   }
@@ -55,8 +59,9 @@ onAuthStateChanged(auth, async user => {
   go("inicio");
   await cargarProductos();
   await cargarDashboard();
-  loadOrders(); // 👈 SOLO UNA FUENTE DE ÓRDENES
+  loadOrders();
 });
+
 
 // ===============================
 // 📊 DASHBOARD
@@ -81,10 +86,11 @@ async function cargarDashboard() {
     ganancias += Number(d.data().dailyProfit || 0);
   });
 
-  saldoBox.innerText = `$${saldo.toFixed(2)}`;
-  gananciasBox.innerText = `$${ganancias.toFixed(2)}`;
-  retiradoBox.innerText = `$0.00`;
+  if (saldoBox) saldoBox.innerText = `$${saldo.toFixed(2)}`;
+  if (gananciasBox) gananciasBox.innerText = `$${ganancias.toFixed(2)}`;
+  if (retiradoBox) retiradoBox.innerText = `$0.00`;
 }
+
 
 // ===============================
 // 🛒 PRODUCTOS
@@ -122,6 +128,7 @@ async function cargarProductos() {
   });
 }
 
+
 // ===============================
 // 💰 INVERTIR
 // ===============================
@@ -140,12 +147,16 @@ document.addEventListener("click", async (e) => {
   if (!prodSnap.exists()) return;
 
   const p = prodSnap.data();
+
   if (saldo < p.price) {
     alert("❌ Saldo insuficiente");
     return;
   }
 
-  await updateDoc(userRef, { balance: saldo - p.price });
+  await updateDoc(userRef, {
+    balance: saldo - p.price,
+    totalInvested: (userSnap.data().totalInvested || 0) + p.price
+  });
 
   await addDoc(collection(db, "orders"), {
     uid: user.uid,
@@ -159,12 +170,18 @@ document.addEventListener("click", async (e) => {
   });
 
   alert("✅ Inversión realizada");
+
+  await cargarDashboard();
   loadOrders();
-  cargarDashboard();
   go("orders");
 });
+
 
 // ===============================
 // 🚪 LOGOUT
 // ===============================
-window.logout = () => signOut(auth).then(() => location.replace("login.html"));
+window.logout = () => {
+  signOut(auth).then(() => {
+    location.replace("./index.html");
+  });
+};
