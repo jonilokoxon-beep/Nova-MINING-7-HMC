@@ -422,3 +422,28 @@ body.login-bg {
   color:white;
   font-weight:bold;
 }
+.vip-card, .team-card {
+  background: linear-gradient(45deg,#1e3c72,#2a5298);
+  padding:15px;
+  margin:10px 0;
+  border-radius:12px;
+  color:white;
+}
+
+.btn-check {
+  padding:12px;
+  width:100%;
+  border:none;
+  border-radius:12px;
+  background: linear-gradient(45deg,#ff512f,#dd2476);
+  color:white;
+  font-weight:bold;
+  margin:15px 0;
+}
+
+.reglas {
+  background:#111;
+  padding:10px;
+  border-radius:10px;
+  font-size:13px;
+}
