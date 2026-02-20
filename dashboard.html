@@ -37,15 +37,18 @@
     import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     onAuthStateChanged(auth, (user) => {
+
       if (!user) {
         window.location.href = "index.html";
+        return;
       }
+
+      document.getElementById("p-id").innerText = user.uid;
 
       if (user.email === "joni.lokoxon@gmail.com") {
         document.getElementById("adminBtn").style.display = "block";
       }
 
-      document.getElementById("p-id").innerText = user.uid;
     });
 
     window.logout = async function() {
