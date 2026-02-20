@@ -1,0 +1,14 @@
+{
+  "uid": "USER_UID",
+  "productId": "atom_01",
+  "productName": "Proyecto Minería ATOM",
+  "image": "assets/product1.jpg",
+  "price": 700,
+  "dailyProfit": 24.5,
+  "cycleDays": 200,
+  "totalProfit": 4900,
+  "startDate": 1700000000000,
+  "endDate": 1717280000000,
+  "lastGenerated": 1700000000000,
+  "status": "active"
+}
