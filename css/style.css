@@ -447,3 +447,6 @@ body.login-bg {
   border-radius:10px;
   font-size:13px;
 }
+.page {
+  display: none;
+}
