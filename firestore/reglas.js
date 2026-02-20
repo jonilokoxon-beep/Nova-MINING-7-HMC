@@ -6,5 +6,18 @@ service cloud.firestore {
       allow read, write: if request.auth != null;
     }
 
+    match /products/{doc} {
+      allow read: if true;
+      allow write: if request.auth.token.email == "joni.lokoxon@gmail.com";
+    }
+
+    match /vip/{doc} {
+      allow read: if true;
+      allow write: if request.auth.token.email == "joni.lokoxon@gmail.com";
+    }
+
+    match /orders/{doc} {
+      allow read, write: if request.auth != null;
+    }
   }
 }
