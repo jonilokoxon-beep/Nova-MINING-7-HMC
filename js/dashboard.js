@@ -1,5 +1,5 @@
 // ===============================
-// 🔥 IMPORTAR FIREBASE YA INICIALIZADO
+// 🔥 IMPORTAR FIREBASE
 // ===============================
 import { auth, db } from "./firebase.js";
 
@@ -36,6 +36,7 @@ window.go = function (id) {
 // 🔐 CONTROL DE SESIÓN
 // ===============================
 onAuthStateChanged(auth, async user => {
+
   if (!user) {
     location.replace("./index.html");
     return;
@@ -44,6 +45,7 @@ onAuthStateChanged(auth, async user => {
   const userRef = doc(db, "users", user.uid);
   const snap = await getDoc(userRef);
 
+  // Crear usuario si no existe
   if (!snap.exists()) {
     await setDoc(userRef, {
       uid: user.uid,
@@ -57,9 +59,10 @@ onAuthStateChanged(auth, async user => {
   }
 
   go("inicio");
+
   await cargarProductos();
   await cargarDashboard();
-  loadOrders();
+  await loadOrders();
 });
 
 
@@ -67,15 +70,19 @@ onAuthStateChanged(auth, async user => {
 // 📊 DASHBOARD
 // ===============================
 async function cargarDashboard() {
+
   const user = auth.currentUser;
   if (!user) return;
 
-  const saldoBox = document.querySelector(".box.blue b");
-  const gananciasBox = document.querySelector(".box.green b");
-  const retiradoBox = document.querySelector(".box.gold b");
+  const balanceBox = document.getElementById("stat-balance");
+  const profitBox = document.getElementById("stat-profit");
+  const withdrawnBox = document.getElementById("stat-withdrawn");
 
   const userSnap = await getDoc(doc(db, "users", user.uid));
-  const saldo = Number(userSnap.data().balance || 0);
+  const data = userSnap.data();
+
+  const saldo = Number(data.balance || 0);
+  const retirado = Number(data.totalWithdrawn || 0);
 
   let ganancias = 0;
 
@@ -86,9 +93,9 @@ async function cargarDashboard() {
     ganancias += Number(d.data().dailyProfit || 0);
   });
 
-  if (saldoBox) saldoBox.innerText = `$${saldo.toFixed(2)}`;
-  if (gananciasBox) gananciasBox.innerText = `$${ganancias.toFixed(2)}`;
-  if (retiradoBox) retiradoBox.innerText = `$0.00`;
+  if (balanceBox) balanceBox.innerText = saldo.toFixed(2);
+  if (profitBox) profitBox.innerText = ganancias.toFixed(2);
+  if (withdrawnBox) withdrawnBox.innerText = retirado.toFixed(2);
 }
 
 
@@ -96,7 +103,8 @@ async function cargarDashboard() {
 // 🛒 PRODUCTOS
 // ===============================
 async function cargarProductos() {
-  const list = document.getElementById("productsList");
+
+  const list = document.getElementById("plans");
   if (!list) return;
 
   list.innerHTML = "Cargando productos...";
@@ -104,13 +112,14 @@ async function cargarProductos() {
   const snap = await getDocs(collection(db, "products"));
 
   if (snap.empty) {
-    list.innerHTML = "No hay productos";
+    list.innerHTML = "No hay productos disponibles";
     return;
   }
 
   list.innerHTML = "";
 
   snap.forEach(docSnap => {
+
     const p = docSnap.data();
     if (!p.active) return;
 
@@ -133,6 +142,7 @@ async function cargarProductos() {
 // 💰 INVERTIR
 // ===============================
 document.addEventListener("click", async (e) => {
+
   if (!e.target.classList.contains("btn-invertir")) return;
 
   const productId = e.target.dataset.id;
@@ -153,11 +163,13 @@ document.addEventListener("click", async (e) => {
     return;
   }
 
+  // Descontar saldo
   await updateDoc(userRef, {
     balance: saldo - p.price,
     totalInvested: (userSnap.data().totalInvested || 0) + p.price
   });
 
+  // Crear orden
   await addDoc(collection(db, "orders"), {
     uid: user.uid,
     productName: p.name,
@@ -165,23 +177,62 @@ document.addEventListener("click", async (e) => {
     dailyProfit: p.profit,
     duration: p.duration,
     createdAt: serverTimestamp(),
-    lastClaim: serverTimestamp(),
     status: "active"
   });
 
   alert("✅ Inversión realizada");
 
   await cargarDashboard();
-  loadOrders();
+  await loadOrders();
   go("orders");
 });
 
 
 // ===============================
+// 📦 CARGAR ÓRDENES
+// ===============================
+async function loadOrders() {
+
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const container = document.getElementById("ordersList");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  const q = query(collection(db, "orders"), where("uid", "==", user.uid));
+  const snap = await getDocs(q);
+
+  if (snap.empty) {
+    container.innerHTML = "No tienes órdenes activas";
+    return;
+  }
+
+  snap.forEach(docSnap => {
+    const o = docSnap.data();
+
+    container.innerHTML += `
+      <div class="order">
+        <h4>${o.productName}</h4>
+        <p>Inversión: $${o.amount}</p>
+        <p>Ganancia diaria: $${o.dailyProfit}</p>
+        <p>Duración: ${o.duration} días</p>
+        <p>Estado: ${o.status}</p>
+      </div>
+    `;
+  });
+}
+
+
+// ===============================
 // 🚪 LOGOUT
 // ===============================
-window.logout = () => {
-  signOut(auth).then(() => {
+const logoutBtn = document.getElementById("logoutBtn");
+
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", async () => {
+    await signOut(auth);
     location.replace("./index.html");
   });
-};
+}
