@@ -44,14 +44,16 @@ const db = getFirestore(app);
 // 📌 NAVEGACIÓN
 // ===============================
 window.go = function (id) {
-  document.querySelectorAll(".page").forEach(p => p.style.display = "none");
+  document.querySelectorAll(".page").forEach(p => {
+    p.style.display = "none";
+  });
 
   const page = document.getElementById(id);
   if (page) page.style.display = "block";
 
   if (id === "profile") loadProfile();
   if (id === "orders") loadOrders();
-  if (id === "equipoPage") cargarEquipo();
+  if (id === "equipo") cargarEquipo();
 };
 
 // ===============================
@@ -73,7 +75,6 @@ onAuthStateChanged(auth, async user => {
       balance: 0,
       vip: 0,
       refBy: null,
-      totalInvested: 0,
       createdAt: serverTimestamp()
     });
   }
@@ -90,40 +91,29 @@ async function cargarDashboard() {
   const user = auth.currentUser;
   if (!user) return;
 
-  const userRef = doc(db, "users", user.uid);
-  const userSnap = await getDoc(userRef);
-  const userData = userSnap.data();
+  const saldoBox = document.querySelector(".box.blue b");
+  const gananciasBox = document.querySelector(".box.green b");
+  const retiradoBox = document.querySelector(".box.gold b");
 
-  const saldo = Number(userData.balance || 0);
+  const userSnap = await getDoc(doc(db, "users", user.uid));
+  const saldo = Number(userSnap.data().balance || 0);
 
   let ganancias = 0;
-  let totalInvertido = 0;
 
   const q = query(collection(db, "orders"), where("uid", "==", user.uid));
   const snap = await getDocs(q);
 
   snap.forEach(d => {
     ganancias += Number(d.data().dailyProfit || 0);
-    totalInvertido += Number(d.data().amount || 0);
   });
 
-  // 🔥 VIP AUTOMÁTICO
-  let vip = 0;
-  if (totalInvertido >= 100) vip = 1;
-  if (totalInvertido >= 500) vip = 2;
-  if (totalInvertido >= 1000) vip = 3;
-  if (totalInvertido >= 3000) vip = 4;
-  if (totalInvertido >= 5000) vip = 5;
-
-  await updateDoc(userRef, { vip });
-
-  document.getElementById("stat-balance").innerText = saldo.toFixed(2);
-  document.getElementById("stat-profit").innerText = ganancias.toFixed(2);
-  document.getElementById("stat-withdrawn").innerText = "0.00";
+  saldoBox.innerText = `$${saldo.toFixed(2)}`;
+  gananciasBox.innerText = `$${ganancias.toFixed(2)}`;
+  retiradoBox.innerText = `$0.00`;
 }
 
 // ===============================
-// 🎁 CHECK-IN 24 HORAS
+// 🎁 SERVICIO DIARIO 24H
 // ===============================
 document.addEventListener("click", async (e) => {
   if (e.target.id !== "btn-daily") return;
@@ -136,85 +126,31 @@ document.addEventListener("click", async (e) => {
   const data = snap.data();
 
   const now = Date.now();
-  const last = data.lastDailyClaim?.toMillis?.() || 0;
+  const lastClaim = data.lastDailyClaim?.toMillis?.() || 0;
 
-  if (now - last < 86400000) {
-    alert("⏳ Ya hiciste tu check-in hoy");
+  const hoursPassed = (now - lastClaim) / (1000 * 60 * 60);
+
+  if (hoursPassed < 24) {
+    const remaining = (24 - hoursPassed).toFixed(1);
+    alert(`⏳ Debes esperar ${remaining} horas`);
     return;
   }
 
+  const reward = 5;
+
   await updateDoc(userRef, {
-    balance: (data.balance || 0) + 5,
+    balance: (data.balance || 0) + reward,
     lastDailyClaim: serverTimestamp()
   });
 
   await addDoc(collection(db, "transactions"), {
     uid: user.uid,
     type: "Bono Diario",
-    amount: 5,
+    amount: reward,
     createdAt: serverTimestamp()
   });
 
-  alert("🎉 Recibiste $5");
-  cargarDashboard();
-});
-
-// ===============================
-// 💰 DEPÓSITO
-// ===============================
-window.closeDeposit = function () {
-  document.getElementById("depositModal").style.display = "none";
-};
-
-document.getElementById("btn-deposit")?.addEventListener("click", () => {
-  document.getElementById("depositModal").style.display = "block";
-});
-
-document.getElementById("confirmDeposit")?.addEventListener("click", async () => {
-  const amount = Number(document.getElementById("depositAmount").value);
-  const user = auth.currentUser;
-  if (!user || amount <= 0) return alert("Monto inválido");
-
-  await addDoc(collection(db, "deposits"), {
-    uid: user.uid,
-    amount,
-    status: "pending",
-    createdAt: serverTimestamp()
-  });
-
-  alert("✅ Depósito enviado");
-  closeDeposit();
-});
-
-// ===============================
-// 💸 RETIRO
-// ===============================
-document.getElementById("btn-withdraw")?.addEventListener("click", async () => {
-  const amount = Number(prompt("Ingrese monto a retirar"));
-  const user = auth.currentUser;
-  if (!user || amount <= 0) return;
-
-  const userRef = doc(db, "users", user.uid);
-  const snap = await getDoc(userRef);
-  const balance = Number(snap.data().balance || 0);
-
-  if (amount > balance) {
-    alert("❌ Saldo insuficiente");
-    return;
-  }
-
-  await updateDoc(userRef, {
-    balance: balance - amount
-  });
-
-  await addDoc(collection(db, "withdrawals"), {
-    uid: user.uid,
-    amount,
-    status: "pending",
-    createdAt: serverTimestamp()
-  });
-
-  alert("✅ Retiro solicitado");
+  alert("🎉 Bono diario recibido +$5");
   cargarDashboard();
 });
 
@@ -225,7 +161,15 @@ async function cargarProductos() {
   const list = document.getElementById("productsList");
   if (!list) return;
 
+  list.innerHTML = "Cargando productos...";
+
   const snap = await getDocs(collection(db, "products"));
+
+  if (snap.empty) {
+    list.innerHTML = "No hay productos";
+    return;
+  }
+
   list.innerHTML = "";
 
   snap.forEach(docSnap => {
@@ -271,10 +215,7 @@ document.addEventListener("click", async (e) => {
     return;
   }
 
-  await updateDoc(userRef, {
-    balance: saldo - p.price,
-    totalInvested: (userData.totalInvested || 0) + p.price
-  });
+  await updateDoc(userRef, { balance: saldo - p.price });
 
   await addDoc(collection(db, "orders"), {
     uid: user.uid,
@@ -283,10 +224,11 @@ document.addEventListener("click", async (e) => {
     dailyProfit: p.profit,
     duration: p.duration,
     createdAt: serverTimestamp(),
+    lastClaim: serverTimestamp(),
     status: "active"
   });
 
-  // 🔥 COMISIÓN 10%
+  // 🔥 COMISIÓN AUTOMÁTICA 10%
   if (userData.refBy) {
     const refRef = doc(db, "users", userData.refBy);
     const refSnap = await getDoc(refRef);
@@ -314,7 +256,7 @@ document.addEventListener("click", async (e) => {
 });
 
 // ===============================
-// 👥 EQUIPO (SOLO ACTIVOS)
+// 👥 CARGAR EQUIPO
 // ===============================
 async function cargarEquipo() {
   const user = auth.currentUser;
@@ -323,18 +265,8 @@ async function cargarEquipo() {
   const q = query(collection(db, "users"), where("refBy", "==", user.uid));
   const snap = await getDocs(q);
 
-  let activos = 0;
-
-  for (const docSnap of snap.docs) {
-    const member = docSnap.data();
-    const ordersQ = query(collection(db, "orders"), where("uid", "==", member.uid));
-    const ordersSnap = await getDocs(ordersQ);
-
-    if (!ordersSnap.empty) activos++;
-  }
-
   const teamCount = document.getElementById("teamCount");
-  if (teamCount) teamCount.innerText = activos;
+  if (teamCount) teamCount.innerText = snap.size;
 }
 
 // ===============================
