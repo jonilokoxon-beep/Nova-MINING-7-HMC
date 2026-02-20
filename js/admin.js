@@ -3,7 +3,8 @@ import {
   collection,
   getDocs,
   doc,
-  updateDoc
+  updateDoc,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -23,6 +24,8 @@ async function loadUsers() {
   const snapshot = await getDocs(collection(db, "users"));
   const container = document.getElementById("usersList");
 
+  if (!container) return;
+
   container.innerHTML = "";
 
   snapshot.forEach(docSnap => {
@@ -31,7 +34,7 @@ async function loadUsers() {
     container.innerHTML += `
       <div class="admin-card">
         <p>${data.email}</p>
-        <p>Balance: $${data.balance}</p>
+        <p>Balance: $${data.balance || 0}</p>
         <button onclick="addBalance('${docSnap.id}')">+100</button>
       </div>
     `;
@@ -44,7 +47,7 @@ window.addBalance = async function(uid) {
   const data = snap.data();
 
   await updateDoc(userRef, {
-    balance: data.balance + 100
+    balance: (data.balance || 0) + 100
   });
 
   loadUsers();
