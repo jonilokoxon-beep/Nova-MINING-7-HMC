@@ -1,19 +1,18 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+// ===============================
+// IMPORTAR TU CONFIG DE FIREBASE
+// ===============================
+import { auth, db } from "./firebase.js";
+
 import { 
-  getAuth, 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword 
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import { 
-  getFirestore, 
   doc, 
   setDoc 
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
 
 // ===================================
 // LOGIN (INDEX.HTML)
@@ -32,12 +31,13 @@ if (loginBtn) {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      window.location.href = "dashboard.html";
+      window.location.href = "./dashboard.html";
     } catch (error) {
       alert("Error: " + error.message);
     }
   });
 }
+
 
 // ===================================
 // REGISTER (REGISTER.HTML)
@@ -60,10 +60,11 @@ window.register = async function () {
       vip: 0,
       totalProfit: 0,
       totalWithdrawn: 0,
+      totalInvested: 0,
       createdAt: Date.now()
     });
 
-    window.location.href = "dashboard.html";
+    window.location.href = "./dashboard.html";
   } catch (error) {
     status.innerText = error.message;
   }
