@@ -5,7 +5,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// ⬅️ IMPORTS SIEMPRE ARRIBA
+// 📦 ÓRDENES
 import { loadOrders } from "./orders.js";
 
 // ===============================
@@ -28,17 +28,26 @@ const db = getFirestore(app);
 // ===============================
 // 📌 NAVEGACIÓN GLOBAL
 // ===============================
-window.go = function (id) {
+window.go = async function (id) {
   document.querySelectorAll(".page").forEach(p => {
     p.style.display = "none";
   });
 
   const page = document.getElementById(id);
   if (page) page.style.display = "block";
+
+  // 🔥 LÓGICA POR SECCIÓN
+  if (id === "orders") {
+    await loadOrders();
+  }
+
+  if (id === "productos") {
+    await cargarPlanes();
+  }
 };
 
 // ===============================
-// 🔐 SESIÓN (UNA SOLA VEZ)
+// 🔐 SESIÓN
 // ===============================
 onAuthStateChanged(auth, (user) => {
   if (!user) {
@@ -46,55 +55,55 @@ onAuthStateChanged(auth, (user) => {
     return;
   }
 
-  // ⏳ Esperar a que el DOM esté listo
+  // ⏳ Esperar DOM
   setTimeout(() => {
     go("inicio");
-    cargarPlanes();
-    loadOrders();
   }, 100);
 });
 
 // ===============================
-// 💰 CARGAR PLANES (products)
+// 💰 CARGAR PRODUCTOS
 // ===============================
 async function cargarPlanes() {
-  const plansDiv = document.getElementById("plans");
+  const productsDiv = document.getElementById("productsList");
 
-  if (!plansDiv) {
-    console.error("❌ No existe #plans");
+  if (!productsDiv) {
+    console.error("❌ No existe #productsList");
     return;
   }
 
-  plansDiv.innerHTML = "Cargando planes...";
+  productsDiv.innerHTML = "Cargando productos...";
 
   try {
     const snapshot = await getDocs(collection(db, "products"));
 
     if (snapshot.empty) {
-      plansDiv.innerHTML = "No hay planes disponibles";
+      productsDiv.innerHTML = "No hay productos disponibles";
       return;
     }
 
-    plansDiv.innerHTML = "";
+    productsDiv.innerHTML = "";
 
     snapshot.forEach(doc => {
       const p = doc.data();
       if (p.active !== true) return;
 
-      plansDiv.innerHTML += `
+      productsDiv.innerHTML += `
         <div class="plan">
           <h4>${p.name}</h4>
           <p>Precio: $${p.price}</p>
           <p>Ganancia diaria: $${p.profit}</p>
           <p>Duración: ${p.duration} días</p>
-          <button onclick="alert('Invertir próximamente')">Invertir</button>
+          <button onclick="alert('Invertir próximamente')">
+            Invertir
+          </button>
         </div>
       `;
     });
 
   } catch (err) {
     console.error("🔥 Firestore:", err);
-    plansDiv.innerHTML = "Error al cargar planes";
+    productsDiv.innerHTML = "Error al cargar productos";
   }
 }
 
