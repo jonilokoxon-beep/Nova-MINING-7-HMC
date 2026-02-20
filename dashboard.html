@@ -2,62 +2,129 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Nova Mining - Dashboard</title>
+  <title>Nova MINING 7 HMC</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
 
-  <div style="padding:20px;">
+<!-- MODAL DEPÓSITO -->
+<div id="depositModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h3>Solicitar Depósito</h3>
+    <input type="number" id="depositAmount" placeholder="Monto" />
+    <button id="confirmDeposit">Enviar</button>
+    <button onclick="closeDeposit()">Cancelar</button>
+  </div>
+</div>
 
-    <h2>Panel Principal</h2>
+<header class="top">
+  <span>Nova <b>MINING 7</b> HMC</span>
+  <button onclick="logout()">Salir</button>
+</header>
 
-    <div class="card">
-      <p>ID Usuario: <b id="p-id">----</b></p>
-      <p>VIP: <b id="p-vip">0</b></p>
-      <p>Balance:</p>
-      <h1>$<span id="p-balance">0.00</span></h1>
-    </div>
+<!-- ESTADÍSTICAS -->
+<div class="stats">
+  <div class="box blue">
+    Saldo<br>
+    <b>$<span id="stat-balance">0.00</span></b>
+  </div>
+  <div class="box green">
+    Ganancias<br>
+    <b>$<span id="stat-profit">0.00</span></b>
+  </div>
+  <div class="box gold">
+    Retirado<br>
+    <b>$<span id="stat-withdrawn">0.00</span></b>
+  </div>
+</div>
 
-    <div style="margin-top:20px;">
-      <button onclick="location.href='admin.html'" id="adminBtn" style="display:none;">
-        Panel Admin
-      </button>
+<div id="app">
+<div id="content">
 
-      <button onclick="logout()" style="margin-top:10px;">
-        Cerrar sesión
-      </button>
-    </div>
-
+<!-- INICIO -->
+<section id="inicio" class="page" style="display:block">
+  <div class="banner">
+    <img src="assets/ezgif.gif" style="width:100%;">
   </div>
 
-  <script type="module">
-    import { auth } from "./js/firebase.js";
-    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  <div class="quick-actions">
+    <button onclick="go('productos')">💎 Productos</button>
+    <button onclick="go('orders')">📦 Órdenes</button>
+    <button onclick="go('equipoPage')">👥 Equipo</button>
+    <button id="quick-deposit">💰 Depósito</button>
+    <button id="quick-withdraw">💸 Retiro</button>
+  </div>
+</section>
 
-    onAuthStateChanged(auth, (user) => {
+<!-- PRODUCTOS -->
+<section id="productos" class="page">
+  <h3 style="padding:15px">Productos VIP</h3>
+  <div id="productsList"></div>
+</section>
 
-      if (!user) {
-        window.location.href = "index.html";
-        return;
-      }
+<!-- ÓRDENES -->
+<section id="orders" class="page">
+  <h3 style="padding:15px">Mis Órdenes</h3>
+  <div class="total-box">
+    <span>Total a ganar</span>
+    <b id="totalProfit">$0.00</b>
+  </div>
+  <div class="orders" id="ordersList"></div>
+</section>
 
-      document.getElementById("p-id").innerText = user.uid;
+<!-- EQUIPO -->
+<section id="equipoPage" class="page">
+  <h2 style="padding:15px">👥 Mi Equipo</h2>
+  <p style="padding:10px">
+    Miembros activos: <b id="teamCount">0</b>
+  </p>
+  <div id="teamList"></div>
+</section>
 
-      if (user.email === "joni.lokoxon@gmail.com") {
-        document.getElementById("adminBtn").style.display = "block";
-      }
+<!-- PERFIL -->
+<section id="profile" class="page">
+  <div class="profile-header">
+    <h2>NOVA MINING</h2>
+  </div>
 
-    });
+  <div class="profile-card">
+    <div class="user-info">
+      <span>ID: <b id="p-id">----</b></span>
+      <span class="vip">VIP <b id="p-vip">0</b></span>
+    </div>
 
-    window.logout = async function() {
-      await signOut(auth);
-      window.location.href = "index.html";
-    };
-  </script>
+    <div class="balance-box">
+      <div>
+        <small>MXN</small>
+        <h3>$<span id="p-balance">0.00</span></h3>
+      </div>
+      <div class="actions">
+        <button id="btn-deposit">Depósito</button>
+        <button id="btn-withdraw">Retiro</button>
+      </div>
+    </div>
+  </div>
 
-  <script type="module" src="js/dashboard.js"></script>
+  <div class="transaction-box">
+    <h4 style="padding:10px">Historial</h4>
+    <div id="transactionHistory"></div>
+  </div>
+</section>
+
+</div>
+</div>
+
+<!-- NAV -->
+<nav class="bottom">
+  <button onclick="go('inicio')">🏠<span>Inicio</span></button>
+  <button onclick="go('productos')">🛒<span>Productos</span></button>
+  <button onclick="go('orders')">📦<span>Órdenes</span></button>
+  <button onclick="go('profile')">👤<span>Perfil</span></button>
+</nav>
+
+<script type="module" src="js/dashboard.js"></script>
 
 </body>
 </html>
