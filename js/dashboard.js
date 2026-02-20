@@ -1,23 +1,29 @@
-// ===============================
-// ESPERAR QUE CARGUE TODO
-// ===============================
-document.addEventListener("DOMContentLoaded", () => {
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  addDoc,
+  serverTimestamp,
+  query,
+  where
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js").then(async ({ initializeApp }) => {
-
-const { getAuth, signOut, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
-const { getFirestore, doc, getDoc, updateDoc, collection, addDoc, getDocs, query, where } =
-await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
-
-// ===============================
-// TU CONFIG FIREBASE
-// ===============================
 const firebaseConfig = {
   apiKey: "TU_API_KEY",
   authDomain: "TU_AUTH_DOMAIN",
   projectId: "TU_PROJECT_ID",
   storageBucket: "TU_BUCKET",
-  messagingSenderId: "TU_MSG",
+  messagingSenderId: "TU_SENDER",
   appId: "TU_APP_ID"
 };
 
@@ -25,196 +31,208 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-let currentUser = null;
+/* =========================
+   NAVEGACIÓN
+========================= */
+window.go = function(pageId){
+  document.querySelectorAll(".page").forEach(p=>{
+    p.style.display="none";
+  });
+  const target=document.getElementById(pageId);
+  if(target) target.style.display="block";
 
-// ===============================
-// NAVEGACIÓN PESTAÑAS
-// ===============================
-window.go = function(pageId) {
-  document.querySelectorAll(".page").forEach(p => p.style.display = "none");
-  const page = document.getElementById(pageId);
-  if (page) page.style.display = "block";
-};
-
-// ===============================
-// LOGOUT
-// ===============================
-window.logout = async function() {
-  await signOut(auth);
-  window.location.href = "index.html";
-};
-
-// ===============================
-// CARGAR DATOS
-// ===============================
-async function loadUser(uid) {
-  const snap = await getDoc(doc(db, "users", uid));
-  if (!snap.exists()) return;
-
-  const data = snap.data();
-
-  document.getElementById("stat-balance").innerText = (data.balance || 0).toFixed(2);
-  document.getElementById("stat-profit").innerText = (data.totalProfit || 0).toFixed(2);
-  document.getElementById("stat-withdrawn").innerText = (data.totalWithdrawn || 0).toFixed(2);
-
-  document.getElementById("p-id").innerText = uid.slice(0,6);
-  document.getElementById("p-vip").innerText = data.vip || 0;
-  document.getElementById("p-balance").innerText = (data.balance || 0).toFixed(2);
+  if(pageId==="orders") cargarOrdenes();
+  if(pageId==="profile") cargarPerfil();
 }
 
-// ===============================
-// PRODUCTOS
-// ===============================
-const products = [
-  { name: "VIP 1", price: 100, daily: 10 },
-  { name: "VIP 2", price: 300, daily: 35 },
-  { name: "VIP 3", price: 600, daily: 80 }
-];
+/* =========================
+   SESIÓN
+========================= */
+onAuthStateChanged(auth, async user=>{
+  if(!user){
+    location.replace("index.html");
+    return;
+  }
 
-function renderProducts() {
-  const container = document.getElementById("productsList");
-  if (!container) return;
-  container.innerHTML = "";
+  const userRef=doc(db,"users",user.uid);
+  const snap=await getDoc(userRef);
 
-  products.forEach(p => {
-    const div = document.createElement("div");
-    div.innerHTML = `
-      <h4>${p.name}</h4>
-      <p>Precio: $${p.price}</p>
-      <p>Ganancia diaria: $${p.daily}</p>
-      <button class="buy-btn">Comprar</button>
-    `;
-    div.querySelector(".buy-btn").addEventListener("click", async () => {
-      const userRef = doc(db, "users", currentUser.uid);
-      const snap = await getDoc(userRef);
-      const data = snap.data();
-
-      if (p.price > data.balance) return alert("Saldo insuficiente");
-
-      await updateDoc(userRef, {
-        balance: data.balance - p.price
-      });
-
-      await addDoc(collection(db, "orders"), {
-        uid: currentUser.uid,
-        product: p.name,
-        daily: p.daily,
-        created: Date.now()
-      });
-
-      alert("Producto comprado");
-      loadUser(currentUser.uid);
-      renderOrders();
+  if(!snap.exists()){
+    await setDoc(userRef,{
+      uid:user.uid,
+      email:user.email,
+      balance:0,
+      createdAt:serverTimestamp()
     });
+  }
 
-    container.appendChild(div);
-  });
+  cargarDashboard();
+  cargarProductos();
+});
+
+/* =========================
+   DASHBOARD
+========================= */
+async function cargarDashboard(){
+  const user=auth.currentUser;
+  if(!user) return;
+
+  const snap=await getDoc(doc(db,"users",user.uid));
+  const saldo=Number(snap.data().balance||0);
+
+  document.getElementById("stat-balance").innerText=saldo.toFixed(2);
 }
 
-// ===============================
-// ÓRDENES
-// ===============================
-async function renderOrders() {
-  const container = document.getElementById("ordersList");
-  if (!container) return;
-  container.innerHTML = "";
+/* =========================
+   PRODUCTOS
+========================= */
+async function cargarProductos(){
+  const list=document.getElementById("productsList");
+  if(!list) return;
 
-  const q = query(collection(db, "orders"), where("uid", "==", currentUser.uid));
-  const snap = await getDocs(q);
+  list.innerHTML="Cargando...";
 
-  snap.forEach(docu => {
-    const data = docu.data();
-    const div = document.createElement("div");
-    div.innerHTML = `
-      <p>${data.product}</p>
-      <p>Ganancia diaria: $${data.daily}</p>
+  const snap=await getDocs(collection(db,"products"));
+  list.innerHTML="";
+
+  snap.forEach(d=>{
+    const p=d.data();
+    list.innerHTML+=`
+      <div>
+        <h4>${p.name}</h4>
+        <p>$${p.price}</p>
+        <button onclick="invertir('${d.id}')">Invertir</button>
+      </div>
     `;
-    container.appendChild(div);
   });
 }
 
-// ===============================
-// DEPÓSITO
-// ===============================
-document.getElementById("quick-deposit")?.addEventListener("click", () => {
-  const amount = parseFloat(prompt("Monto a depositar"));
-  if (!amount || amount <= 0) return;
+/* =========================
+   INVERTIR
+========================= */
+window.invertir=async function(productId){
+  const user=auth.currentUser;
+  if(!user) return;
 
-  updateBalance(amount);
-});
+  const userRef=doc(db,"users",user.uid);
+  const userSnap=await getDoc(userRef);
+  const saldo=Number(userSnap.data().balance||0);
 
-// ===============================
-// RETIRO
-// ===============================
-document.getElementById("quick-withdraw")?.addEventListener("click", async () => {
-  const amount = parseFloat(prompt("Monto a retirar"));
-  if (!amount || amount <= 0) return;
+  const prodSnap=await getDoc(doc(db,"products",productId));
+  const p=prodSnap.data();
 
-  const userRef = doc(db, "users", currentUser.uid);
-  const snap = await getDoc(userRef);
-  const data = snap.data();
+  if(saldo<p.price){
+    alert("Saldo insuficiente");
+    return;
+  }
 
-  if (amount > data.balance) return alert("Saldo insuficiente");
-
-  await updateDoc(userRef, {
-    balance: data.balance - amount,
-    totalWithdrawn: (data.totalWithdrawn || 0) + amount
+  await updateDoc(userRef,{
+    balance:saldo-p.price
   });
 
-  loadUser(currentUser.uid);
-});
-
-async function updateBalance(amount) {
-  const userRef = doc(db, "users", currentUser.uid);
-  const snap = await getDoc(userRef);
-  const data = snap.data();
-
-  await updateDoc(userRef, {
-    balance: (data.balance || 0) + amount
+  await addDoc(collection(db,"orders"),{
+    uid:user.uid,
+    productName:p.name,
+    amount:p.price,
+    createdAt:serverTimestamp()
   });
 
-  loadUser(currentUser.uid);
+  alert("Inversión realizada");
+  cargarDashboard();
 }
 
-// ===============================
-// CHECK IN DIARIO 24H
-// ===============================
-window.dailyCheckin = async function() {
-  const userRef = doc(db, "users", currentUser.uid);
-  const snap = await getDoc(userRef);
-  const data = snap.data();
+/* =========================
+   ÓRDENES
+========================= */
+async function cargarOrdenes(){
+  const user=auth.currentUser;
+  if(!user) return;
 
-  const now = Date.now();
-  if (data.lastCheckin && now - data.lastCheckin < 86400000) {
-    return alert("Ya reclamaste hoy");
-  }
+  const list=document.getElementById("ordersList");
+  list.innerHTML="Cargando...";
 
-  await updateDoc(userRef, {
-    balance: (data.balance || 0) + 5,
-    lastCheckin: now
+  const q=query(collection(db,"orders"),where("uid","==",user.uid));
+  const snap=await getDocs(q);
+
+  list.innerHTML="";
+
+  snap.forEach(d=>{
+    const o=d.data();
+    list.innerHTML+=`
+      <div>
+        <p>${o.productName}</p>
+        <p>$${o.amount}</p>
+      </div>
+    `;
   });
+}
 
-  alert("Recompensa diaria recibida");
-  loadUser(currentUser.uid);
-};
+/* =========================
+   PERFIL
+========================= */
+async function cargarPerfil(){
+  const user=auth.currentUser;
+  if(!user) return;
 
-// ===============================
-// AUTENTICACIÓN
-// ===============================
-onAuthStateChanged(auth, (user) => {
+  const snap=await getDoc(doc(db,"users",user.uid));
+  const data=snap.data();
 
-  if (user) {
-    currentUser = user;
-    loadUser(user.uid);
-    renderProducts();
-    renderOrders();
-  } else {
-    // Espera 500ms antes de redirigir
-    setTimeout(() => {
-      if (!auth.currentUser) {
-        window.location.href = "index.html";
-      }
-    }, 500);
+  document.getElementById("p-id").innerText=user.uid.slice(0,8);
+  document.getElementById("p-balance").innerText=data.balance.toFixed(2);
+}
+
+/* =========================
+   DEPÓSITO
+========================= */
+window.closeDeposit=()=>document.getElementById("depositModal").style.display="none";
+
+document.getElementById("quick-deposit")?.addEventListener("click",()=>{
+  document.getElementById("depositModal").style.display="block";
+});
+
+document.getElementById("btn-deposit")?.addEventListener("click",()=>{
+  document.getElementById("depositModal").style.display="block";
+});
+
+document.getElementById("confirmDeposit")?.addEventListener("click",async()=>{
+  const amount=Number(document.getElementById("depositAmount").value);
+  const user=auth.currentUser;
+  if(!user||amount<=0) return;
+
+  const userRef=doc(db,"users",user.uid);
+  const snap=await getDoc(userRef);
+  const saldo=Number(snap.data().balance||0);
+
+  await updateDoc(userRef,{balance:saldo+amount});
+  closeDeposit();
+  cargarDashboard();
+});
+
+/* =========================
+   RETIRO
+========================= */
+document.getElementById("quick-withdraw")?.addEventListener("click",retirar);
+document.getElementById("btn-withdraw")?.addEventListener("click",retirar);
+
+async function retirar(){
+  const amount=Number(prompt("Monto a retirar"));
+  const user=auth.currentUser;
+  if(!user||amount<=0) return;
+
+  const userRef=doc(db,"users",user.uid);
+  const snap=await getDoc(userRef);
+  const saldo=Number(snap.data().balance||0);
+
+  if(amount>saldo){
+    alert("Saldo insuficiente");
+    return;
   }
 
-});
+  await updateDoc(userRef,{balance:saldo-amount});
+  cargarDashboard();
+}
+
+/* =========================
+   LOGOUT
+========================= */
+window.logout=()=>signOut(auth).then(()=>location.replace("index.html"));
