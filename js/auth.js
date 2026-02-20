@@ -1,41 +1,39 @@
-import { auth, db } from "./firebase.js";
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-window.login = async function () {
-  const email = email.value;
-  const password = password.value;
-  const status = document.getElementById("status");
+// 🔥 TU CONFIG REAL
+const firebaseConfig = {
+  apiKey: "TU_API_KEY",
+  authDomain: "TU_AUTH_DOMAIN",
+  projectId: "TU_PROJECT_ID",
+  storageBucket: "TU_BUCKET",
+  messagingSenderId: "TU_MSG",
+  appId: "TU_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+getFirestore(app);
+
+// ============================
+// LOGIN
+// ============================
+document.getElementById("loginBtn").addEventListener("click", async () => {
+
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  if (!email || !password) {
+    alert("Completa todos los campos");
+    return;
+  }
 
   try {
     await signInWithEmailAndPassword(auth, email, password);
     window.location.href = "dashboard.html";
   } catch (error) {
-    status.innerText = error.message;
+    alert("Error: " + error.message);
   }
-};
 
-window.register = async function () {
-  const emailVal = document.getElementById("email").value;
-  const passVal = document.getElementById("password").value;
-  const status = document.getElementById("status");
-
-  try {
-    const userCred = await createUserWithEmailAndPassword(auth, emailVal, passVal);
-
-    await setDoc(doc(db, "users", userCred.user.uid), {
-      email: emailVal,
-      balance: 0,
-      vip: 0,
-      createdAt: Date.now(),
-      lastProfit: Date.now()
-    });
-
-    window.location.href = "dashboard.html";
-  } catch (error) {
-    status.innerText = error.message;
-  }
-};
+});ñ
