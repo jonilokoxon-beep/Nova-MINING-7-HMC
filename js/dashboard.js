@@ -58,6 +58,12 @@ onAuthStateChanged(auth, async user => {
     });
   }
 
+  // 🔐 ACTIVAR ADMIN (CAMBIA TU CORREO)
+  if (user.email === "TU_CORREO_ADMIN@gmail.com") {
+    document.getElementById("adminBtn").style.display = "inline-block";
+    cargarAdmin();
+  }
+
   go("inicio");
 
   await cargarProductos();
@@ -65,6 +71,7 @@ onAuthStateChanged(auth, async user => {
   await cargarOrdenes();
   await cargarPerfil();
   await cargarExtras();
+  await cargarHistorial();
 });
 
 
@@ -96,14 +103,14 @@ async function cargarDashboard() {
     ganancias += Number(d.data().dailyProfit || 0);
   });
 
-  document.getElementById("stat-balance").innerText = "$" + saldo.toFixed(2);
-  document.getElementById("stat-profit").innerText = "$" + ganancias.toFixed(2);
-  document.getElementById("stat-withdrawn").innerText = "$" + retirado.toFixed(2);
+  document.getElementById("stat-balance").innerText = saldo.toFixed(2);
+  document.getElementById("stat-profit").innerText = ganancias.toFixed(2);
+  document.getElementById("stat-withdrawn").innerText = retirado.toFixed(2);
 }
 
 
 // ===============================
-// 🔱 VIP + EQUIPO + BONOS
+// 🔱 VIP + EQUIPO
 // ===============================
 async function cargarExtras() {
 
@@ -116,51 +123,29 @@ async function cargarExtras() {
 
   const totalInv = Number(data.totalInvested || 0);
 
-  // 🔱 NIVEL AUTOMÁTICO
   let level = 0;
   if (totalInv >= 5000) level = 4;
   else if (totalInv >= 2000) level = 3;
   else if (totalInv >= 1000) level = 2;
   else if (totalInv >= 200) level = 1;
 
-  if (data.level !== level) {
-    await updateDoc(userRef, { level });
-  }
+  await updateDoc(userRef, { level });
 
-  const vipBox = document.getElementById("vip-level");
-  if (vipBox) vipBox.innerText = "VIP " + level;
+  document.getElementById("vip-level")?.innerText = "VIP " + level;
+  document.getElementById("p-vip").innerText = level;
 
   // 👥 EQUIPO
-  const q = query(
-    collection(db, "users"),
-    where("referrerId", "==", user.uid)
-  );
-
+  const q = query(collection(db, "users"), where("referrerId", "==", user.uid));
   const teamSnap = await getDocs(q);
+
   const teamSize = teamSnap.size;
-
-  const teamBox = document.getElementById("team-size");
-  if (teamBox) teamBox.innerText = teamSize;
-
-  // 🎁 BONO POR EQUIPO
-  let teamBonus = teamSize * 2; // $2 por referido
-  const bonusBox = document.getElementById("team-bonus");
-  if (bonusBox) bonusBox.innerText = "$" + teamBonus.toFixed(2);
-
-  // 🎁 REGALO DIARIO
-  const today = new Date().toDateString();
-  const giftBox = document.getElementById("daily-gift");
-
-  if (data.lastGift === today) {
-    if (giftBox) giftBox.innerText = "Ya reclamado";
-  } else {
-    if (giftBox) giftBox.innerText = "Disponible";
-  }
+  document.getElementById("team-size")?.innerText = teamSize;
+  document.getElementById("teamCountHome").innerText = teamSize;
 }
 
 
 // ===============================
-// 💰 PRODUCTOS
+// 💰 PRODUCTOS (ANTI-UNDEFINED)
 // ===============================
 async function cargarProductos() {
 
@@ -171,14 +156,19 @@ async function cargarProductos() {
   list.innerHTML = "";
 
   snap.forEach(docSnap => {
+
     const p = docSnap.data();
+
+    const precio = p.amount ?? p.price ?? 0;
+    const ganancia = p.dailyProfit ?? p.profit ?? 0;
+    const duracion = p.duration ?? p.days ?? 0;
 
     list.innerHTML += `
       <div class="card">
-        <h4>${p.name}</h4>
-        <p>Precio: $${p.amount}</p>
-        <p>Ganancia diaria: $${p.dailyProfit}</p>
-        <p>Duración: ${p.duration} días</p>
+        <h4>${p.name || "Producto"}</h4>
+        <p>Precio: $${precio}</p>
+        <p>Ganancia diaria: $${ganancia}</p>
+        <p>Duración: ${duracion} días</p>
         <button class="btn-invertir" data-id="${docSnap.id}">
           Invertir
         </button>
@@ -189,7 +179,7 @@ async function cargarProductos() {
 
 
 // ===============================
-// 💸 INVERTIR + COMISIÓN REFERIDO
+// 💸 INVERTIR
 // ===============================
 document.addEventListener("click", async (e) => {
 
@@ -203,58 +193,36 @@ document.addEventListener("click", async (e) => {
   const userSnap = await getDoc(userRef);
   const userData = userSnap.data();
 
-  const saldo = Number(userData.balance || 0);
-
   const prodSnap = await getDoc(doc(db, "products", productId));
   const p = prodSnap.data();
-  const precio = p.amount;
 
-  if (saldo < precio) {
+  const precio = p.amount ?? p.price ?? 0;
+
+  if (userData.balance < precio) {
     alert("Saldo insuficiente");
     return;
   }
 
-  // descontar saldo
   await updateDoc(userRef, {
-    balance: saldo - precio,
+    balance: userData.balance - precio,
     totalInvested: (userData.totalInvested || 0) + precio
   });
 
-  // crear orden
   await addDoc(collection(db, "orders"), {
     userId: user.uid,
     productName: p.name,
     amount: precio,
-    dailyProfit: p.dailyProfit,
-    duration: p.duration,
+    dailyProfit: p.dailyProfit ?? p.profit ?? 0,
+    duration: p.duration ?? p.days ?? 0,
     status: "active",
     createdAt: serverTimestamp()
   });
 
-  // 💎 COMISIÓN 5% AL REFERIDOR
-  if (userData.referrerId) {
-
-    const refRef = doc(db, "users", userData.referrerId);
-    const refSnap = await getDoc(refRef);
-
-    if (refSnap.exists()) {
-
-      const refData = refSnap.data();
-      const commission = precio * 0.05;
-
-      await updateDoc(refRef, {
-        balance: (refData.balance || 0) + commission
-      });
-    }
-  }
-
   alert("Inversión realizada");
 
   await cargarDashboard();
-  await cargarExtras();
   await cargarOrdenes();
-
-  go("orders");
+  await cargarExtras();
 });
 
 
@@ -267,20 +235,23 @@ async function cargarOrdenes() {
   if (!user) return;
 
   const container = document.getElementById("ordersList");
+  const totalBox = document.getElementById("totalProfit");
   if (!container) return;
 
   const q = query(
     collection(db, "orders"),
-    where("userId", "==", user.uid),
-    where("status", "==", "active")
+    where("userId", "==", user.uid)
   );
 
   const snap = await getDocs(q);
 
   container.innerHTML = "";
+  let total = 0;
 
   snap.forEach(docSnap => {
+
     const o = docSnap.data();
+    total += Number(o.dailyProfit || 0);
 
     container.innerHTML += `
       <div class="card">
@@ -288,9 +259,12 @@ async function cargarOrdenes() {
         <p>Inversión: $${o.amount}</p>
         <p>Ganancia diaria: $${o.dailyProfit}</p>
         <p>Duración: ${o.duration} días</p>
+        <p>Estado: ${o.status}</p>
       </div>
     `;
   });
+
+  if (totalBox) totalBox.innerText = "$" + total.toFixed(2);
 }
 
 
@@ -312,36 +286,149 @@ async function cargarPerfil() {
 
 
 // ===============================
-// 🎁 REGALO DIARIO
+// 💳 DEPÓSITO
 // ===============================
-window.reclamarRegalo = async function () {
+document.getElementById("btn-deposit")?.addEventListener("click", () => {
+  document.getElementById("depositModal").style.display = "block";
+});
+
+window.closeDeposit = function () {
+  document.getElementById("depositModal").style.display = "none";
+};
+
+document.getElementById("confirmDeposit")?.addEventListener("click", async () => {
 
   const user = auth.currentUser;
-  if (!user) return;
+  const amount = Number(document.getElementById("depositAmount").value);
+
+  if (!amount || amount <= 0) {
+    alert("Monto inválido");
+    return;
+  }
+
+  await addDoc(collection(db, "deposits"), {
+    userId: user.uid,
+    amount,
+    status: "pending",
+    createdAt: serverTimestamp()
+  });
+
+  alert("Depósito enviado para aprobación");
+  closeDeposit();
+});
+
+
+// ===============================
+// 💸 RETIRO 17%
+// ===============================
+document.getElementById("withdrawBtn")?.addEventListener("click", async () => {
+
+  const user = auth.currentUser;
+  const amount = Number(document.getElementById("withdrawAmount").value);
+
+  if (!amount || amount <= 0) {
+    alert("Monto inválido");
+    return;
+  }
 
   const userRef = doc(db, "users", user.uid);
   const snap = await getDoc(userRef);
   const data = snap.data();
 
-  const today = new Date().toDateString();
-
-  if (data.lastGift === today) {
-    alert("Ya reclamaste hoy");
+  if (data.balance < amount) {
+    alert("Saldo insuficiente");
     return;
   }
 
-  const reward = 5;
+  const fee = amount * 0.17;
+  const finalAmount = amount - fee;
 
   await updateDoc(userRef, {
-    balance: (data.balance || 0) + reward,
-    lastGift: today
+    balance: data.balance - amount
   });
 
-  alert("Regalo recibido +$5");
+  await addDoc(collection(db, "withdrawals"), {
+    userId: user.uid,
+    amount,
+    fee,
+    finalAmount,
+    status: "pending",
+    createdAt: serverTimestamp()
+  });
+
+  alert("Retiro enviado (17% comisión aplicada)");
 
   await cargarDashboard();
-  await cargarExtras();
-};
+  await cargarHistorial();
+});
+
+
+// ===============================
+// 📜 HISTORIAL
+// ===============================
+async function cargarHistorial() {
+
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const box = document.getElementById("transactionHistory");
+  if (!box) return;
+
+  box.innerHTML = "";
+
+  const snap = await getDocs(
+    query(collection(db, "withdrawals"), where("userId", "==", user.uid))
+  );
+
+  snap.forEach(d => {
+    const w = d.data();
+    box.innerHTML += `
+      <div style="padding:5px;">
+        Retiro: $${w.amount} - ${w.status}
+      </div>
+    `;
+  });
+}
+
+
+// ===============================
+// 👑 ADMIN PANEL
+// ===============================
+async function cargarAdmin() {
+
+  const withdrawalsBox = document.getElementById("admin-withdrawals");
+  const depositsBox = document.getElementById("admin-deposits");
+
+  const wSnap = await getDocs(
+    query(collection(db, "withdrawals"), where("status", "==", "pending"))
+  );
+
+  withdrawalsBox.innerHTML = "";
+  wSnap.forEach(docSnap => {
+    const w = docSnap.data();
+    withdrawalsBox.innerHTML += `
+      <div class="card">
+        <p>User: ${w.userId}</p>
+        <p>Monto: $${w.amount}</p>
+      </div>
+    `;
+  });
+
+  const dSnap = await getDocs(
+    query(collection(db, "deposits"), where("status", "==", "pending"))
+  );
+
+  depositsBox.innerHTML = "";
+  dSnap.forEach(docSnap => {
+    const d = docSnap.data();
+    depositsBox.innerHTML += `
+      <div class="card">
+        <p>User: ${d.userId}</p>
+        <p>Monto: $${d.amount}</p>
+      </div>
+    `;
+  });
+}
 
 
 // ===============================
