@@ -1,244 +1,175 @@
-// =====================================================
-// 👑 ADMIN PANEL SYSTEM
-// 💰 APROBAR DEPÓSITOS + 💸 APROBAR RETIROS
-// =====================================================
-
 import { auth, db } from "./firebase.js";
-
 import {
-  onAuthStateChanged
+onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import {
-  collection,
-  getDocs,
-  updateDoc,
-  doc,
-  query,
-  where,
-  addDoc,
-  serverTimestamp,
-  increment,
-  getDoc
+collection,
+getDocs,
+doc,
+getDoc,
+updateDoc,
+addDoc,
+query,
+where,
+serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-
-// =====================================================
-// 🔐 VERIFICAR ADMIN
-// =====================================================
-const ADMIN_EMAIL = "joni.lokoxon@gmail.com";
-
-onAuthStateChanged(auth, async (user) => {
-
-  if (!user || user.email !== ADMIN_EMAIL) {
-    alert("Acceso denegado");
-    window.location.replace("dashboard.html");
-    return;
-  }
-
-  await loadDeposits();
-  await loadWithdrawals();
-});
-
-
-// =====================================================
-// 💰 CARGAR DEPÓSITOS PENDIENTES
-// =====================================================
-async function loadDeposits() {
-
-  const container = document.getElementById("adminDeposits");
-  if (!container) return;
-
-  container.innerHTML = "Cargando depósitos...";
-
-  try {
-
-    const q = query(
-      collection(db, "deposits"),
-      where("status", "==", "pending")
-    );
-
-    const snap = await getDocs(q);
-
-    if (snap.empty) {
-      container.innerHTML = "No hay depósitos pendientes";
-      return;
-    }
-
-    container.innerHTML = "";
-
-    snap.forEach((docSnap) => {
-
-      const data = docSnap.data();
-      const amount = Number(data.amount || 0);
-
-      const div = document.createElement("div");
-      div.className = "admin-item";
-
-      div.innerHTML = `
-        <p><strong>Usuario:</strong> ${data.uid}</p>
-        <p><strong>Monto:</strong> $${amount.toFixed(2)}</p>
-        <button onclick="approveDeposit('${docSnap.id}', '${data.uid}', ${amount})">
-          ✅ Aprobar
-        </button>
-      `;
-
-      container.appendChild(div);
-    });
-
-  } catch (error) {
-    console.error("Error cargando depósitos:", error);
-    container.innerHTML = "Error cargando depósitos";
-  }
-}
-
-
-// =====================================================
-// ✅ APROBAR DEPÓSITO
-// =====================================================
-window.approveDeposit = async (depositId, uid, amount) => {
-
-  try {
-
-    const depositRef = doc(db, "deposits", depositId);
-    const depositSnap = await getDoc(depositRef);
-
-    if (!depositSnap.exists()) {
-      alert("Depósito no encontrado");
-      return;
-    }
-
-    const depositData = depositSnap.data();
-
-    if (depositData.status !== "pending") {
-      alert("Este depósito ya fue procesado");
-      return;
-    }
-
-    // Cambiar estado del depósito
-    await updateDoc(depositRef, {
-      status: "approved"
-    });
-
-    // Sumar saldo al usuario
-    const userRef = doc(db, "users", uid);
-
-    await updateDoc(userRef, {
-      balance: increment(Number(amount))
-    });
-
-    // Registrar transacción
-    await addDoc(collection(db, "transactions"), {
-      uid,
-      type: "deposit",
-      amount: Number(amount),
-      createdAt: serverTimestamp()
-    });
-
-    alert("✅ Depósito aprobado");
-
-    await loadDeposits();
-
-  } catch (error) {
-    console.error("Error aprobando depósito:", error);
-    alert("Error al aprobar depósito");
-  }
+window.showSection = function(id){
+document.querySelectorAll(".section").forEach(s=>s.style.display="none");
+document.getElementById(id).style.display="block";
 };
 
+onAuthStateChanged(auth, async user => {
 
-// =====================================================
-// 💸 CARGAR RETIROS PENDIENTES
-// =====================================================
-async function loadWithdrawals() {
-
-  const container = document.getElementById("adminWithdrawals");
-  if (!container) return;
-
-  container.innerHTML = "Cargando retiros...";
-
-  try {
-
-    const q = query(
-      collection(db, "withdrawals"),
-      where("status", "==", "pending")
-    );
-
-    const snap = await getDocs(q);
-
-    if (snap.empty) {
-      container.innerHTML = "No hay retiros pendientes";
-      return;
-    }
-
-    container.innerHTML = "";
-
-    snap.forEach((docSnap) => {
-
-      const data = docSnap.data();
-      const amount = Number(data.amount || 0);
-
-      const div = document.createElement("div");
-      div.className = "admin-item";
-
-      div.innerHTML = `
-        <p><strong>Usuario:</strong> ${data.uid}</p>
-        <p><strong>Monto:</strong> $${amount.toFixed(2)}</p>
-        <button onclick="approveWithdraw('${docSnap.id}', '${data.uid}', ${amount})">
-          ✅ Aprobar
-        </button>
-      `;
-
-      container.appendChild(div);
-    });
-
-  } catch (error) {
-    console.error("Error cargando retiros:", error);
-    container.innerHTML = "Error cargando retiros";
-  }
+if (!user) {
+location.replace("./index.html");
+return;
 }
 
+const snap = await getDoc(doc(db,"users",user.uid));
+const data = snap.data();
 
-// =====================================================
-// ✅ APROBAR RETIRO
-// =====================================================
-window.approveWithdraw = async (withdrawId, uid, amount) => {
+if (data?.role !== "admin") {
+location.replace("./dashboard.html");
+return;
+}
 
-  try {
+loadStats();
+loadUsers();
+loadWithdrawals();
+loadCodes();
+});
 
-    const withdrawRef = doc(db, "withdrawals", withdrawId);
-    const withdrawSnap = await getDoc(withdrawRef);
+// =====================
+// 📊 ESTADÍSTICAS
+// =====================
+async function loadStats(){
 
-    if (!withdrawSnap.exists()) {
-      alert("Retiro no encontrado");
-      return;
-    }
+const usersSnap = await getDocs(collection(db,"users"));
+let totalBalance = 0;
+let totalInvested = 0;
+let totalUsers = usersSnap.size;
 
-    const withdrawData = withdrawSnap.data();
+usersSnap.forEach(d=>{
+const u=d.data();
+totalBalance+=Number(u.balance||0);
+totalInvested+=Number(u.totalInvested||0);
+});
 
-    if (withdrawData.status !== "pending") {
-      alert("Este retiro ya fue procesado");
-      return;
-    }
+document.getElementById("stats").innerHTML=`
+<h2>Estadísticas Generales</h2>
+<div class="stat-card">Usuarios: ${totalUsers}</div>
+<div class="stat-card">Total Balance: $${totalBalance.toFixed(2)}</div>
+<div class="stat-card">Total Invertido: $${totalInvested.toFixed(2)}</div>
+`;
+}
 
-    // Cambiar estado del retiro
-    await updateDoc(withdrawRef, {
-      status: "approved"
-    });
+// =====================
+// 👥 USUARIOS
+// =====================
+async function loadUsers(){
 
-    // Registrar transacción
-    await addDoc(collection(db, "transactions"), {
-      uid,
-      type: "withdraw",
-      amount: Number(amount),
-      createdAt: serverTimestamp()
-    });
+const snap=await getDocs(collection(db,"users"));
+let html="<h2>Usuarios</h2>";
 
-    alert("✅ Retiro aprobado");
+snap.forEach(d=>{
+const u=d.data();
+html+=`
+<div class="card">
+Email: ${u.email}<br>
+UID: ${u.uid}<br>
+Balance: $${u.balance}<br>
+VIP: ${u.level}<br>
+<button onclick="editUser('${u.uid}')">Editar</button>
+</div>
+`;
+});
 
-    await loadWithdrawals();
+document.getElementById("users").innerHTML=html;
+}
 
-  } catch (error) {
-    console.error("Error aprobando retiro:", error);
-    alert("Error al aprobar retiro");
-  }
+window.editUser=async function(uid){
+
+const newBalance=prompt("Nuevo balance:");
+const newVip=prompt("Nuevo VIP (1-10):");
+const suspend=confirm("¿Suspender usuario?");
+
+await updateDoc(doc(db,"users",uid),{
+balance:Number(newBalance),
+level:Number(newVip),
+suspended:suspend
+});
+
+alert("Usuario actualizado");
+loadUsers();
+};
+
+// =====================
+// 💸 RETIROS
+// =====================
+async function loadWithdrawals(){
+
+const snap=await getDocs(
+query(collection(db,"withdrawals"),where("status","==","pending"))
+);
+
+let html="<h2>Retiros Pendientes</h2>";
+
+snap.forEach(d=>{
+const w=d.data();
+html+=`
+<div class="card">
+Usuario: ${w.userId}<br>
+Monto: $${w.amount}<br>
+<button onclick="approve('${d.id}')">Aprobar</button>
+<button onclick="reject('${d.id}')">Rechazar</button>
+</div>
+`;
+});
+
+document.getElementById("withdrawals").innerHTML=html;
+}
+
+window.approve=async function(id){
+await updateDoc(doc(db,"withdrawals",id),{status:"approved"});
+alert("Retiro aprobado");
+loadWithdrawals();
+};
+
+window.reject=async function(id){
+await updateDoc(doc(db,"withdrawals",id),{status:"rejected"});
+alert("Retiro rechazado");
+loadWithdrawals();
+};
+
+// =====================
+// 🎁 CÓDIGOS
+// =====================
+async function loadCodes(){
+
+let html=`
+<h2>Generar Código</h2>
+<input id="codeAmount" placeholder="Monto">
+<button onclick="generateCode()">Generar</button>
+`;
+
+document.getElementById("codes").innerHTML=html;
+}
+
+window.generateCode=async function(){
+
+const amount=Number(document.getElementById("codeAmount").value);
+if(!amount)return alert("Monto inválido");
+
+const code=Math.random().toString(36).substring(2,8).toUpperCase();
+
+await addDoc(collection(db,"rescueCodes"),{
+code,
+amount,
+used:false,
+createdAt:serverTimestamp()
+});
+
+alert("Código generado: "+code);
 };
