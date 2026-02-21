@@ -33,7 +33,7 @@ if (page) page.style.display = "block";
 
 
 // ===============================
-// 🔐 CONTROL SESIÓN
+// 🔐 CONTROL DE SESIÓN
 // ===============================
 onAuthStateChanged(auth, async user => {
 
@@ -105,6 +105,39 @@ document.getElementById("stat-withdrawn").innerText = "$" + retirado.toFixed(2);
 
 
 // ===============================
+// 🔱 VIP + EQUIPO
+// ===============================
+async function cargarExtras() {
+
+const user = auth.currentUser;
+if (!user) return;
+
+const userRef = doc(db, "users", user.uid);
+const snap = await getDoc(userRef);
+const data = snap.data();
+
+const totalInv = Number(data.totalInvested || 0);
+
+let level = 0;
+if (totalInv >= 5000) level = 4;
+else if (totalInv >= 2000) level = 3;
+else if (totalInv >= 1000) level = 2;
+else if (totalInv >= 200) level = 1;
+
+if (data.level !== level) {
+await updateDoc(userRef, { level });
+}
+
+document.getElementById("p-vip").innerText = level;
+
+const q = query(collection(db, "users"), where("referrerId", "==", user.uid));
+const teamSnap = await getDocs(q);
+
+document.getElementById("teamCountHome").innerText = teamSnap.size;
+}
+
+
+// ===============================
 // 💰 PRODUCTOS (ANTI UNDEFINED)
 // ===============================
 async function cargarProductos() {
@@ -119,7 +152,6 @@ snap.forEach(docSnap => {
 
 const p = docSnap.data();
 
-// 🔥 Protección total contra undefined
 const price = Number(p.amount ?? p.price ?? 0);
 const profit = Number(p.dailyProfit ?? p.profit ?? 0);
 const duration = Number(p.duration ?? 0);
@@ -186,7 +218,9 @@ createdAt: serverTimestamp()
 alert("Inversión realizada");
 
 await cargarDashboard();
+await cargarExtras();
 await cargarOrdenes();
+go("orders");
 });
 
 
@@ -227,8 +261,33 @@ container.innerHTML += `
 
 
 // ===============================
-// 💳 DEPÓSITO
+// 👤 PERFIL
 // ===============================
+async function cargarPerfil() {
+
+const user = auth.currentUser;
+if (!user) return;
+
+const snap = await getDoc(doc(db, "users", user.uid));
+const data = snap.data();
+
+document.getElementById("p-id").innerText = user.uid.slice(0, 8);
+document.getElementById("p-balance").innerText =
+Number(data.balance || 0).toFixed(2);
+}
+
+
+// ===============================
+// 💳 DEPÓSITO (MODAL FUNCIONAL)
+// ===============================
+document.getElementById("btn-deposit")?.addEventListener("click", () => {
+document.getElementById("depositModal").style.display = "block";
+});
+
+window.closeDeposit = function () {
+document.getElementById("depositModal").style.display = "none";
+};
+
 document.getElementById("confirmDeposit")?.addEventListener("click", async () => {
 
 const user = auth.currentUser;
@@ -245,6 +304,7 @@ createdAt: serverTimestamp()
 });
 
 alert("Depósito enviado para aprobación");
+closeDeposit();
 });
 
 
@@ -281,61 +341,39 @@ status: "pending",
 createdAt: serverTimestamp()
 });
 
-alert("Retiro enviado con 17% comisión");
+alert("Retiro enviado (17% comisión aplicada)");
+
 await cargarDashboard();
+await cargarHistorial();
 });
 
 
 // ===============================
-// 🎁 CÓDIGO REGALO
+// 📜 HISTORIAL
 // ===============================
-document.getElementById("btn-redeem")?.addEventListener("click", async () => {
-
-const code = document.getElementById("giftCode").value.trim();
-if (!code) return alert("Ingresa un código");
-
-const snap = await getDoc(doc(db, "giftCodes", code));
-if (!snap.exists()) return alert("Código inválido");
-
-const data = snap.data();
-if (data.used) return alert("Código ya usado");
+async function cargarHistorial() {
 
 const user = auth.currentUser;
-const userRef = doc(db, "users", user.uid);
-const userSnap = await getDoc(userRef);
-const userData = userSnap.data();
+if (!user) return;
 
-await updateDoc(userRef, {
-balance: Number(userData.balance || 0) + Number(data.amount)
+const box = document.getElementById("transactionHistory");
+if (!box) return;
+
+box.innerHTML = "";
+
+const snap = await getDocs(
+query(collection(db, "withdrawals"), where("userId", "==", user.uid))
+);
+
+snap.forEach(d => {
+const w = d.data();
+box.innerHTML += `
+<div style="padding:5px;">
+Retiro: $${w.amount} - ${w.status}
+</div>
+`;
 });
-
-await updateDoc(doc(db, "giftCodes", code), {
-used: true,
-usedBy: user.uid
-});
-
-alert("Código aplicado con éxito");
-await cargarDashboard();
-});
-
-
-// ===============================
-// 🤝 REFERIDOS
-// ===============================
-document.getElementById("saveRef")?.addEventListener("click", async () => {
-
-const refId = document.getElementById("refInput").value.trim();
-if (!refId) return;
-
-const user = auth.currentUser;
-const userRef = doc(db, "users", user.uid);
-
-await updateDoc(userRef, {
-referrerId: refId
-});
-
-alert("Código de referido guardado");
-});
+}
 
 
 // ===============================
