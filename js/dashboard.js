@@ -186,7 +186,9 @@ if (!user) return;
 const userRef = doc(db, "users", user.uid);
 const userSnap = await getDoc(userRef);
 const userData = userSnap.data();
-
+  
+window.currentUserData = userData;
+  
 const saldo = Number(userData.balance || 0);
 
 const prodSnap = await getDoc(doc(db, "products", productId));
