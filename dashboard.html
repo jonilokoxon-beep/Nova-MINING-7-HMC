@@ -23,7 +23,6 @@
 <header class="top">
   <span>Nova <b>MINING 7</b> HMC</span>
 
-  <!-- BOTÓN ADMIN (solo visible si dashboard.js lo activa) -->
   <button id="adminBtn" onclick="go('admin-panel')" style="display:none;">
     ADMIN
   </button>
@@ -70,6 +69,33 @@
       👥 Tamaño del equipo<br>
       <b id="teamCountHome">0</b>
     </button>
+  </div>
+</section>
+
+<!-- 💎 VIP PAGE -->
+<section id="vipPage" class="page">
+  <h3 style="padding:15px">Nivel VIP</h3>
+  <div class="card" style="margin:15px;">
+    <h2 id="vip-level">VIP 0</h2>
+  </div>
+</section>
+
+<!-- 🎁 REGALO DIARIO -->
+<section id="dailyPage" class="page">
+  <h3 style="padding:15px">Registro Diario</h3>
+  <div class="card" style="margin:15px;">
+    <p>Estado:</p>
+    <h3 id="daily-gift">Disponible</h3>
+    <button onclick="reclamarRegalo()">Reclamar</button>
+  </div>
+</section>
+
+<!-- 👥 EQUIPO -->
+<section id="equipoPage" class="page">
+  <h3 style="padding:15px">Mi Equipo</h3>
+  <div class="card" style="margin:15px;">
+    <p>Total Referidos:</p>
+    <h2 id="team-size">0</h2>
   </div>
 </section>
 
