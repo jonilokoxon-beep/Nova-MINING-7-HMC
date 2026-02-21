@@ -1,26 +1,29 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Panel Admin - Nova Mining</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8">
+  <title>Nova Mining - Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 
-<body>
+<body class="admin-body">
 
-<header class="top">
-  <span>👑 PANEL ADMIN</span>
-  <button onclick="location.href='./dashboard.html'">Volver</button>
-</header>
+<div class="sidebar">
+  <h2>Nova Admin</h2>
+  <button onclick="showSection('stats')">Dashboard</button>
+  <button onclick="showSection('users')">Usuarios</button>
+  <button onclick="showSection('withdrawals')">Retiros</button>
+  <button onclick="showSection('codes')">Códigos</button>
+  <button onclick="location.href='dashboard.html'">Salir</button>
+</div>
 
-<div style="padding:20px">
+<div class="main">
 
-  <h2>💰 Depósitos Pendientes</h2>
-  <div id="adminDeposits"></div>
-
-  <h2 style="margin-top:40px">💸 Retiros Pendientes</h2>
-  <div id="adminWithdrawals"></div>
+  <div id="stats" class="section"></div>
+  <div id="users" class="section" style="display:none;"></div>
+  <div id="withdrawals" class="section" style="display:none;"></div>
+  <div id="codes" class="section" style="display:none;"></div>
 
 </div>
 
