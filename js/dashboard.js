@@ -45,7 +45,6 @@ onAuthStateChanged(auth, async user => {
   const userRef = doc(db, "users", user.uid);
   const snap = await getDoc(userRef);
 
-  // Crear usuario si no existe
   if (!snap.exists()) {
     await setDoc(userRef, {
       uid: user.uid,
@@ -104,7 +103,7 @@ async function cargarDashboard() {
 // ===============================
 async function cargarProductos() {
 
-  const list = document.getElementById("plans");
+  const list = document.getElementById("productsList"); // 🔥 CORREGIDO
   if (!list) return;
 
   list.innerHTML = "Cargando productos...";
@@ -121,13 +120,12 @@ async function cargarProductos() {
   snap.forEach(docSnap => {
 
     const p = docSnap.data();
-    if (!p.active) return;
 
     list.innerHTML += `
-      <div class="plan">
+      <div class="card">
         <h4>${p.name}</h4>
         <p>Precio: $${p.price}</p>
-        <p>Ganancia diaria: $${p.profit}</p>
+        <p>Ganancia diaria: $${p.dailyProfit}</p>
         <p>Duración: ${p.duration} días</p>
         <button class="btn-invertir" data-id="${docSnap.id}">
           Invertir
@@ -163,18 +161,16 @@ document.addEventListener("click", async (e) => {
     return;
   }
 
-  // Descontar saldo
   await updateDoc(userRef, {
     balance: saldo - p.price,
     totalInvested: (userSnap.data().totalInvested || 0) + p.price
   });
 
-  // Crear orden
   await addDoc(collection(db, "orders"), {
     uid: user.uid,
     productName: p.name,
     amount: p.price,
-    dailyProfit: p.profit,
+    dailyProfit: p.dailyProfit,
     duration: p.duration,
     createdAt: serverTimestamp(),
     status: "active"
@@ -197,23 +193,34 @@ async function loadOrders() {
   if (!user) return;
 
   const container = document.getElementById("ordersList");
+  const totalBox = document.getElementById("totalProfit");
+
   if (!container) return;
 
   container.innerHTML = "";
 
-  const q = query(collection(db, "orders"), where("uid", "==", user.uid));
+  const q = query(
+    collection(db, "orders"),
+    where("uid", "==", user.uid),
+    where("status", "==", "active")
+  );
+
   const snap = await getDocs(q);
 
   if (snap.empty) {
     container.innerHTML = "No tienes órdenes activas";
+    if (totalBox) totalBox.innerText = "$0.00";
     return;
   }
 
+  let total = 0;
+
   snap.forEach(docSnap => {
     const o = docSnap.data();
+    total += Number(o.dailyProfit || 0);
 
     container.innerHTML += `
-      <div class="order">
+      <div class="card">
         <h4>${o.productName}</h4>
         <p>Inversión: $${o.amount}</p>
         <p>Ganancia diaria: $${o.dailyProfit}</p>
@@ -222,17 +229,15 @@ async function loadOrders() {
       </div>
     `;
   });
+
+  if (totalBox) totalBox.innerText = "$" + total.toFixed(2);
 }
 
 
 // ===============================
 // 🚪 LOGOUT
 // ===============================
-const logoutBtn = document.getElementById("logoutBtn");
-
-if (logoutBtn) {
-  logoutBtn.addEventListener("click", async () => {
-    await signOut(auth);
-    location.replace("./index.html");
-  });
-}
+window.logout = async function () {
+  await signOut(auth);
+  location.replace("./index.html");
+};
