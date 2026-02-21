@@ -507,6 +507,30 @@ box-shadow:0 6px 20px rgba(0,0,0,0.3);
 display:none;
 cursor:pointer;
 }
+/* 🔵 BOTÓN FLOTANTE PROFESIONAL */
+#adminFab{
+position:fixed;
+bottom:90px;
+right:20px;
+width:60px;
+height:60px;
+border-radius:50%;
+border:none;
+background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+color:white;
+font-size:22px;
+box-shadow:0 6px 20px rgba(0,0,0,0.4);
+display:none;
+align-items:center;
+justify-content:center;
+cursor:pointer;
+z-index:999;
+transition:0.3s;
+}
+
+#adminFab:hover{
+transform:scale(1.1);
+}
 .page {
   display: none;
 }
