@@ -1,10 +1,8 @@
 import { db } from "./firebase.js";
-
 import {
   collection,
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
 
 // ===============================
 // 🛒 CARGAR PRODUCTOS
@@ -31,7 +29,8 @@ export async function loadProducts() {
 
       const p = d.data();
 
-      if (!p.active) return;
+      // 🔒 Solo productos activos
+      if (p.active !== true) return;
 
       const name = p.name || "Producto";
       const price = Number(p.price || 0).toFixed(2);
