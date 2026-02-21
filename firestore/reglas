@@ -3,11 +3,17 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ==========================
-    // USERS
+    // USERS (Solo el dueño)
     // ==========================
     match /users/{userId} {
-      allow read, write: if request.resource.data.userId
-resource.data.userId
+
+      // Crear usuario: el UID debe coincidir
+      allow create: if request.auth != null
+                    && request.auth.uid == userId;
+
+      // Leer, actualizar o borrar: solo el dueño
+      allow read, update, delete: if request.auth != null
+                                  && request.auth.uid == userId;
     }
 
     // ==========================
@@ -24,6 +30,7 @@ resource.data.userId
     // ORDERS (Solo del dueño)
     // ==========================
     match /orders/{orderId} {
+
       allow create: if request.auth != null
                     && request.auth.uid == request.resource.data.userId;
 
@@ -35,6 +42,7 @@ resource.data.userId
     // DEPOSITS (Solo del dueño)
     // ==========================
     match /deposits/{depositId} {
+
       allow create: if request.auth != null
                     && request.auth.uid == request.resource.data.userId;
 
@@ -46,6 +54,7 @@ resource.data.userId
     // WITHDRAWALS (Solo del dueño)
     // ==========================
     match /withdrawals/{withdrawalId} {
+
       allow create: if request.auth != null
                     && request.auth.uid == request.resource.data.userId;
 
@@ -57,6 +66,7 @@ resource.data.userId
     // TRANSACTIONS (Solo del dueño)
     // ==========================
     match /transactions/{transactionId} {
+
       allow create: if request.auth != null
                     && request.auth.uid == request.resource.data.userId;
 
@@ -65,9 +75,10 @@ resource.data.userId
     }
 
     // ==========================
-    // RESCUE CODES (Solo admin escribe)
+    // RESCUE CODES (Admin escribe)
     // ==========================
     match /rescueCodes/{codeId} {
+
       allow read: if request.auth != null;
 
       allow write: if request.auth != null 
