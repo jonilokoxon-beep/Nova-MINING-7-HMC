@@ -9,10 +9,9 @@
 
 <body>
 
-<!-- LOGIN -->
+<!-- ================= LOGIN ================= -->
 <section id="loginView" class="view login-bg">
   <div class="login-card">
-    <img src="assets/logo.jpeg" class="logo">
     <h2>Nova MINING 7 HMC</h2>
 
     <input type="email" id="loginEmail" placeholder="Correo">
@@ -20,14 +19,13 @@
 
     <button id="loginBtn">Ingresar</button>
 
-    <p style="margin-top:15px;">
-      ¿No tienes cuenta?
+    <p>¿No tienes cuenta?
       <a href="#" id="goRegister">Crear cuenta</a>
     </p>
   </div>
 </section>
 
-<!-- REGISTER -->
+<!-- ================= REGISTER ================= -->
 <section id="registerView" class="view login-bg" style="display:none;">
   <div class="login-card">
     <h2>Crear Cuenta</h2>
@@ -37,13 +35,11 @@
 
     <button id="registerBtn">Registrarme</button>
 
-    <p style="margin-top:15px;">
-      <a href="#" id="goLogin">Volver</a>
-    </p>
+    <p><a href="#" id="goLogin">Volver</a></p>
   </div>
 </section>
 
-<!-- APP -->
+<!-- ================= APP ================= -->
 <section id="appView" class="view" style="display:none;">
 
 <header class="top">
@@ -56,26 +52,43 @@
     Saldo<br>
     <b>$<span id="stat-balance">0.00</span></b>
   </div>
-  <div class="box green">
-    Ganancias<br>
-    <b>$<span id="stat-profit">0.00</span></b>
-  </div>
   <div class="box gold">
     Retirado<br>
     <b>$<span id="stat-withdrawn">0.00</span></b>
   </div>
 </div>
 
+<!-- ===== PÁGINAS INTERNAS ===== -->
+
+<div id="inicio" class="page">Bienvenido</div>
+
+<div id="productos" class="page" style="display:none;">
+  <div id="productsList"></div>
+</div>
+
+<div id="orders" class="page" style="display:none;">
+  <div id="ordersList"></div>
+</div>
+
+<div id="profile" class="page" style="display:none;">
+  ID: <span id="p-id"></span>
+</div>
+
+<nav class="bottom">
+  <button onclick="go('inicio')">🏠</button>
+  <button onclick="go('productos')">🛒</button>
+  <button onclick="go('orders')">📦</button>
+  <button onclick="go('profile')">👤</button>
+</nav>
+
 <button id="adminFab" style="display:none;">⚙</button>
 
 </section>
 
-<!-- ADMIN -->
+<!-- ================= ADMIN ================= -->
 <section id="adminView" class="view" style="display:none;">
-  <div class="sidebar">
-    <h2>Nova Admin</h2>
-    <button id="backToApp">Volver</button>
-  </div>
+  <h2>Panel Admin</h2>
+  <button onclick="goApp()">Volver</button>
 </section>
 
 <script type="module" src="js/dashboard.js"></script>
