@@ -9,10 +9,21 @@
 
 <body>
 
+<!-- 💰 MODAL DEPÓSITO -->
+<div id="depositModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h3>Solicitar Depósito</h3>
+    <input type="number" id="depositAmount" placeholder="Monto" />
+    <input type="file" id="depositProof" accept="image/*" />
+    <button id="confirmDeposit">Enviar</button>
+    <button onclick="closeDeposit()">Cancelar</button>
+  </div>
+</div>
+
 <header class="top">
   <span>Nova <b>MINING 7</b> HMC</span>
 
-  <!-- BOTÓN ADMIN (solo visible si JS lo activa) -->
+  <!-- BOTÓN ADMIN (solo visible si dashboard.js lo activa) -->
   <button id="adminBtn" onclick="go('admin-panel')" style="display:none;">
     ADMIN
   </button>
@@ -49,25 +60,17 @@
   </div>
 
   <div class="quick-actions">
+    <button onclick="go('vipPage')" class="main-btn">💎 VIP</button>
 
-    <button onclick="go('vipPage')" class="main-btn">
-      💎 VIP<br>
-      <b id="vip-level">VIP 0</b>
-    </button>
-
-    <button onclick="reclamarRegalo()" class="main-btn">
-      🎁 Registro Diario<br>
-      <b id="daily-gift">Disponible</b>
+    <button onclick="go('dailyPage')" class="main-btn">
+      🎁 Registro Diario
     </button>
 
     <button onclick="go('equipoPage')" class="main-btn">
       👥 Tamaño del equipo<br>
-      <b id="team-size">0</b><br>
-      Bono: <span id="team-bonus">$0.00</span>
+      <b id="teamCountHome">0</b>
     </button>
-
   </div>
-
 </section>
 
 <!-- 🛒 PRODUCTOS -->
@@ -109,15 +112,25 @@
       </div>
 
       <div class="actions">
-        <button onclick="hacerDeposito()">Depósito</button>
+        <button id="btn-deposit">Depósito</button>
+      </div>
+
+      <div class="rescue">
+        <h4>🎁 Rescue Presents</h4>
+        <button id="btn-rescue">Ingresar código</button>
+      </div>
+
+      <div class="profile-menu">
+        <button>📄 Registro de ingresos</button>
+        <button>👥 Detalles de comisión</button>
+        <button id="btn-invite">📢 Invitar</button>
       </div>
 
       <div style="margin-top:15px;">
         <input type="number" id="withdrawAmount" placeholder="Monto a retirar" />
-        <button onclick="solicitarRetiro()">Solicitar Retiro</button>
+        <button id="withdrawBtn">Solicitar Retiro</button>
       </div>
 
-      <!-- HISTORIAL (lo dejamos para futuro) -->
       <div class="transaction-box">
         <h4 style="padding:10px">Historial</h4>
         <div id="transactionHistory"></div>
