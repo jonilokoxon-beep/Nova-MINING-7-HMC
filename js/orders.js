@@ -38,8 +38,7 @@ export async function loadOrders() {
 
   try {
 
-    const q = query(
-      collection(db, "orders"),
+    const q = collection(db, "orders");
       where("userId", "==", user.uid),   // 🔥 CORREGIDO
       where("status", "==", "active")
     );
