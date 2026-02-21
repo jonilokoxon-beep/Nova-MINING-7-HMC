@@ -9,9 +9,46 @@
 
 <body>
 
+<!-- ================= LOGIN ================= -->
+<section id="loginView" class="view login-bg">
+  <div class="login-card">
+    <img src="assets/logo.jpeg" class="logo">
+    <h2>Nova MINING 7 HMC</h2>
+
+    <input type="email" id="loginEmail" placeholder="Correo">
+    <input type="password" id="loginPassword" placeholder="Contraseña">
+
+    <button id="loginBtn">Ingresar</button>
+
+    <p style="margin-top:15px;">
+      ¿No tienes cuenta?
+      <a href="#" id="goRegister">Crear cuenta</a>
+    </p>
+  </div>
+</section>
+
+<!-- ================= REGISTER ================= -->
+<section id="registerView" class="view login-bg" style="display:none;">
+  <div class="login-card">
+    <h2>Crear Cuenta</h2>
+
+    <input type="email" id="registerEmail" placeholder="Correo">
+    <input type="password" id="registerPassword" placeholder="Contraseña">
+
+    <button id="registerBtn">Registrarme</button>
+
+    <p style="margin-top:15px;">
+      <a href="#" id="goLogin">Volver</a>
+    </p>
+  </div>
+</section>
+
+<!-- ================= USER APP ================= -->
+<section id="appView" class="view" style="display:none;">
+
 <header class="top">
   <span>Nova <b>MINING 7</b> HMC</span>
-  <button onclick="logout()">Salir</button>
+  <button id="logoutBtn">Salir</button>
 </header>
 
 <div class="stats">
@@ -19,55 +56,35 @@
     Saldo<br>
     <b>$<span id="stat-balance">0.00</span></b>
   </div>
-
   <div class="box green">
     Ganancias<br>
     <b>$<span id="stat-profit">0.00</span></b>
   </div>
-
   <div class="box gold">
     Retirado<br>
     <b>$<span id="stat-withdrawn">0.00</span></b>
   </div>
 </div>
 
-<section id="inicio" class="page">
-</section>
-
-<section id="productos" class="page">
-  <h3 style="padding:15px">Productos VIP</h3>
-  <div id="productsList"></div>
-</section>
-
-<section id="orders" class="page">
-  <h3 style="padding:15px">Mis Órdenes</h3>
-  <div id="ordersList"></div>
-</section>
-
-<section id="profile" class="page">
-  <div class="card">
-    ID: <b id="p-id"></b><br>
-    VIP: <b id="p-vip">0</b><br><br>
-    Balance: $<span id="p-balance">0.00</span>
-  </div>
-
-  <input type="number" id="withdrawAmount" placeholder="Monto a retirar" />
-  <button id="withdrawBtn">Solicitar Retiro</button>
-
-  <div id="transactionHistory"></div>
-</section>
-
 <nav class="bottom">
-  <button onclick="go('inicio')">🏠</button>
-  <button onclick="go('productos')">🛒</button>
-  <button onclick="go('orders')">📦</button>
-  <button onclick="go('profile')">👤</button>
+  <button onclick="showPage('inicio')">🏠</button>
+  <button onclick="showPage('productos')">🛒</button>
+  <button onclick="showPage('orders')">📦</button>
+  <button onclick="showPage('profile')">👤</button>
 </nav>
 
-<!-- 🔥 BOTÓN FLOTANTE ADMIN -->
-<button id="adminFab">⚙</button>
+<button id="adminFab" style="display:none;">⚙</button>
 
-<script type="module" src="js/dashboard.js"></script>
+</section>
 
+<!-- ================= ADMIN PANEL ================= -->
+<section id="adminView" class="view" style="display:none;">
+  <div class="sidebar">
+    <h2>Nova Admin</h2>
+    <button id="backToApp">Volver</button>
+  </div>
+</section>
+
+<script type="module" src="js/app.js"></script>
 </body>
-</html>
+    </html>
