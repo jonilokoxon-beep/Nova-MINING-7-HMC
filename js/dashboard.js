@@ -85,7 +85,12 @@ async function cargarDashboard() {
 
   let ganancias = 0;
 
-  const q = query(collection(db, "orders"), where("uid", "==", user.uid));
+  const q = query(
+    collection(db, "orders"),
+    where("userId", "==", user.uid),
+    where("status", "==", "active")
+  );
+
   const snap = await getDocs(q);
 
   snap.forEach(d => {
@@ -103,7 +108,7 @@ async function cargarDashboard() {
 // ===============================
 async function cargarProductos() {
 
-  const list = document.getElementById("productsList"); // 🔥 CORREGIDO
+  const list = document.getElementById("productsList");
   if (!list) return;
 
   list.innerHTML = "Cargando productos...";
@@ -166,8 +171,9 @@ document.addEventListener("click", async (e) => {
     totalInvested: (userSnap.data().totalInvested || 0) + p.price
   });
 
+  // 🔥 AQUÍ VA LA CORRECCIÓN IMPORTANTE
   await addDoc(collection(db, "orders"), {
-    uid: user.uid,
+    userId: user.uid, // ✅ ahora coincide con rules
     productName: p.name,
     amount: p.price,
     dailyProfit: p.dailyProfit,
@@ -197,11 +203,11 @@ async function loadOrders() {
 
   if (!container) return;
 
-  container.innerHTML = "";
+  container.innerHTML = "Cargando órdenes...";
 
   const q = query(
     collection(db, "orders"),
-    where("uid", "==", user.uid),
+    where("userId", "==", user.uid),
     where("status", "==", "active")
   );
 
@@ -214,6 +220,7 @@ async function loadOrders() {
   }
 
   let total = 0;
+  container.innerHTML = "";
 
   snap.forEach(docSnap => {
     const o = docSnap.data();
