@@ -9,7 +9,7 @@
 
 <body>
 
-<!-- ================= LOGIN ================= -->
+<!-- LOGIN -->
 <section id="loginView" class="view login-bg">
   <div class="login-card">
     <img src="assets/logo.jpeg" class="logo">
@@ -27,7 +27,7 @@
   </div>
 </section>
 
-<!-- ================= REGISTER ================= -->
+<!-- REGISTER -->
 <section id="registerView" class="view login-bg" style="display:none;">
   <div class="login-card">
     <h2>Crear Cuenta</h2>
@@ -43,7 +43,7 @@
   </div>
 </section>
 
-<!-- ================= USER APP ================= -->
+<!-- APP -->
 <section id="appView" class="view" style="display:none;">
 
 <header class="top">
@@ -66,18 +66,11 @@
   </div>
 </div>
 
-<nav class="bottom">
-  <button onclick="showPage('inicio')">🏠</button>
-  <button onclick="showPage('productos')">🛒</button>
-  <button onclick="showPage('orders')">📦</button>
-  <button onclick="showPage('profile')">👤</button>
-</nav>
-
 <button id="adminFab" style="display:none;">⚙</button>
 
 </section>
 
-<!-- ================= ADMIN PANEL ================= -->
+<!-- ADMIN -->
 <section id="adminView" class="view" style="display:none;">
   <div class="sidebar">
     <h2>Nova Admin</h2>
@@ -85,6 +78,7 @@
   </div>
 </section>
 
-<script type="module" src="js/app.js"></script>
+<script type="module" src="js/dashboard.js"></script>
+
 </body>
-    </html>
+</html>
