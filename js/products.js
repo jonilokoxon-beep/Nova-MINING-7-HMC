@@ -4,13 +4,13 @@ import {
   getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// ===============================
-// 🛒 CARGAR PRODUCTOS
-// ===============================
 export async function loadProducts() {
 
   const div = document.getElementById("plans");
-  if (!div) return;
+  if (!div) {
+    console.log("No existe el div #plans");
+    return;
+  }
 
   div.innerHTML = "Cargando productos...";
 
@@ -18,42 +18,31 @@ export async function loadProducts() {
 
     const snap = await getDocs(collection(db, "products"));
 
+    console.log("Productos encontrados:", snap.size);
+
     if (snap.empty) {
-      div.innerHTML = "No hay productos disponibles";
+      div.innerHTML = "No hay productos en Firestore";
       return;
     }
 
     let html = "";
 
     snap.forEach(d => {
-
       const p = d.data();
-
-      // 🔒 Solo productos activos
-      if (p.active !== true) return;
-
-      const name = p.name || "Producto";
-      const price = Number(p.price || 0).toFixed(2);
+      console.log("Producto:", p);
 
       html += `
         <div class="plan">
-          <h4>${name}</h4>
-          <p>$${price}</p>
+          <h4>${p.name || "Sin nombre"}</h4>
+          <p>$${p.price || 0}</p>
         </div>
       `;
     });
 
-    if (!html) {
-      div.innerHTML = "No hay productos activos";
-      return;
-    }
-
     div.innerHTML = html;
 
   } catch (error) {
-
     console.error("Error cargando productos:", error);
     div.innerHTML = "Error cargando productos";
-
   }
 }
