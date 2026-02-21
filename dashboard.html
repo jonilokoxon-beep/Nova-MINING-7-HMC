@@ -11,7 +11,12 @@
 
 <header class="top">
   <span>Nova <b>MINING 7</b> HMC</span>
-  <button id="adminBtn" onclick="go('admin-panel')" style="display:none;">ADMIN</button>
+
+  <!-- BOTÓN ADMIN (solo visible si JS lo activa) -->
+  <button id="adminBtn" onclick="go('admin-panel')" style="display:none;">
+    ADMIN
+  </button>
+
   <button onclick="logout()">Salir</button>
 </header>
 
@@ -19,17 +24,17 @@
 <div class="stats">
   <div class="box blue">
     Saldo<br>
-    <b><span id="stat-balance">0.00</span></b>
+    <b>$<span id="stat-balance">0.00</span></b>
   </div>
 
   <div class="box green">
     Ganancias<br>
-    <b><span id="stat-profit">0.00</span></b>
+    <b>$<span id="stat-profit">0.00</span></b>
   </div>
 
   <div class="box gold">
     Retirado<br>
-    <b><span id="stat-withdrawn">0.00</span></b>
+    <b>$<span id="stat-withdrawn">0.00</span></b>
   </div>
 </div>
 
@@ -39,65 +44,88 @@
 <!-- 🏠 INICIO -->
 <section id="inicio" class="page" style="display:block">
 
+  <div class="banner">
+    <img src="assets/ezgif.gif" style="width:100%;">
+  </div>
+
   <div class="quick-actions">
 
-    <div class="card">
-      <h3>💎 Nivel VIP</h3>
-      <p id="vip-level">VIP 0</p>
-    </div>
+    <button onclick="go('vipPage')" class="main-btn">
+      💎 VIP<br>
+      <b id="vip-level">VIP 0</b>
+    </button>
 
-    <div class="card">
-      <h3>🎁 Registro Diario</h3>
-      <p id="daily-gift">Disponible</p>
-      <button onclick="reclamarRegalo()">Reclamar</button>
-    </div>
+    <button onclick="reclamarRegalo()" class="main-btn">
+      🎁 Registro Diario<br>
+      <b id="daily-gift">Disponible</b>
+    </button>
 
-    <div class="card">
-      <h3>👥 Tamaño del equipo</h3>
-      <p id="team-size">0</p>
-      <p>Bono equipo: <b id="team-bonus">$0.00</b></p>
-    </div>
+    <button onclick="go('equipoPage')" class="main-btn">
+      👥 Tamaño del equipo<br>
+      <b id="team-size">0</b><br>
+      Bono: <span id="team-bonus">$0.00</span>
+    </button>
 
   </div>
 
 </section>
 
-
 <!-- 🛒 PRODUCTOS -->
 <section id="productos" class="page">
-  <h3 style="padding:15px">Productos</h3>
+  <h3 style="padding:15px">Productos VIP</h3>
   <div id="productsList"></div>
 </section>
-
 
 <!-- 📦 ÓRDENES -->
 <section id="orders" class="page">
   <h3 style="padding:15px">Mis Órdenes</h3>
-  <div id="ordersList"></div>
-</section>
 
+  <div class="total-box">
+    <span>Total a ganar</span>
+    <b id="totalProfit">$0.00</b>
+  </div>
+
+  <div class="orders" id="ordersList"></div>
+</section>
 
 <!-- 👤 PERFIL -->
 <section id="profile" class="page">
 
-  <div class="profile-card">
-
-    <p>ID: <b id="p-id">----</b></p>
-    <p>Saldo: $<b id="p-balance">0.00</b></p>
-
-    <div style="margin-top:15px;">
-      <button onclick="hacerDeposito()">Depositar</button>
-    </div>
-
-    <div style="margin-top:15px;">
-      <input type="number" id="withdrawAmount" placeholder="Monto a retirar" />
-      <button onclick="solicitarRetiro()">Solicitar Retiro</button>
-    </div>
-
+  <div class="profile-header">
+    <h2>NOVA MINING</h2>
   </div>
 
-</section>
+  <div class="profile-card">
 
+    <div class="user-info">
+      <span>ID: <b id="p-id">----</b></span>
+      <span class="vip">VIP <b id="p-vip">0</b></span>
+    </div>
+
+    <div class="balance-box">
+      <div>
+        <small>MXN</small>
+        <h3>$<span id="p-balance">0.00</span></h3>
+      </div>
+
+      <div class="actions">
+        <button onclick="hacerDeposito()">Depósito</button>
+      </div>
+
+      <div style="margin-top:15px;">
+        <input type="number" id="withdrawAmount" placeholder="Monto a retirar" />
+        <button onclick="solicitarRetiro()">Solicitar Retiro</button>
+      </div>
+
+      <!-- HISTORIAL (lo dejamos para futuro) -->
+      <div class="transaction-box">
+        <h4 style="padding:10px">Historial</h4>
+        <div id="transactionHistory"></div>
+      </div>
+
+    </div>
+  </div>
+</section>
 
 <!-- 👑 PANEL ADMIN -->
 <section id="admin-panel" class="page" style="display:none;">
@@ -111,7 +139,6 @@
   <div id="admin-deposits"></div>
 
 </section>
-
 
 </div>
 </div>
