@@ -1,15 +1,24 @@
 // =====================================================
-// 🔥 FIREBASE CONFIG
+// ESPERAR A QUE CARGUE EL HTML
 // =====================================================
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
+document.addEventListener("DOMContentLoaded", () => {
+
+console.log("JS funcionando ✅");
+
+// =====================================================
+// FIREBASE
+// =====================================================
+import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js").then(async ({ initializeApp }) => {
+
+const { 
   getAuth,
   onAuthStateChanged,
   signOut,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {
+} = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+
+const {
   getFirestore,
   collection,
   getDocs,
@@ -19,8 +28,9 @@ import {
   query,
   where,
   serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+} = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
 
+// CONFIG
 const firebaseConfig = {
   apiKey: "TU_API_KEY",
   authDomain: "TU_AUTH_DOMAIN",
@@ -35,143 +45,79 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // =====================================================
-// 🔐 AUTH STATE
+// LOGIN
+// =====================================================
+const loginBtn = document.getElementById("loginBtn");
+
+if (loginBtn) {
+  loginBtn.addEventListener("click", async () => {
+
+    console.log("Botón presionado");
+
+    const email = document.getElementById("loginEmail").value;
+    const password = document.getElementById("loginPassword").value;
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+      alert(error.message);
+    }
+  });
+}
+
+// =====================================================
+// REGISTER
+// =====================================================
+const registerBtn = document.getElementById("registerBtn");
+
+if (registerBtn) {
+  registerBtn.addEventListener("click", async () => {
+
+    const email = document.getElementById("registerEmail").value;
+    const password = document.getElementById("registerPassword").value;
+
+    try {
+
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+
+      await setDoc(doc(db, "users", cred.user.uid), {
+        email,
+        balance: 0,
+        totalWithdrawn: 0,
+        role: "user",
+        createdAt: serverTimestamp()
+      });
+
+    } catch (error) {
+      alert(error.message);
+    }
+  });
+}
+
+// =====================================================
+// AUTH STATE
 // =====================================================
 onAuthStateChanged(auth, async user => {
 
   if (user) {
-    showApp();
-    await cargarDashboard();
-    await cargarProductos();
-    await cargarOrdenes();
-    await cargarPerfil();
-
-    const snap = await getDoc(doc(db, "users", user.uid));
-    const userData = snap.data();
-    activarBotonAdmin(userData);
-
+    document.getElementById("loginView").style.display = "none";
+    document.getElementById("registerView").style.display = "none";
+    document.getElementById("appView").style.display = "block";
   } else {
-    showLogin();
+    document.getElementById("loginView").style.display = "block";
+    document.getElementById("appView").style.display = "none";
   }
 });
 
 // =====================================================
-// 🔐 LOGIN
+// LOGOUT
 // =====================================================
-document.getElementById("loginBtn")?.addEventListener("click", async () => {
-
-  const email = document.getElementById("loginEmail").value;
-  const password = document.getElementById("loginPassword").value;
-
-  await signInWithEmailAndPassword(auth, email, password);
-});
-
-// =====================================================
-// 📝 REGISTER
-// =====================================================
-document.getElementById("registerBtn")?.addEventListener("click", async () => {
-
-  const email = document.getElementById("registerEmail").value;
-  const password = document.getElementById("registerPassword").value;
-
-  const cred = await createUserWithEmailAndPassword(auth, email, password);
-
-  await setDoc(doc(db, "users", cred.user.uid), {
-    email,
-    balance: 0,
-    totalWithdrawn: 0,
-    role: "user",
-    createdAt: serverTimestamp()
-  });
-});
-
-// =====================================================
-// 🚪 LOGOUT
-// =====================================================
-document.getElementById("logoutBtn")?.addEventListener("click", async () => {
-  await signOut(auth);
-});
-
-// =====================================================
-// 🔄 VISTAS
-// =====================================================
-function showLogin() {
-  loginView.style.display = "block";
-  registerView.style.display = "none";
-  appView.style.display = "none";
-}
-
-function showApp() {
-  loginView.style.display = "none";
-  registerView.style.display = "none";
-  appView.style.display = "block";
-}
-
-document.getElementById("goRegister").onclick = () => {
-  loginView.style.display = "none";
-  registerView.style.display = "block";
-};
-
-document.getElementById("goLogin").onclick = () => {
-  registerView.style.display = "none";
-  loginView.style.display = "block";
-};
-
-// =====================================================
-// 📌 NAVEGACIÓN INTERNA
-// =====================================================
-window.go = function (id) {
-  document.querySelectorAll(".page").forEach(p => p.style.display = "none");
-  document.getElementById(id).style.display = "block";
-};
-
-// =====================================================
-// 📊 FUNCIONES
-// =====================================================
-async function cargarDashboard() {
-  const user = auth.currentUser;
-  const snap = await getDoc(doc(db, "users", user.uid));
-  const data = snap.data();
-
-  document.getElementById("stat-balance").innerText =
-    Number(data.balance || 0).toFixed(2);
-
-  document.getElementById("stat-withdrawn").innerText =
-    Number(data.totalWithdrawn || 0).toFixed(2);
-}
-
-async function cargarProductos() {
-  const list = document.getElementById("productsList");
-  const snap = await getDocs(collection(db, "products"));
-  list.innerHTML = "";
-
-  snap.forEach(d => {
-    const p = d.data();
-    list.innerHTML += `<div>${p.name} - $${p.price}</div>`;
+const logoutBtn = document.getElementById("logoutBtn");
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", async () => {
+    await signOut(auth);
   });
 }
 
-async function cargarOrdenes() {
-  const user = auth.currentUser;
-  const q = query(collection(db, "orders"), where("userId", "==", user.uid));
-  const snap = await getDocs(q);
-  const container = document.getElementById("ordersList");
-  container.innerHTML = "";
-
-  snap.forEach(d => {
-    const o = d.data();
-    container.innerHTML += `<div>${o.productName} - $${o.amount}</div>`;
-  });
-}
-
-async function cargarPerfil() {
-  const user = auth.currentUser;
-  document.getElementById("p-id").innerText = user.uid.slice(0, 8);
-}
-
-function activarBotonAdmin(userData) {
-  const btn = document.getElementById("adminFab");
-  if (userData?.role === "admin") {
-    btn.style.display = "flex";
-  }
-}
+}); // FIN IMPORT
+}); // FIN DOM
