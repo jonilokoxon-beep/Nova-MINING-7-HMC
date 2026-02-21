@@ -3,6 +3,11 @@
 // ===============================
 import { auth, db } from "./firebase.js";
 
+import "./firebase.js";
+import "./auth.js";
+import "./home.js";
+import "./admin.js";
+import "./app.js";
 import {
 onAuthStateChanged,
 signOut
