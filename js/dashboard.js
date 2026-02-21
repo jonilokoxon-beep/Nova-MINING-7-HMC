@@ -97,14 +97,14 @@ async function cargarDashboard() {
     ganancias += Number(d.data().dailyProfit || 0);
   });
 
-  if (balanceBox) balanceBox.innerText = saldo.toFixed(2);
-  if (profitBox) profitBox.innerText = ganancias.toFixed(2);
-  if (withdrawnBox) withdrawnBox.innerText = retirado.toFixed(2);
+  if (balanceBox) balanceBox.innerText = "$" + saldo.toFixed(2);
+  if (profitBox) profitBox.innerText = "$" + ganancias.toFixed(2);
+  if (withdrawnBox) withdrawnBox.innerText = "$" + retirado.toFixed(2);
 }
 
 
 // ===============================
-// 🛒 PRODUCTOS
+// 🛒 PRODUCTOS (CORREGIDO)
 // ===============================
 async function cargarProductos() {
 
@@ -126,12 +126,17 @@ async function cargarProductos() {
 
     const p = docSnap.data();
 
+    const nombre = p.name || "Plan " + docSnap.id;
+    const precio = p.amount || 0;   // 🔥 antes era price
+    const ganancia = p.dailyProfit || 0;
+    const duracion = p.duration || 0;
+
     list.innerHTML += `
       <div class="card">
-        <h4>${p.name}</h4>
-        <p>Precio: $${p.price}</p>
-        <p>Ganancia diaria: $${p.dailyProfit}</p>
-        <p>Duración: ${p.duration} días</p>
+        <h4>${nombre}</h4>
+        <p>Precio: $${precio}</p>
+        <p>Ganancia diaria: $${ganancia}</p>
+        <p>Duración: ${duracion} días</p>
         <button class="btn-invertir" data-id="${docSnap.id}">
           Invertir
         </button>
@@ -142,7 +147,7 @@ async function cargarProductos() {
 
 
 // ===============================
-// 💰 INVERTIR
+// 💰 INVERTIR (CORREGIDO)
 // ===============================
 document.addEventListener("click", async (e) => {
 
@@ -160,24 +165,24 @@ document.addEventListener("click", async (e) => {
   if (!prodSnap.exists()) return;
 
   const p = prodSnap.data();
+  const precio = p.amount || 0;
 
-  if (saldo < p.price) {
+  if (saldo < precio) {
     alert("❌ Saldo insuficiente");
     return;
   }
 
   await updateDoc(userRef, {
-    balance: saldo - p.price,
-    totalInvested: (userSnap.data().totalInvested || 0) + p.price
+    balance: saldo - precio,
+    totalInvested: (userSnap.data().totalInvested || 0) + precio
   });
 
-  // 🔥 AQUÍ VA LA CORRECCIÓN IMPORTANTE
   await addDoc(collection(db, "orders"), {
-    userId: user.uid, // ✅ ahora coincide con rules
-    productName: p.name,
-    amount: p.price,
-    dailyProfit: p.dailyProfit,
-    duration: p.duration,
+    userId: user.uid,
+    productName: p.name || "Plan " + productId,
+    amount: precio,
+    dailyProfit: p.dailyProfit || 0,
+    duration: p.duration || 0,
     createdAt: serverTimestamp(),
     status: "active"
   });
@@ -191,7 +196,7 @@ document.addEventListener("click", async (e) => {
 
 
 // ===============================
-// 📦 CARGAR ÓRDENES
+// 📦 ÓRDENES
 // ===============================
 async function loadOrders() {
 
@@ -223,6 +228,7 @@ async function loadOrders() {
   container.innerHTML = "";
 
   snap.forEach(docSnap => {
+
     const o = docSnap.data();
     total += Number(o.dailyProfit || 0);
 
