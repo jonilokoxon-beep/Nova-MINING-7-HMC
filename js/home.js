@@ -14,41 +14,152 @@ import {
 
 
 // ==========================
-// VIP CONTENIDO DINÁMICO
+// INICIO CUANDO CARGA
 // ==========================
-const vipInfo = {
-  1: "Gana 3 MXN diarios extra.",
-  2: "Gana 6 MXN diarios extra.",
-  3: "Gana 10 MXN diarios extra.",
-  4: "Gana 20 MXN diarios extra.",
-  5: "Gana 50 MXN diarios extra."
+auth.onAuthStateChanged(user => {
+  if (!user) return;
+
+  loadProducts();
+  loadOrders();
+  initDaily();
+  loadTeamSize();
+});
+
+
+// ==========================
+// CARGAR PRODUCTOS
+// ==========================
+async function loadProducts() {
+
+  const div = document.getElementById("plans");
+  if (!div) return;
+
+  div.innerHTML = "Cargando productos...";
+
+  const snap = await getDocs(collection(db, "products"));
+
+  if (snap.empty) {
+    div.innerHTML = "No hay productos disponibles";
+    return;
+  }
+
+  let html = "";
+
+  snap.forEach(d => {
+    const p = d.data();
+
+    html += `
+      <div class="plan">
+        <h3>${p.name}</h3>
+        <p>Precio: $${p.price}</p>
+        <p>Ganancia diaria: $${p.dailyProfit}</p>
+        <button onclick="buyProduct('${d.id}', ${p.price}, ${p.dailyProfit}, ${p.duration})">
+          Comprar
+        </button>
+      </div>
+    `;
+  });
+
+  div.innerHTML = html;
+}
+
+
+// ==========================
+// COMPRAR PRODUCTO
+// ==========================
+window.buyProduct = async (id, price, dailyProfit, duration) => {
+
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const userRef = doc(db, "users", user.uid);
+  const userSnap = await getDoc(userRef);
+
+  if (!userSnap.exists()) return;
+
+  const data = userSnap.data();
+  const balance = data.balance || 0;
+
+  if (balance < price) {
+    alert("Saldo insuficiente");
+    return;
+  }
+
+  // Descontar saldo
+  await updateDoc(userRef, {
+    balance: balance - price
+  });
+
+  // Crear orden
+  await addDoc(collection(db, "orders"), {
+    userId: user.uid,
+    productId: id,
+    dailyProfit: dailyProfit,
+    duration: duration,
+    status: "active",
+    createdAt: serverTimestamp(),
+    lastClaim: serverTimestamp()
+  });
+
+  alert("Compra exitosa");
+
+  loadOrders();
 };
 
-document.addEventListener("click", e => {
-  if (!e.target.classList.contains("vip-btn")) return;
 
-  document.querySelectorAll(".vip-btn").forEach(b => b.classList.remove("active"));
-  e.target.classList.add("active");
+// ==========================
+// CARGAR ÓRDENES ACTIVAS
+// ==========================
+async function loadOrders() {
 
-  const level = e.target.dataset.vip;
-  const content = document.getElementById("vipContent");
+  const user = auth.currentUser;
+  if (!user) return;
 
-  if (content && vipInfo[level]) {
-    content.innerText = vipInfo[level];
+  const div = document.getElementById("orders");
+  if (!div) return;
+
+  div.innerHTML = "Cargando órdenes...";
+
+  const q = query(
+    collection(db, "orders"),
+    where("userId", "==", user.uid),
+    where("status", "==", "active")
+  );
+
+  const snap = await getDocs(q);
+
+  if (snap.empty) {
+    div.innerHTML = "No tienes órdenes activas";
+    return;
   }
-});
+
+  let html = "";
+
+  snap.forEach(d => {
+    const o = d.data();
+
+    html += `
+      <div class="order">
+        <p>Ganancia diaria: $${o.dailyProfit}</p>
+        <p>Duración: ${o.duration} días</p>
+      </div>
+    `;
+  });
+
+  div.innerHTML = html;
+}
+
 
 
 // ==========================
 // CHECK IN DIARIO
 // ==========================
-export async function initDaily() {
+async function initDaily() {
   const user = auth.currentUser;
   if (!user) return;
 
   const userRef = doc(db, "users", user.uid);
   const snap = await getDoc(userRef);
-
   if (!snap.exists()) return;
 
   const data = snap.data();
@@ -56,11 +167,6 @@ export async function initDaily() {
   let streak = data.streak || 0;
   let lastCheck = data.lastCheck || null;
   let balance = data.balance || 0;
-
-  const streakEl = document.getElementById("streakCount");
-  if (streakEl) streakEl.innerText = streak;
-
-  renderCalendar(streak);
 
   const btn = document.getElementById("checkinBtn");
   if (!btn) return;
@@ -99,41 +205,16 @@ export async function initDaily() {
     }
 
     alert("Check-in exitoso");
-
-    // Actualizar visual sin recargar
-    if (streakEl) streakEl.innerText = streak;
-    renderCalendar(streak);
   };
 }
 
-
-// ==========================
-// CALENDARIO VISUAL
-// ==========================
-function renderCalendar(streak) {
-  const cal = document.getElementById("calendar");
-  if (!cal) return;
-
-  cal.innerHTML = "";
-
-  for (let i = 1; i <= 30; i++) {
-    const div = document.createElement("div");
-    div.className = "day";
-    div.innerText = i;
-
-    if (i <= streak) {
-      div.classList.add("checked");
-    }
-
-    cal.appendChild(div);
-  }
-}
 
 
 // ==========================
 // EQUIPO ACTIVO
 // ==========================
-export async function loadTeamSize() {
+async function loadTeamSize() {
+
   const user = auth.currentUser;
   if (!user) return;
 
@@ -150,18 +231,14 @@ export async function loadTeamSize() {
 
     const ordersQ = query(
       collection(db, "orders"),
-      where("uid", "==", docSnap.id)
+      where("userId", "==", docSnap.id)
     );
 
     const ordersSnap = await getDocs(ordersQ);
 
-    if (!ordersSnap.empty) {
-      active++;
-    }
+    if (!ordersSnap.empty) active++;
   }
 
   const teamEl = document.getElementById("teamSize");
-  if (teamEl) {
-    teamEl.innerText = active;
-  }
+  if (teamEl) teamEl.innerText = active;
 }
