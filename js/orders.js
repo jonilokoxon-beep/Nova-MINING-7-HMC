@@ -44,6 +44,7 @@ export async function loadOrders() {
     );
 
     const snap = await getDocs(q);
+    console.log("Órdenes encontradas:", snap.size);
 
     if (snap.empty) {
       ordersDiv.innerHTML = "No tienes inversiones activas";
