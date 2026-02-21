@@ -39,12 +39,12 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // =====================================================
-// 📌 DETECTAR PÁGINA ACTUAL
+// 📌 DETECTAR PÁGINA
 // =====================================================
-const currentPage = window.location.pathname;
+const path = window.location.pathname;
 
 // =====================================================
-// 🔐 LOGIN
+// 🔐 LOGIN (INDEX)
 // =====================================================
 const loginBtn = document.getElementById("loginBtn");
 
@@ -97,7 +97,6 @@ window.register = async function () {
       createdAt: serverTimestamp()
     });
 
-    alert("Cuenta creada correctamente");
     window.location.href = "dashboard.html";
 
   } catch (error) {
@@ -108,7 +107,7 @@ window.register = async function () {
 // =====================================================
 // 🔐 PROTEGER DASHBOARD
 // =====================================================
-if (currentPage.includes("dashboard.html")) {
+if (path.includes("dashboard.html")) {
 
   onAuthStateChanged(auth, async user => {
 
@@ -129,6 +128,28 @@ if (currentPage.includes("dashboard.html")) {
     await cargarOrdenes();
     await cargarPerfil();
     await cargarHistorial();
+  });
+}
+
+// =====================================================
+// 🔐 PROTEGER ADMIN
+// =====================================================
+if (path.includes("admin.html")) {
+
+  onAuthStateChanged(auth, async user => {
+
+    if (!user) {
+      location.replace("./index.html");
+      return;
+    }
+
+    const snap = await getDoc(doc(db, "users", user.uid));
+    const userData = snap.data();
+
+    if (userData.role !== "admin") {
+      alert("Acceso no autorizado");
+      location.replace("./dashboard.html");
+    }
   });
 }
 
