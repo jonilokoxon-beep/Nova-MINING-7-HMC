@@ -23,29 +23,19 @@ import {
 
 
 // ===============================
-// 📑 NAVEGACIÓN ENTRE PÁGINAS
+// 📌 NAVEGACIÓN
 // ===============================
-window.go = function (pageId) {
-
-  const pages = document.querySelectorAll(".page");
-
-  pages.forEach(p => {
-    p.style.display = "none";
-  });
-
-  const active = document.getElementById(pageId);
-
-  if (active) {
-    active.style.display = "block";
-  }
-
+window.go = function (id) {
+  document.querySelectorAll(".page").forEach(p => p.style.display = "none");
+  const page = document.getElementById(id);
+  if (page) page.style.display = "block";
 };
 
 
 // ===============================
 // 🔐 CONTROL DE SESIÓN
 // ===============================
-onAuthStateChanged(auth, async (user) => {
+onAuthStateChanged(auth, async user => {
 
   if (!user) {
     location.replace("./index.html");
@@ -67,8 +57,10 @@ onAuthStateChanged(auth, async (user) => {
     });
   }
 
-  await cargarDashboard();
+  go("inicio");
+
   await cargarProductos();
+  await cargarDashboard();
   await cargarOrdenes();
   await cargarPerfil();
 });
@@ -96,15 +88,19 @@ async function cargarDashboard() {
     where("status", "==", "active")
   );
 
-  const snap = await getDocs(q);
+  const snapOrders = await getDocs(q);
 
-  snap.forEach(d => {
+  snapOrders.forEach(d => {
     ganancias += Number(d.data().dailyProfit || 0);
   });
 
-  document.getElementById("stat-balance").innerText = saldo.toFixed(2);
-  document.getElementById("stat-profit").innerText = ganancias.toFixed(2);
-  document.getElementById("stat-withdrawn").innerText = retirado.toFixed(2);
+  const balanceBox = document.getElementById("stat-balance");
+  const profitBox = document.getElementById("stat-profit");
+  const withdrawnBox = document.getElementById("stat-withdrawn");
+
+  if (balanceBox) balanceBox.innerText = "$" + saldo.toFixed(2);
+  if (profitBox) profitBox.innerText = "$" + ganancias.toFixed(2);
+  if (withdrawnBox) withdrawnBox.innerText = "$" + retirado.toFixed(2);
 }
 
 
@@ -116,7 +112,14 @@ async function cargarProductos() {
   const list = document.getElementById("productsList");
   if (!list) return;
 
+  list.innerHTML = "Cargando productos...";
+
   const snap = await getDocs(collection(db, "products"));
+
+  if (snap.empty) {
+    list.innerHTML = "No hay productos disponibles";
+    return;
+  }
 
   list.innerHTML = "";
 
@@ -127,10 +130,10 @@ async function cargarProductos() {
     list.innerHTML += `
       <div class="card">
         <h4>${p.name || "Plan " + docSnap.id}</h4>
-        <p>Precio: $${p.amount}</p>
-        <p>Ganancia diaria: $${p.dailyProfit}</p>
-        <p>Duración: ${p.duration} días</p>
-        <button onclick="invertir('${docSnap.id}')">
+        <p>Precio: $${p.amount || 0}</p>
+        <p>Ganancia diaria: $${p.dailyProfit || 0}</p>
+        <p>Duración: ${p.duration || 0} días</p>
+        <button class="btn-invertir" data-id="${docSnap.id}">
           Invertir
         </button>
       </div>
@@ -142,8 +145,11 @@ async function cargarProductos() {
 // ===============================
 // 💰 INVERTIR
 // ===============================
-window.invertir = async function (productId) {
+document.addEventListener("click", async (e) => {
 
+  if (!e.target.classList.contains("btn-invertir")) return;
+
+  const productId = e.target.dataset.id;
   const user = auth.currentUser;
   if (!user) return;
 
@@ -152,9 +158,10 @@ window.invertir = async function (productId) {
   const saldo = Number(userSnap.data().balance || 0);
 
   const prodSnap = await getDoc(doc(db, "products", productId));
-  const p = prodSnap.data();
+  if (!prodSnap.exists()) return;
 
-  const precio = Number(p.amount || 0);
+  const p = prodSnap.data();
+  const precio = p.amount || 0;
 
   if (saldo < precio) {
     alert("Saldo insuficiente");
@@ -170,8 +177,8 @@ window.invertir = async function (productId) {
     userId: user.uid,
     productName: p.name || "Plan",
     amount: precio,
-    dailyProfit: p.dailyProfit,
-    duration: p.duration,
+    dailyProfit: p.dailyProfit || 0,
+    duration: p.duration || 0,
     status: "active",
     createdAt: serverTimestamp()
   });
@@ -180,7 +187,9 @@ window.invertir = async function (productId) {
 
   await cargarDashboard();
   await cargarOrdenes();
-};
+
+  go("orders");
+});
 
 
 // ===============================
@@ -192,20 +201,31 @@ async function cargarOrdenes() {
   if (!user) return;
 
   const container = document.getElementById("ordersList");
+  const totalBox = document.getElementById("totalProfit");
+
   if (!container) return;
 
   const q = query(
     collection(db, "orders"),
-    where("userId", "==", user.uid)
+    where("userId", "==", user.uid),
+    where("status", "==", "active")
   );
 
   const snap = await getDocs(q);
 
+  if (snap.empty) {
+    container.innerHTML = "No tienes órdenes activas";
+    if (totalBox) totalBox.innerText = "$0.00";
+    return;
+  }
+
+  let total = 0;
   container.innerHTML = "";
 
   snap.forEach(docSnap => {
 
     const o = docSnap.data();
+    total += Number(o.dailyProfit || 0);
 
     container.innerHTML += `
       <div class="card">
@@ -217,6 +237,8 @@ async function cargarOrdenes() {
       </div>
     `;
   });
+
+  if (totalBox) totalBox.innerText = "$" + total.toFixed(2);
 }
 
 
@@ -231,8 +253,11 @@ async function cargarPerfil() {
   const snap = await getDoc(doc(db, "users", user.uid));
   const data = snap.data();
 
-  document.getElementById("p-id").innerText = user.uid.slice(0,8);
-  document.getElementById("p-balance").innerText = Number(data.balance || 0).toFixed(2);
+  const idBox = document.getElementById("p-id");
+  const balanceBox = document.getElementById("p-balance");
+
+  if (idBox) idBox.innerText = user.uid.slice(0, 8);
+  if (balanceBox) balanceBox.innerText = Number(data.balance || 0).toFixed(2);
 }
 
 
@@ -242,17 +267,12 @@ async function cargarPerfil() {
 document.addEventListener("DOMContentLoaded", () => {
 
   const withdrawBtn = document.getElementById("withdrawBtn");
-
-  if (withdrawBtn) {
-    withdrawBtn.addEventListener("click", solicitarRetiro);
-  }
+  if (withdrawBtn) withdrawBtn.addEventListener("click", solicitarRetiro);
 
   const rescueBtn = document.getElementById("btn-rescue");
-  if (rescueBtn) {
-    rescueBtn.addEventListener("click", ingresarCodigo);
-  }
-
+  if (rescueBtn) rescueBtn.addEventListener("click", ingresarCodigo);
 });
+
 
 async function solicitarRetiro() {
 
