@@ -1,10 +1,13 @@
 // =====================================================
-// 🔥 FIREBASE CONFIG (V10 MODULAR)
+// 🔥 FIREBASE CONFIG
 // =====================================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
 import {
   getAuth,
   onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
@@ -36,7 +39,128 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // =====================================================
-// 📌 NAVEGACIÓN
+// 📌 VISTAS
+// =====================================================
+const loginView = document.getElementById("loginView");
+const registerView = document.getElementById("registerView");
+const appView = document.getElementById("appView");
+
+function showLogin() {
+  loginView.style.display = "block";
+  registerView.style.display = "none";
+  appView.style.display = "none";
+}
+
+function showRegister() {
+  loginView.style.display = "none";
+  registerView.style.display = "block";
+  appView.style.display = "none";
+}
+
+function showApp() {
+  loginView.style.display = "none";
+  registerView.style.display = "none";
+  appView.style.display = "block";
+}
+
+// =====================================================
+// 🔁 CAMBIO LOGIN / REGISTER
+// =====================================================
+document.getElementById("goRegister")?.addEventListener("click", e => {
+  e.preventDefault();
+  showRegister();
+});
+
+document.getElementById("goLogin")?.addEventListener("click", e => {
+  e.preventDefault();
+  showLogin();
+});
+
+// =====================================================
+// 🔐 LOGIN
+// =====================================================
+document.getElementById("loginBtn")?.addEventListener("click", async () => {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  if (!email || !password) {
+    alert("Completa todos los campos");
+    return;
+  }
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch (error) {
+    alert(error.message);
+  }
+});
+
+// =====================================================
+// 📝 REGISTER
+// =====================================================
+document.getElementById("registerBtn")?.addEventListener("click", async () => {
+  const email = document.getElementById("regEmail").value.trim();
+  const password = document.getElementById("regPassword").value.trim();
+
+  if (!email || !password) {
+    alert("Completa todos los campos");
+    return;
+  }
+
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+
+    await setDoc(doc(db, "users", cred.user.uid), {
+      uid: cred.user.uid,
+      email,
+      balance: 0,
+      totalInvested: 0,
+      totalProfit: 0,
+      totalWithdrawn: 0,
+      role: "user",
+      createdAt: serverTimestamp()
+    });
+
+  } catch (error) {
+    alert(error.message);
+  }
+});
+
+// =====================================================
+// 🔄 ESTADO GLOBAL
+// =====================================================
+onAuthStateChanged(auth, async user => {
+
+  if (!user) {
+    showLogin();
+    return;
+  }
+
+  showApp();
+
+  const snap = await getDoc(doc(db, "users", user.uid));
+  if (!snap.exists()) return;
+
+  const data = snap.data();
+
+  document.getElementById("stat-balance").innerText =
+    Number(data.balance || 0).toFixed(2);
+
+  document.getElementById("p-balance").innerText =
+    Number(data.balance || 0).toFixed(2);
+
+  document.getElementById("p-id").innerText =
+    user.uid.slice(0, 8);
+
+  activarBotonAdmin(data);
+
+  await cargarProductos();
+  await cargarOrdenes();
+  await cargarHistorial();
+});
+
+// =====================================================
+// 📌 NAVEGACIÓN INTERNA
 // =====================================================
 window.go = function (id) {
   document.querySelectorAll(".page").forEach(p => p.style.display = "none");
@@ -45,94 +169,13 @@ window.go = function (id) {
 };
 
 // =====================================================
-// 🔐 CONTROL GLOBAL DE SESIÓN
-// =====================================================
-onAuthStateChanged(auth, async user => {
-
-  if (!user) {
-    location.replace("./index.html");
-    return;
-  }
-
-  const userRef = doc(db, "users", user.uid);
-  let snap = await getDoc(userRef);
-
-  if (!snap.exists()) {
-    await setDoc(userRef, {
-      uid: user.uid,
-      email: user.email,
-      balance: 0,
-      totalInvested: 0,
-      totalProfit: 0,
-      totalWithdrawn: 0,
-      level: 0,
-      role: "user",
-      createdAt: serverTimestamp()
-    });
-    snap = await getDoc(userRef);
-  }
-
-  const userData = snap.data();
-  window.currentUserData = userData;
-
-  activarBotonAdmin(userData);
-
-  go("inicio");
-
-  await cargarDashboard();
-  await cargarProductos();
-  await cargarOrdenes();
-  await cargarPerfil();
-  await cargarExtras();
-  await cargarHistorial();
-});
-
-// =====================================================
-// ⚙ BOTÓN ADMIN
+// ⚙ ADMIN
 // =====================================================
 function activarBotonAdmin(userData) {
-
   const btn = document.getElementById("adminFab");
   if (!btn) return;
 
-  if (userData.role === "admin") {
-    btn.style.display = "flex";
-    btn.onclick = () => location.href = "admin.html";
-  } else {
-    btn.style.display = "none";
-  }
-}
-
-// =====================================================
-// 📊 DASHBOARD
-// =====================================================
-async function cargarDashboard() {
-
-  const user = auth.currentUser;
-  if (!user) return;
-
-  const snap = await getDoc(doc(db, "users", user.uid));
-  const data = snap.data();
-
-  const saldo = Number(data.balance || 0);
-  const retirado = Number(data.totalWithdrawn || 0);
-
-  let ganancias = 0;
-
-  const q = query(
-    collection(db, "orders"),
-    where("userId", "==", user.uid),
-    where("status", "==", "active")
-  );
-
-  const snapOrders = await getDocs(q);
-  snapOrders.forEach(d => {
-    ganancias += Number(d.data().dailyProfit || 0);
-  });
-
-  document.getElementById("stat-balance")?.innerText = "$" + saldo.toFixed(2);
-  document.getElementById("stat-profit")?.innerText = "$" + ganancias.toFixed(2);
-  document.getElementById("stat-withdrawn")?.innerText = "$" + retirado.toFixed(2);
+  btn.style.display = userData.role === "admin" ? "flex" : "none";
 }
 
 // =====================================================
@@ -147,18 +190,13 @@ async function cargarProductos() {
   list.innerHTML = "";
 
   snap.forEach(docSnap => {
-
     const p = docSnap.data();
-    const price = Number(p.price ?? 0);
-    const profit = Number(p.dailyProfit ?? 0);
-    const duration = Number(p.duration ?? 0);
 
     list.innerHTML += `
       <div class="card">
         <h4>${p.name}</h4>
-        <p>Precio: $${price}</p>
-        <p>Ganancia diaria: $${profit}</p>
-        <p>Duración: ${duration} días</p>
+        <p>Precio: $${p.price}</p>
+        <p>Ganancia diaria: $${p.dailyProfit}</p>
         <button class="btn-invertir" data-id="${docSnap.id}">
           Invertir
         </button>
@@ -174,45 +212,39 @@ document.addEventListener("click", async (e) => {
 
   if (!e.target.classList.contains("btn-invertir")) return;
 
-  const productId = e.target.dataset.id;
   const user = auth.currentUser;
   if (!user) return;
+
+  const productId = e.target.dataset.id;
 
   const userRef = doc(db, "users", user.uid);
   const userSnap = await getDoc(userRef);
   const userData = userSnap.data();
 
-  const saldo = Number(userData.balance || 0);
   const prodSnap = await getDoc(doc(db, "products", productId));
   const p = prodSnap.data();
 
-  const precio = Number(p.price || 0);
-  const profit = Number(p.dailyProfit || 0);
-
-  if (saldo < precio) {
+  if ((userData.balance || 0) < p.price) {
     alert("Saldo insuficiente");
     return;
   }
 
   await updateDoc(userRef, {
-    balance: saldo - precio,
-    totalInvested: (userData.totalInvested || 0) + precio
+    balance: userData.balance - p.price
   });
 
   await addDoc(collection(db, "orders"), {
     userId: user.uid,
     productName: p.name,
-    amount: precio,
-    dailyProfit: profit,
-    duration: p.duration ?? 0,
+    amount: p.price,
+    dailyProfit: p.dailyProfit,
     status: "active",
     createdAt: serverTimestamp()
   });
 
   alert("Inversión realizada");
 
-  await cargarDashboard();
-  await cargarOrdenes();
+  onAuthStateChanged(auth, () => {});
 });
 
 // =====================================================
@@ -228,8 +260,7 @@ async function cargarOrdenes() {
 
   const q = query(
     collection(db, "orders"),
-    where("userId", "==", user.uid),
-    where("status", "==", "active")
+    where("userId", "==", user.uid)
   );
 
   const snap = await getDocs(q);
@@ -241,32 +272,15 @@ async function cargarOrdenes() {
     container.innerHTML += `
       <div class="card">
         <h4>${o.productName}</h4>
-        <p>Inversión: $${Number(o.amount)}</p>
-        <p>Ganancia diaria: $${Number(o.dailyProfit)}</p>
-        <p>Duración: ${o.duration} días</p>
+        <p>Inversión: $${o.amount}</p>
+        <p>Ganancia diaria: $${o.dailyProfit}</p>
       </div>
     `;
   });
 }
 
 // =====================================================
-// 👤 PERFIL
-// =====================================================
-async function cargarPerfil() {
-
-  const user = auth.currentUser;
-  if (!user) return;
-
-  const snap = await getDoc(doc(db, "users", user.uid));
-  const data = snap.data();
-
-  document.getElementById("p-id")?.innerText = user.uid.slice(0, 8);
-  document.getElementById("p-balance")?.innerText =
-    Number(data.balance || 0).toFixed(2);
-}
-
-// =====================================================
-// 📜 HISTORIAL RETIROS
+// 📜 HISTORIAL
 // =====================================================
 async function cargarHistorial() {
 
@@ -276,11 +290,11 @@ async function cargarHistorial() {
   const box = document.getElementById("transactionHistory");
   if (!box) return;
 
-  box.innerHTML = "";
-
   const snap = await getDocs(
     query(collection(db, "withdrawals"), where("userId", "==", user.uid))
   );
+
+  box.innerHTML = "";
 
   snap.forEach(d => {
     const w = d.data();
@@ -295,7 +309,6 @@ async function cargarHistorial() {
 // =====================================================
 // 🚪 LOGOUT
 // =====================================================
-window.logout = async function () {
+document.getElementById("logoutBtn")?.addEventListener("click", async () => {
   await signOut(auth);
-  location.replace("./index.html");
-};
+});
