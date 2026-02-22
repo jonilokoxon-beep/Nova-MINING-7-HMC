@@ -2,7 +2,6 @@
 // 🔥 FIREBASE CONFIG
 // =====================================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
 import {
   getAuth,
   onAuthStateChanged,
@@ -10,7 +9,6 @@ import {
   createUserWithEmailAndPassword,
   signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
 import {
   getFirestore,
   collection,
@@ -23,17 +21,16 @@ import {
   query,
   where,
   serverTimestamp,
-  onSnapshot,
-  deleteDoc
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyALrk15Qvqrq6zCVTxZ7U9wSnnZIqeSmv4",
-  authDomain: "novagrow-app.firebaseapp.com",
-  projectId: "novagrow-app",
-  storageBucket: "novagrow-app.appspot.com",
-  messagingSenderId: "976275033149",
-  appId: "1:976275033149:web:e40c6510684bd06c82ae54"
+  apiKey: "TU_API_KEY",
+  authDomain: "TU_AUTH_DOMAIN",
+  projectId: "TU_PROJECT_ID",
+  storageBucket: "TU_BUCKET",
+  messagingSenderId: "TU_MSG_ID",
+  appId: "TU_APP_ID"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -41,38 +38,35 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // =====================================================
-// 🔄 VISTAS
+// VISTAS
 // =====================================================
 const loginView = document.getElementById("loginView");
 const registerView = document.getElementById("registerView");
 const appView = document.getElementById("appView");
 
-window.showLogin = function() {
+function showLogin() {
   loginView.style.display = "block";
   registerView.style.display = "none";
   appView.style.display = "none";
 }
-
-window.showRegister = function() {
+function showRegister() {
   loginView.style.display = "none";
   registerView.style.display = "block";
   appView.style.display = "none";
 }
-
-window.showApp = function() {
+function showApp() {
   loginView.style.display = "none";
   registerView.style.display = "none";
   appView.style.display = "block";
 }
 
 // =====================================================
-// 🔐 LOGIN
+// LOGIN
 // =====================================================
 document.getElementById("loginBtn")?.addEventListener("click", async () => {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
   if (!email || !password) return alert("Completa los campos");
-
   try {
     await signInWithEmailAndPassword(auth, email, password);
   } catch (e) {
@@ -81,64 +75,70 @@ document.getElementById("loginBtn")?.addEventListener("click", async () => {
 });
 
 // =====================================================
-// 📝 REGISTER
+// REGISTER
 // =====================================================
 document.getElementById("registerBtn")?.addEventListener("click", async () => {
   const email = document.getElementById("regEmail").value.trim();
   const password = document.getElementById("regPassword").value.trim();
   if (!email || !password) return alert("Completa los campos");
-
-  const cred = await createUserWithEmailAndPassword(auth, email, password);
-
-  await setDoc(doc(db, "users", cred.user.uid), {
-    uid: cred.user.uid,
-    email,
-    balance: 0,
-    totalProfit: 0,
-    totalWithdrawn: 0,
-    role: "user",
-    level: 0,
-    suspended: false,
-    createdAt: serverTimestamp()
-  });
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    await setDoc(doc(db, "users", cred.user.uid), {
+      uid: cred.user.uid,
+      email,
+      balance: 0,
+      level: 0,
+      role: "user",
+      suspended: false,
+      createdAt: serverTimestamp()
+    });
+  } catch (e) {
+    alert(e.message);
+  }
 });
 
 // =====================================================
-// 🔄 AUTH STATE
+// ESTADO GLOBAL
 // =====================================================
 onAuthStateChanged(auth, async user => {
-  if (!user) return showLogin();
-
-  const snap = await getDoc(doc(db, "users", user.uid));
-  const data = snap.data();
-
-  if (data.suspended) {
-    alert("Cuenta suspendida");
-    await signOut(auth);
+  if (!user) {
+    showLogin();
     return;
   }
-
   showApp();
-  activarUsuario(user, data);
+  activarUsuario(user);
 });
 
 // =====================================================
-// 👤 ACTIVAR USUARIO
+// ACTIVAR USUARIO
 // =====================================================
-function activarUsuario(user, data) {
+function activarUsuario(user){
+  const userRef = doc(db, "users", user.uid);
 
-  onSnapshot(doc(db,"users",user.uid), snap=>{
-    const d = snap.data();
+  onSnapshot(userRef, snap => {
+    const data = snap.data();
+    if (!data) return;
 
-    document.getElementById("stat-balance").innerText = Number(d.balance).toFixed(2);
-    document.getElementById("stat-profit").innerText = Number(d.totalProfit||0).toFixed(2);
-    document.getElementById("stat-withdrawn").innerText = Number(d.totalWithdrawn||0).toFixed(2);
+    if (data.suspended) {
+      alert("Cuenta suspendida");
+      signOut(auth);
+      return;
+    }
 
-    document.getElementById("p-id").innerText = user.uid.slice(0,8);
-    document.getElementById("p-vip").innerText = d.level||0;
-    document.getElementById("p-balance").innerText = Number(d.balance).toFixed(2);
+    document.getElementById("stat-balance").innerText =
+      Number(data.balance || 0).toFixed(2);
 
-    activarBotonAdmin(d);
+    document.getElementById("p-balance").innerText =
+      Number(data.balance || 0).toFixed(2);
+
+    document.getElementById("p-id").innerText =
+      user.uid.slice(0,8);
+
+    document.getElementById("p-vip").innerText =
+      data.level || 0;
+
+    document.getElementById("adminFab").style.display =
+      data.role === "admin" ? "flex" : "none";
   });
 
   cargarProductos();
@@ -148,7 +148,7 @@ function activarUsuario(user, data) {
 }
 
 // =====================================================
-// 📌 NAVEGACIÓN
+// NAVEGACIÓN
 // =====================================================
 window.go = function(id){
   document.querySelectorAll(".page").forEach(p=>p.style.display="none");
@@ -156,204 +156,109 @@ window.go = function(id){
 };
 
 // =====================================================
-// 💰 PRODUCTOS
+// PRODUCTOS
 // =====================================================
 async function cargarProductos(){
   const list = document.getElementById("productsList");
-  list.innerHTML="";
-
+  list.innerHTML = "";
   const snap = await getDocs(collection(db,"products"));
-  snap.forEach(d=>{
-    const p = d.data();
-    list.innerHTML+=`
+
+  snap.forEach(docSnap=>{
+    const p = docSnap.data();
+    list.innerHTML += `
       <div class="card">
         <h4>${p.name}</h4>
         <p>Precio: $${p.price}</p>
-        <button onclick="invertir('${d.id}',${p.price})">Invertir</button>
+        <p>Ganancia diaria: $${p.dailyProfit}</p>
+        <button class="invertir" data-id="${docSnap.id}">Invertir</button>
       </div>
     `;
   });
 }
 
-window.invertir = async function(id, price){
-  const user = auth.currentUser;
-  const userRef = doc(db,"users",user.uid);
-  const snap = await getDoc(userRef);
-  const data = snap.data();
-
-  if(data.balance < price) return alert("Saldo insuficiente");
-
-  await updateDoc(userRef,{
-    balance: data.balance - price
-  });
-
-  await addDoc(collection(db,"orders"),{
-    userId:user.uid,
-    productId:id,
-    amount:price,
-    status:"active",
-    createdAt:serverTimestamp()
-  });
-
-  alert("Invertido correctamente");
-  cargarOrdenes();
-}
-
 // =====================================================
-// 📦 ÓRDENES
+// ÓRDENES
 // =====================================================
 async function cargarOrdenes(){
   const user = auth.currentUser;
-  const box = document.getElementById("ordersList");
-  box.innerHTML="";
-
-  const snap = await getDocs(query(collection(db,"orders"),
-    where("userId","==",user.uid)));
-
+  const container = document.getElementById("ordersList");
+  container.innerHTML="";
+  const q = query(collection(db,"orders"),
+    where("userId","==",user.uid)
+  );
+  const snap = await getDocs(q);
   snap.forEach(d=>{
-    const o=d.data();
-    box.innerHTML+=`
+    const o = d.data();
+    container.innerHTML += `
       <div class="card">
-        Orden $${o.amount} - ${o.status}
+        <h4>${o.productName}</h4>
+        <p>$${o.amount}</p>
+        <p>Ganancia diaria: $${o.dailyProfit}</p>
       </div>
     `;
   });
 }
 
 // =====================================================
-// 💸 RETIRO
-// =====================================================
-document.getElementById("withdrawBtn")?.addEventListener("click", async ()=>{
-  const amount = Number(document.getElementById("withdrawAmount").value);
-  const user = auth.currentUser;
-  const userRef = doc(db,"users",user.uid);
-  const snap = await getDoc(userRef);
-  const data = snap.data();
-
-  if(amount<=0 || data.balance<amount) return alert("Monto inválido");
-
-  await updateDoc(userRef,{
-    balance:data.balance-amount
-  });
-
-  await addDoc(collection(db,"withdrawals"),{
-    userId:user.uid,
-    amount,
-    status:"pending",
-    createdAt:serverTimestamp()
-  });
-
-  alert("Retiro enviado");
-});
-
-// =====================================================
-// 📜 HISTORIAL
+// HISTORIAL
 // =====================================================
 async function cargarHistorial(){
   const user = auth.currentUser;
   const box = document.getElementById("transactionHistory");
   box.innerHTML="";
-
-  const snap = await getDocs(query(collection(db,"withdrawals"),
-    where("userId","==",user.uid)));
-
+  const q = query(collection(db,"withdrawals"),
+    where("userId","==",user.uid)
+  );
+  const snap = await getDocs(q);
   snap.forEach(d=>{
-    const w=d.data();
-    box.innerHTML+=`<div>$${w.amount} - ${w.status}</div>`;
+    const w = d.data();
+    box.innerHTML += `<div>Retiro: $${w.amount} - ${w.status}</div>`;
   });
 }
 
 // =====================================================
-// ⚙ ADMIN COMPLETO
+// ADMIN COMPLETO
 // =====================================================
-function activarBotonAdmin(data){
-  const btn=document.getElementById("adminFab");
-  btn.style.display = data.role==="admin" ? "flex":"none";
-}
-
 async function cargarAdmin(){
-  const user=auth.currentUser;
-  const snapUser=await getDoc(doc(db,"users",user.uid));
-  if(snapUser.data().role!=="admin") return;
+  const user = auth.currentUser;
+  const userSnap = await getDoc(doc(db,"users",user.uid));
+  if (!userSnap.exists()) return;
+  if (userSnap.data().role !== "admin") return;
+
+  const statsBox = document.getElementById("pendingDeposits");
+  const withdrawBox = document.getElementById("pendingWithdrawals");
 
   // ESTADÍSTICAS
-  const usersSnap=await getDocs(collection(db,"users"));
-  document.getElementById("adminStats").innerHTML=
-    `Usuarios: ${usersSnap.size}`;
-
-  // USUARIOS
-  const userBox=document.getElementById("adminUsers");
-  userBox.innerHTML="";
-  usersSnap.forEach(d=>{
-    const u=d.data();
-    userBox.innerHTML+=`
-      <div class="card">
-        ${u.email}<br>
-        Balance: $${u.balance}
-        <button onclick="modBalance('${u.uid}')">Modificar Balance</button>
-        <button onclick="modVIP('${u.uid}')">Cambiar VIP</button>
-        <button onclick="suspender('${u.uid}')">Suspender</button>
-      </div>
-    `;
-  });
+  const usersSnap = await getDocs(collection(db,"users"));
+  statsBox.innerHTML = "Usuarios totales: " + usersSnap.size;
 
   // RETIROS
-  const wSnap=await getDocs(query(collection(db,"withdrawals"),
-    where("status","==","pending")));
-
-  const wBox=document.getElementById("pendingWithdrawals");
-  wBox.innerHTML="";
+  const wSnap = await getDocs(query(collection(db,"withdrawals"),
+    where("status","==","pending")
+  ));
+  withdrawBox.innerHTML="";
   wSnap.forEach(d=>{
     const w=d.data();
-    wBox.innerHTML+=`
+    withdrawBox.innerHTML+=`
       <div>
         ${w.userId.slice(0,6)} - $${w.amount}
         <button onclick="aprobarRetiro('${d.id}','${w.userId}',${w.amount})">Aprobar</button>
-        <button onclick="rechazarRetiro('${d.id}','${w.userId}',${w.amount})">Rechazar</button>
+        <button onclick="rechazarRetiro('${d.id}')">Rechazar</button>
       </div>
     `;
   });
 }
 
-// ADMIN FUNCIONES
-window.modBalance = async uid=>{
-  const val=Number(prompt("Nuevo balance"));
-  if(isNaN(val)) return;
-  await updateDoc(doc(db,"users",uid),{balance:val});
-};
-
-window.modVIP = async uid=>{
-  const val=Number(prompt("Nivel VIP 1-10"));
-  if(val<0||val>10) return;
-  await updateDoc(doc(db,"users",uid),{level:val});
-};
-
-window.suspender = async uid=>{
-  await updateDoc(doc(db,"users",uid),{suspended:true});
-};
-
-window.aprobarRetiro = async (id,uid,amount)=>{
+window.aprobarRetiro = async(id, uid, amount)=>{
   await updateDoc(doc(db,"withdrawals",id),{status:"approved"});
 };
 
-window.rechazarRetiro = async (id,uid,amount)=>{
-  const userRef=doc(db,"users",uid);
-  const snap=await getDoc(userRef);
-  await updateDoc(userRef,{
-    balance:snap.data().balance+amount
-  });
+window.rechazarRetiro = async(id)=>{
   await updateDoc(doc(db,"withdrawals",id),{status:"rejected"});
 };
 
-window.generarCodigo = async ()=>{
-  const code=Math.random().toString(36).substring(2,8).toUpperCase();
-  await addDoc(collection(db,"codes"),{
-    code,
-    createdAt:serverTimestamp()
-  });
-  alert("Código generado: "+code);
-};
-
+// =====================================================
+// LOGOUT
 // =====================================================
 document.getElementById("logoutBtn")?.addEventListener("click",async()=>{
   await signOut(auth);
