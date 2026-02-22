@@ -102,6 +102,7 @@
 
 <div id="perfilPage" class="page">
   <h3>Perfil</h3>
+
   <div class="user-info">
     <span>ID: <b id="p-id">----</b></span>
     <span class="vip">VIP <b id="p-vip">0</b></span>
@@ -111,7 +112,8 @@
     <small>MXN</small>
     <h3>$<span id="p-balance">0.00</span></h3>
 
-    <button id="btn-deposit">Depósito</button>
+    <!-- 🔥 ARREGLADO: mismo ID que usa dashboard.js -->
+    <button id="depositBtn">Depósito</button>
 
     <div style="margin-top:15px;">
       <input type="number" id="withdrawAmount" placeholder="Monto a retirar">
@@ -125,15 +127,26 @@
   </div>
 </div>
 
-<!-- ===== ADMIN ===== -->
+<!-- ================= ADMIN COMPLETO ================= -->
 
-<div id="adminPage" class="page">
-  <h2>Panel Admin</h2>
-  <h3>Retiros Pendientes</h3>
+<div id="adminPage" class="page" style="display:none;">
+
+  <h2>⚙ Panel Admin</h2>
+
+  <h3>📊 Estadísticas Generales</h3>
+  <div id="adminStats"></div>
+
+  <h3>👥 Usuarios</h3>
+  <div id="adminUsers"></div>
+
+  <h3>💸 Retiros Pendientes</h3>
   <div id="pendingWithdrawals"></div>
 
-  <h3>Depósitos Pendientes</h3>
+  <h3>💳 Depósitos Pendientes</h3>
   <div id="pendingDeposits"></div>
+
+  <button onclick="generarCodigo()">🎁 Generar Código</button>
+
 </div>
 
 <nav class="bottom">
@@ -143,7 +156,23 @@
   <button onclick="go('perfilPage')">👤Perfil</button>
 </nav>
 
-<button id="adminFab" style="display:none;" onclick="go('adminPage')">⚙</button>
+<!-- 🔥 BOTÓN FLOTANTE ADMIN -->
+<button id="adminFab"
+  style="display:none;
+         position:fixed;
+         bottom:80px;
+         right:20px;
+         width:55px;
+         height:55px;
+         border-radius:50%;
+         background:#111;
+         color:#fff;
+         font-size:22px;
+         border:none;
+         box-shadow:0 0 15px rgba(0,0,0,0.4);
+         z-index:999;">
+  ⚙
+</button>
 
 </section>
 
