@@ -5,46 +5,99 @@
 <title>Nova MINING 7 HMC</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="css/style.css">
+
+<style>
+body { margin:0; font-family:Arial; background:#0f172a; color:white; }
+.top { display:flex; justify-content:space-between; padding:15px; background:#111827; }
+.stats { display:flex; gap:10px; padding:10px; }
+.box { flex:1; padding:15px; border-radius:10px; text-align:center; }
+.blue{background:#1e3a8a;}
+.green{background:#065f46;}
+.gold{background:#78350f;}
+.page{ display:none; padding:15px;}
+.card{ background:#1f2937; padding:12px; margin-bottom:10px; border-radius:10px;}
+.bottom{
+position:fixed;
+bottom:0;
+left:0;
+right:0;
+background:#111827;
+display:flex;
+justify-content:space-around;
+padding:10px 0;
+}
+.bottom button{
+background:none;
+border:none;
+color:white;
+font-size:14px;
+}
+#adminFab{
+position:fixed;
+right:20px;
+bottom:80px;
+width:55px;
+height:55px;
+background:#dc2626;
+border-radius:50%;
+display:none;
+align-items:center;
+justify-content:center;
+font-size:24px;
+border:none;
+color:white;
+box-shadow:0 0 15px rgba(0,0,0,0.5);
+}
+input,button{
+padding:10px;
+margin-top:8px;
+width:100%;
+border-radius:8px;
+border:none;
+}
+.login-card{
+max-width:350px;
+margin:60px auto;
+padding:20px;
+background:#1f2937;
+border-radius:15px;
+text-align:center;
+}
+.logo{width:100px;margin-bottom:15px;}
+</style>
+
 </head>
 <body>
 
-<!-- ================= LOGIN ================= -->
+<!-- LOGIN -->
 <section id="loginView">
   <div class="login-card">
     <img src="assets/logo.jpeg" class="logo">
     <h2>Nova MINING 7 HMC</h2>
-
     <input type="email" id="email" placeholder="Correo">
     <input type="password" id="password" placeholder="Contraseña">
-
     <button id="loginBtn">Ingresar</button>
-
     <p style="margin-top:15px;">
       ¿No tienes cuenta?
-      <a href="#" id="goRegister">Crear cuenta</a>
+      <a href="#" id="goRegister" onclick="document.getElementById('loginView').style.display='none';document.getElementById('registerView').style.display='block';">Crear cuenta</a>
     </p>
-
-    <p id="status"></p>
   </div>
 </section>
 
-<!-- ================= REGISTER ================= -->
+<!-- REGISTER -->
 <section id="registerView" style="display:none;">
   <div class="login-card">
     <h2>Crear Cuenta</h2>
-
     <input type="email" id="regEmail" placeholder="Correo">
     <input type="password" id="regPassword" placeholder="Contraseña">
-
     <button id="registerBtn">Registrarme</button>
-
     <p style="margin-top:15px;">
-      <a href="#" id="goLogin">Volver</a>
+      <a href="#" onclick="document.getElementById('registerView').style.display='none';document.getElementById('loginView').style.display='block';">Volver</a>
     </p>
   </div>
 </section>
 
-<!-- ================= APP ================= -->
+<!-- APP -->
 <section id="appView" style="display:none;">
 
 <header class="top">
@@ -67,27 +120,11 @@
   </div>
 </div>
 
-<!-- ===== PÁGINAS ===== -->
+<!-- PÁGINAS -->
 
 <div id="inicio" class="page" style="display:block;">
   <h3>💎 VIP</h3>
-  <button onclick="go('dailyPage')" class="main-btn">🎁 Registro Diario</button>
-  <button onclick="go('equipoPage')" class="main-btn">
-    👥 Tamaño del equipo<br>
-    <b id="teamCountHome">0</b>
-  </button>
-</div>
-
-<div id="dailyPage" class="page">
-  <h3>Registro Diario</h3>
-  <p>Estado: <b>Disponible</b></p>
-  <button>Reclamar</button>
-</div>
-
-<div id="equipoPage" class="page">
-  <h3>Mi Equipo</h3>
-  <p>Total Referidos:</p>
-  <h2 id="teamCount">0</h2>
+  <button onclick="go('productosPage')">🛒 Ver Productos</button>
 </div>
 
 <div id="productosPage" class="page">
@@ -103,50 +140,50 @@
 <div id="perfilPage" class="page">
   <h3>Perfil</h3>
 
-  <div class="user-info">
-    <span>ID: <b id="p-id">----</b></span>
-    <span class="vip">VIP <b id="p-vip">0</b></span>
+  <div class="card">
+    ID: <b id="p-id">----</b><br>
+    VIP: <b id="p-vip">0</b><br>
+    Saldo: $<b id="p-balance">0.00</b>
   </div>
 
-  <div class="balance-box">
-    <small>MXN</small>
-    <h3>$<span id="p-balance">0.00</span></h3>
+  <div class="card">
+    <input type="number" id="withdrawAmount" placeholder="Monto a retirar">
+    <button id="withdrawBtn">Solicitar Retiro</button>
+  </div>
 
-    <!-- 🔥 ARREGLADO: mismo ID que usa dashboard.js -->
-    <button id="depositBtn">Depósito</button>
-
-    <div style="margin-top:15px;">
-      <input type="number" id="withdrawAmount" placeholder="Monto a retirar">
-      <button id="withdrawBtn">Solicitar Retiro</button>
-    </div>
-
-    <div class="transaction-box">
-      <h4>Historial</h4>
-      <div id="transactionHistory"></div>
-    </div>
+  <div class="card">
+    <h4>Historial</h4>
+    <div id="transactionHistory"></div>
   </div>
 </div>
 
-<!-- ================= ADMIN COMPLETO ================= -->
-
-<div id="adminPage" class="page" style="display:none;">
-
+<!-- ADMIN -->
+<div id="adminPage" class="page">
   <h2>⚙ Panel Admin</h2>
 
-  <h3>📊 Estadísticas Generales</h3>
-  <div id="adminStats"></div>
+  <div class="card">
+    <h3>📊 Estadísticas</h3>
+    <div id="adminStats"></div>
+  </div>
 
-  <h3>👥 Usuarios</h3>
-  <div id="adminUsers"></div>
+  <div class="card">
+    <h3>👥 Usuarios</h3>
+    <div id="adminUsers"></div>
+  </div>
 
-  <h3>💸 Retiros Pendientes</h3>
-  <div id="pendingWithdrawals"></div>
+  <div class="card">
+    <h3>💸 Retiros Pendientes</h3>
+    <div id="pendingWithdrawals"></div>
+  </div>
 
-  <h3>💳 Depósitos Pendientes</h3>
-  <div id="pendingDeposits"></div>
+  <div class="card">
+    <h3>🏦 Depósitos</h3>
+    <div id="pendingDeposits"></div>
+  </div>
 
-  <button onclick="generarCodigo()">🎁 Generar Código</button>
-
+  <div class="card">
+    <button onclick="generarCodigo()">Generar Código 🎁</button>
+  </div>
 </div>
 
 <nav class="bottom">
@@ -156,26 +193,11 @@
   <button onclick="go('perfilPage')">👤Perfil</button>
 </nav>
 
-<!-- 🔥 BOTÓN FLOTANTE ADMIN -->
-<button id="adminFab"
-  style="display:none;
-         position:fixed;
-         bottom:80px;
-         right:20px;
-         width:55px;
-         height:55px;
-         border-radius:50%;
-         background:#111;
-         color:#fff;
-         font-size:22px;
-         border:none;
-         box-shadow:0 0 15px rgba(0,0,0,0.4);
-         z-index:999;">
-  ⚙
-</button>
+<button id="adminFab" onclick="go('adminPage')">⚙</button>
 
 </section>
 
 <script type="module" src="js/dashboard.js"></script>
+
 </body>
 </html>
