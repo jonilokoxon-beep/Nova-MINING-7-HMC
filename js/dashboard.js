@@ -28,12 +28,12 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "TU_APIKEY",
-  authDomain: "TU_AUTH_DOMAIN",
-  projectId: "TU_PROJECT_ID",
-  storageBucket: "TU_BUCKET",
-  messagingSenderId: "TU_SENDER",
-  appId: "TU_APP_ID"
+  apiKey: "AIzaSyALrk15Qvqrq6zCVTxZ7U9wSnnZIqeSmv4",
+  authDomain: "novagrow-app.firebaseapp.com",
+  projectId: "novagrow-app",
+  storageBucket: "novagrow-app.appspot.com",
+  messagingSenderId: "976275033149",
+  appId: "1:976275033149:web:e40c6510684bd06c82ae54"
 };
 
 const app = initializeApp(firebaseConfig);
