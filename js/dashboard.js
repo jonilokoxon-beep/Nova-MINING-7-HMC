@@ -47,19 +47,19 @@ const loginView = document.getElementById("loginView");
 const registerView = document.getElementById("registerView");
 const appView = document.getElementById("appView");
 
-function showLogin() {
+window.showLogin = function() {
   loginView.style.display = "block";
   registerView.style.display = "none";
   appView.style.display = "none";
 }
 
-function showRegister() {
+window.showRegister = function() {
   loginView.style.display = "none";
   registerView.style.display = "block";
   appView.style.display = "none";
 }
 
-function showApp() {
+window.showApp = function() {
   loginView.style.display = "none";
   registerView.style.display = "none";
   appView.style.display = "block";
