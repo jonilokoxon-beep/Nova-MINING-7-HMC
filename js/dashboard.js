@@ -22,7 +22,8 @@ import {
   addDoc,
   query,
   where,
-  serverTimestamp
+  serverTimestamp,
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -64,34 +65,18 @@ function showApp() {
 }
 
 // =====================================================
-// 🔁 CAMBIO LOGIN / REGISTER
-// =====================================================
-document.getElementById("goRegister")?.addEventListener("click", e => {
-  e.preventDefault();
-  showRegister();
-});
-
-document.getElementById("goLogin")?.addEventListener("click", e => {
-  e.preventDefault();
-  showLogin();
-});
-
-// =====================================================
 // 🔐 LOGIN
 // =====================================================
 document.getElementById("loginBtn")?.addEventListener("click", async () => {
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value.trim();
+  const email = emailInput("email");
+  const password = emailInput("password");
 
-  if (!email || !password) {
-    alert("Completa todos los campos");
-    return;
-  }
+  if (!email || !password) return alert("Completa los campos");
 
   try {
     await signInWithEmailAndPassword(auth, email, password);
-  } catch (error) {
-    alert(error.message);
+  } catch (e) {
+    alert(e.message);
   }
 });
 
@@ -99,13 +84,10 @@ document.getElementById("loginBtn")?.addEventListener("click", async () => {
 // 📝 REGISTER
 // =====================================================
 document.getElementById("registerBtn")?.addEventListener("click", async () => {
-  const email = document.getElementById("regEmail").value.trim();
-  const password = document.getElementById("regPassword").value.trim();
+  const email = emailInput("regEmail");
+  const password = emailInput("regPassword");
 
-  if (!email || !password) {
-    alert("Completa todos los campos");
-    return;
-  }
+  if (!email || !password) return alert("Completa los campos");
 
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
@@ -121,10 +103,14 @@ document.getElementById("registerBtn")?.addEventListener("click", async () => {
       createdAt: serverTimestamp()
     });
 
-  } catch (error) {
-    alert(error.message);
+  } catch (e) {
+    alert(e.message);
   }
 });
+
+function emailInput(id){
+  return document.getElementById(id)?.value.trim();
+}
 
 // =====================================================
 // 🔄 ESTADO GLOBAL
@@ -137,59 +123,60 @@ onAuthStateChanged(auth, async user => {
   }
 
   showApp();
-
-  const snap = await getDoc(doc(db, "users", user.uid));
-  if (!snap.exists()) return;
-
-  const data = snap.data();
-
-  document.getElementById("stat-balance").innerText =
-    Number(data.balance || 0).toFixed(2);
-
-  document.getElementById("p-balance").innerText =
-    Number(data.balance || 0).toFixed(2);
-
-  document.getElementById("p-id").innerText =
-    user.uid.slice(0, 8);
-
-  activarBotonAdmin(data);
-
-  await cargarProductos();
-  await cargarOrdenes();
-  await cargarHistorial();
+  activarUsuario(user);
 });
 
 // =====================================================
-// 📌 NAVEGACIÓN INTERNA
+// 👤 ACTIVAR USUARIO
 // =====================================================
-window.go = function (id) {
-  document.querySelectorAll(".page").forEach(p => p.style.display = "none");
-  const page = document.getElementById(id);
-  if (page) page.style.display = "block";
-};
+function activarUsuario(user){
 
-// =====================================================
-// ⚙ ADMIN
-// =====================================================
-function activarBotonAdmin(userData) {
-  const btn = document.getElementById("adminFab");
-  if (!btn) return;
+  const userRef = doc(db, "users", user.uid);
 
-  btn.style.display = userData.role === "admin" ? "flex" : "none";
+  // 🔄 SALDO EN TIEMPO REAL
+  onSnapshot(userRef, snap => {
+    const data = snap.data();
+
+    document.getElementById("stat-balance").innerText =
+      Number(data.balance || 0).toFixed(2);
+
+    document.getElementById("p-balance").innerText =
+      Number(data.balance || 0).toFixed(2);
+
+    document.getElementById("p-id").innerText =
+      user.uid.slice(0,8);
+
+    document.getElementById("p-vip").innerText =
+      data.level || 0;
+
+    activarBotonAdmin(data);
+  });
+
+  cargarProductos();
+  cargarOrdenes();
+  cargarHistorial();
+  cargarAdmin();
 }
+
+// =====================================================
+// 📌 NAVEGACIÓN
+// =====================================================
+window.go = function(id){
+  document.querySelectorAll(".page").forEach(p=>p.style.display="none");
+  document.getElementById(id).style.display="block";
+};
 
 // =====================================================
 // 💰 PRODUCTOS
 // =====================================================
-async function cargarProductos() {
+async function cargarProductos(){
 
   const list = document.getElementById("productsList");
-  if (!list) return;
-
-  const snap = await getDocs(collection(db, "products"));
   list.innerHTML = "";
 
-  snap.forEach(docSnap => {
+  const snap = await getDocs(collection(db,"products"));
+
+  snap.forEach(docSnap=>{
     const p = docSnap.data();
 
     list.innerHTML += `
@@ -197,7 +184,7 @@ async function cargarProductos() {
         <h4>${p.name}</h4>
         <p>Precio: $${p.price}</p>
         <p>Ganancia diaria: $${p.dailyProfit}</p>
-        <button class="btn-invertir" data-id="${docSnap.id}">
+        <button class="invertir" data-id="${docSnap.id}">
           Invertir
         </button>
       </div>
@@ -208,71 +195,64 @@ async function cargarProductos() {
 // =====================================================
 // 💸 INVERTIR
 // =====================================================
-document.addEventListener("click", async (e) => {
+document.addEventListener("click", async e=>{
 
-  if (!e.target.classList.contains("btn-invertir")) return;
+  if(!e.target.classList.contains("invertir")) return;
 
   const user = auth.currentUser;
-  if (!user) return;
-
   const productId = e.target.dataset.id;
 
-  const userRef = doc(db, "users", user.uid);
+  const userRef = doc(db,"users",user.uid);
   const userSnap = await getDoc(userRef);
   const userData = userSnap.data();
 
-  const prodSnap = await getDoc(doc(db, "products", productId));
+  const prodSnap = await getDoc(doc(db,"products",productId));
   const p = prodSnap.data();
 
-  if ((userData.balance || 0) < p.price) {
+  if(userData.balance < p.price){
     alert("Saldo insuficiente");
     return;
   }
 
-  await updateDoc(userRef, {
-    balance: userData.balance - p.price
+  await updateDoc(userRef,{
+    balance: userData.balance - p.price,
+    totalInvested: (userData.totalInvested||0) + p.price
   });
 
-  await addDoc(collection(db, "orders"), {
+  await addDoc(collection(db,"orders"),{
     userId: user.uid,
     productName: p.name,
     amount: p.price,
     dailyProfit: p.dailyProfit,
-    status: "active",
+    status:"active",
     createdAt: serverTimestamp()
   });
 
   alert("Inversión realizada");
-
-  onAuthStateChanged(auth, () => {});
 });
 
 // =====================================================
 // 📦 ÓRDENES
 // =====================================================
-async function cargarOrdenes() {
+async function cargarOrdenes(){
 
   const user = auth.currentUser;
-  if (!user) return;
-
   const container = document.getElementById("ordersList");
-  if (!container) return;
 
-  const q = query(
-    collection(db, "orders"),
-    where("userId", "==", user.uid)
+  const q = query(collection(db,"orders"),
+    where("userId","==",user.uid)
   );
 
   const snap = await getDocs(q);
-  container.innerHTML = "";
 
-  snap.forEach(docSnap => {
-    const o = docSnap.data();
+  container.innerHTML="";
 
+  snap.forEach(d=>{
+    const o = d.data();
     container.innerHTML += `
       <div class="card">
         <h4>${o.productName}</h4>
-        <p>Inversión: $${o.amount}</p>
+        <p>$${o.amount}</p>
         <p>Ganancia diaria: $${o.dailyProfit}</p>
       </div>
     `;
@@ -280,35 +260,99 @@ async function cargarOrdenes() {
 }
 
 // =====================================================
-// 📜 HISTORIAL
+// 💸 RETIROS
 // =====================================================
-async function cargarHistorial() {
+document.getElementById("withdrawBtn")?.addEventListener("click", async ()=>{
 
   const user = auth.currentUser;
-  if (!user) return;
+  const amount = Number(document.getElementById("withdrawAmount").value);
 
+  if(!amount || amount<=0) return alert("Monto inválido");
+
+  const userRef = doc(db,"users",user.uid);
+  const snap = await getDoc(userRef);
+  const data = snap.data();
+
+  if(data.balance < amount){
+    alert("Saldo insuficiente");
+    return;
+  }
+
+  await updateDoc(userRef,{
+    balance: data.balance - amount,
+    totalWithdrawn: (data.totalWithdrawn||0) + amount
+  });
+
+  await addDoc(collection(db,"withdrawals"),{
+    userId:user.uid,
+    amount,
+    status:"pending",
+    createdAt: serverTimestamp()
+  });
+
+  alert("Retiro solicitado");
+});
+
+// =====================================================
+// 📜 HISTORIAL
+// =====================================================
+async function cargarHistorial(){
+
+  const user = auth.currentUser;
   const box = document.getElementById("transactionHistory");
-  if (!box) return;
 
-  const snap = await getDocs(
-    query(collection(db, "withdrawals"), where("userId", "==", user.uid))
+  const q = query(collection(db,"withdrawals"),
+    where("userId","==",user.uid)
   );
 
-  box.innerHTML = "";
+  const snap = await getDocs(q);
+  box.innerHTML="";
 
-  snap.forEach(d => {
+  snap.forEach(d=>{
     const w = d.data();
     box.innerHTML += `
-      <div style="padding:5px;">
-        Retiro: $${w.amount} - ${w.status}
-      </div>
+      <div>Retiro: $${w.amount} - ${w.status}</div>
     `;
   });
 }
 
 // =====================================================
+// ⚙ ADMIN
+// =====================================================
+function activarBotonAdmin(data){
+  const btn = document.getElementById("adminFab");
+  btn.style.display = data.role==="admin" ? "flex":"none";
+}
+
+async function cargarAdmin(){
+
+  const user = auth.currentUser;
+  const snapUser = await getDoc(doc(db,"users",user.uid));
+  if(snapUser.data().role!=="admin") return;
+
+  const withdrawBox = document.getElementById("pendingWithdrawals");
+  const depositBox = document.getElementById("pendingDeposits");
+
+  const wSnap = await getDocs(query(collection(db,"withdrawals"),
+    where("status","==","pending")
+  ));
+
+  withdrawBox.innerHTML="";
+  wSnap.forEach(d=>{
+    const w=d.data();
+    withdrawBox.innerHTML+=`
+      <div>
+        ${w.userId.slice(0,6)} - $${w.amount}
+      </div>
+    `;
+  });
+
+  depositBox.innerHTML="(Sistema base listo)";
+}
+
+// =====================================================
 // 🚪 LOGOUT
 // =====================================================
-document.getElementById("logoutBtn")?.addEventListener("click", async () => {
+document.getElementById("logoutBtn")?.addEventListener("click",async()=>{
   await signOut(auth);
 });
