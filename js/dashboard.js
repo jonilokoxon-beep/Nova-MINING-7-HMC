@@ -40,39 +40,17 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // =====================================================
-// 📌 VISTAS
+// 🔐 LOGIN / REGISTER (TU MISMA LÓGICA)
 // =====================================================
-const loginView = document.getElementById("loginView");
-const registerView = document.getElementById("registerView");
-const appView = document.getElementById("appView");
 
-function showLogin() {
-  loginView.style.display = "block";
-  registerView.style.display = "none";
-  appView.style.display = "none";
+function emailInput(id){
+  return document.getElementById(id)?.value.trim();
 }
 
-function showRegister() {
-  loginView.style.display = "none";
-  registerView.style.display = "block";
-  appView.style.display = "none";
-}
-
-function showApp() {
-  loginView.style.display = "none";
-  registerView.style.display = "none";
-  appView.style.display = "block";
-}
-
-// =====================================================
-// 🔐 LOGIN
-// =====================================================
 document.getElementById("loginBtn")?.addEventListener("click", async () => {
   const email = emailInput("email");
   const password = emailInput("password");
-
   if (!email || !password) return alert("Completa los campos");
-
   try {
     await signInWithEmailAndPassword(auth, email, password);
   } catch (e) {
@@ -80,13 +58,9 @@ document.getElementById("loginBtn")?.addEventListener("click", async () => {
   }
 });
 
-// =====================================================
-// 📝 REGISTER
-// =====================================================
 document.getElementById("registerBtn")?.addEventListener("click", async () => {
   const email = emailInput("regEmail");
   const password = emailInput("regPassword");
-
   if (!email || !password) return alert("Completa los campos");
 
   try {
@@ -100,6 +74,8 @@ document.getElementById("registerBtn")?.addEventListener("click", async () => {
       totalProfit: 0,
       totalWithdrawn: 0,
       role: "user",
+      level: 0,
+      suspended: false,
       createdAt: serverTimestamp()
     });
 
@@ -108,34 +84,42 @@ document.getElementById("registerBtn")?.addEventListener("click", async () => {
   }
 });
 
-function emailInput(id){
-  return document.getElementById(id)?.value.trim();
-}
-
 // =====================================================
 // 🔄 ESTADO GLOBAL
 // =====================================================
+
 onAuthStateChanged(auth, async user => {
 
   if (!user) {
-    showLogin();
+    document.getElementById("loginView").style.display="block";
+    document.getElementById("appView").style.display="none";
     return;
   }
 
-  showApp();
+  document.getElementById("loginView").style.display="none";
+  document.getElementById("appView").style.display="block";
+
   activarUsuario(user);
 });
 
 // =====================================================
 // 👤 ACTIVAR USUARIO
 // =====================================================
+
 function activarUsuario(user){
 
   const userRef = doc(db, "users", user.uid);
 
-  // 🔄 SALDO EN TIEMPO REAL
   onSnapshot(userRef, snap => {
+
     const data = snap.data();
+    if (!data) return;
+
+    if (data.suspended){
+      alert("Cuenta suspendida");
+      signOut(auth);
+      return;
+    }
 
     document.getElementById("stat-balance").innerText =
       Number(data.balance || 0).toFixed(2);
@@ -149,210 +133,144 @@ function activarUsuario(user){
     document.getElementById("p-vip").innerText =
       data.level || 0;
 
-    activarBotonAdmin(data);
+    document.getElementById("adminFab").style.display =
+      data.role==="admin" ? "flex":"none";
   });
 
-  cargarProductos();
-  cargarOrdenes();
-  cargarHistorial();
-  cargarAdmin();
+  cargarAdminCompleto();
 }
 
 // =====================================================
-// 📌 NAVEGACIÓN
+// 💰 DEPÓSITO USUARIO
 // =====================================================
-window.go = function(id){
-  document.querySelectorAll(".page").forEach(p=>p.style.display="none");
-  document.getElementById(id).style.display="block";
-};
 
-// =====================================================
-// 💰 PRODUCTOS
-// =====================================================
-async function cargarProductos(){
+document.getElementById("depositBtn")?.addEventListener("click", async ()=>{
 
-  const list = document.getElementById("productsList");
-  list.innerHTML = "";
+  const amount = Number(prompt("Monto a depositar"));
+  if(!amount || amount<=0) return;
 
-  const snap = await getDocs(collection(db,"products"));
-
-  snap.forEach(docSnap=>{
-    const p = docSnap.data();
-
-    list.innerHTML += `
-      <div class="card">
-        <h4>${p.name}</h4>
-        <p>Precio: $${p.price}</p>
-        <p>Ganancia diaria: $${p.dailyProfit}</p>
-        <button class="invertir" data-id="${docSnap.id}">
-          Invertir
-        </button>
-      </div>
-    `;
-  });
-}
-
-// =====================================================
-// 💸 INVERTIR
-// =====================================================
-document.addEventListener("click", async e=>{
-
-  if(!e.target.classList.contains("invertir")) return;
-
-  const user = auth.currentUser;
-  const productId = e.target.dataset.id;
-
-  const userRef = doc(db,"users",user.uid);
-  const userSnap = await getDoc(userRef);
-  const userData = userSnap.data();
-
-  const prodSnap = await getDoc(doc(db,"products",productId));
-  const p = prodSnap.data();
-
-  if(userData.balance < p.price){
-    alert("Saldo insuficiente");
-    return;
-  }
-
-  await updateDoc(userRef,{
-    balance: userData.balance - p.price,
-    totalInvested: (userData.totalInvested||0) + p.price
-  });
-
-  await addDoc(collection(db,"orders"),{
-    userId: user.uid,
-    productName: p.name,
-    amount: p.price,
-    dailyProfit: p.dailyProfit,
-    status:"active",
-    createdAt: serverTimestamp()
-  });
-
-  alert("Inversión realizada");
-});
-
-// =====================================================
-// 📦 ÓRDENES
-// =====================================================
-async function cargarOrdenes(){
-
-  const user = auth.currentUser;
-  const container = document.getElementById("ordersList");
-
-  const q = query(collection(db,"orders"),
-    where("userId","==",user.uid)
-  );
-
-  const snap = await getDocs(q);
-
-  container.innerHTML="";
-
-  snap.forEach(d=>{
-    const o = d.data();
-    container.innerHTML += `
-      <div class="card">
-        <h4>${o.productName}</h4>
-        <p>$${o.amount}</p>
-        <p>Ganancia diaria: $${o.dailyProfit}</p>
-      </div>
-    `;
-  });
-}
-
-// =====================================================
-// 💸 RETIROS
-// =====================================================
-document.getElementById("withdrawBtn")?.addEventListener("click", async ()=>{
-
-  const user = auth.currentUser;
-  const amount = Number(document.getElementById("withdrawAmount").value);
-
-  if(!amount || amount<=0) return alert("Monto inválido");
-
-  const userRef = doc(db,"users",user.uid);
-  const snap = await getDoc(userRef);
-  const data = snap.data();
-
-  if(data.balance < amount){
-    alert("Saldo insuficiente");
-    return;
-  }
-
-  await updateDoc(userRef,{
-    balance: data.balance - amount,
-    totalWithdrawn: (data.totalWithdrawn||0) + amount
-  });
-
-  await addDoc(collection(db,"withdrawals"),{
-    userId:user.uid,
+  await addDoc(collection(db,"deposits"),{
+    userId: auth.currentUser.uid,
     amount,
     status:"pending",
     createdAt: serverTimestamp()
   });
 
-  alert("Retiro solicitado");
+  alert("Depósito enviado para aprobación");
 });
 
 // =====================================================
-// 📜 HISTORIAL
+// ⚙ PANEL ADMIN COMPLETO
 // =====================================================
-async function cargarHistorial(){
+
+async function cargarAdminCompleto(){
 
   const user = auth.currentUser;
-  const box = document.getElementById("transactionHistory");
+  if(!user) return;
 
-  const q = query(collection(db,"withdrawals"),
-    where("userId","==",user.uid)
-  );
-
-  const snap = await getDocs(q);
-  box.innerHTML="";
-
-  snap.forEach(d=>{
-    const w = d.data();
-    box.innerHTML += `
-      <div>Retiro: $${w.amount} - ${w.status}</div>
-    `;
-  });
-}
-
-// =====================================================
-// ⚙ ADMIN
-// =====================================================
-function activarBotonAdmin(data){
-  const btn = document.getElementById("adminFab");
-  btn.style.display = data.role==="admin" ? "flex":"none";
-}
-
-async function cargarAdmin(){
-
-  const user = auth.currentUser;
   const snapUser = await getDoc(doc(db,"users",user.uid));
   if(snapUser.data().role!=="admin") return;
 
-  const withdrawBox = document.getElementById("pendingWithdrawals");
-  const depositBox = document.getElementById("pendingDeposits");
-
-  const wSnap = await getDocs(query(collection(db,"withdrawals"),
+  const usersSnap = await getDocs(collection(db,"users"));
+  const withdrawSnap = await getDocs(query(collection(db,"withdrawals"),
     where("status","==","pending")
   ));
 
+  const depositSnap = await getDocs(query(collection(db,"deposits"),
+    where("status","==","pending")
+  ));
+
+  const usersBox = document.getElementById("adminUsers");
+  const withdrawBox = document.getElementById("pendingWithdrawals");
+  const depositBox = document.getElementById("pendingDeposits");
+
+  usersBox.innerHTML="";
   withdrawBox.innerHTML="";
-  wSnap.forEach(d=>{
-    const w=d.data();
-    withdrawBox.innerHTML+=`
-      <div>
-        ${w.userId.slice(0,6)} - $${w.amount}
+  depositBox.innerHTML="";
+
+  usersSnap.forEach(d=>{
+    const u=d.data();
+    usersBox.innerHTML+=`
+      <div class="card">
+        ${u.email}<br>
+        Balance:$${u.balance}<br>
+        VIP:${u.level||0}<br>
+        <button onclick="adminBalance('${u.uid}')">Balance</button>
+        <button onclick="adminVIP('${u.uid}')">VIP</button>
+        <button onclick="adminSuspender('${u.uid}')">Suspender</button>
       </div>
     `;
   });
 
-  depositBox.innerHTML="(Sistema base listo)";
+  withdrawSnap.forEach(d=>{
+    const w=d.data();
+    withdrawBox.innerHTML+=`
+      <div>
+        $${w.amount}
+        <button onclick="aprobarRetiro('${d.id}')">✔</button>
+        <button onclick="rechazarRetiro('${d.id}','${w.userId}',${w.amount})">✖</button>
+      </div>
+    `;
+  });
+
+  depositSnap.forEach(d=>{
+    const dep=d.data();
+    depositBox.innerHTML+=`
+      <div>
+        $${dep.amount}
+        <button onclick="aprobarDeposito('${d.id}','${dep.userId}',${dep.amount})">✔</button>
+        <button onclick="rechazarDeposito('${d.id}')">✖</button>
+      </div>
+    `;
+  });
 }
 
 // =====================================================
-// 🚪 LOGOUT
+// 🔧 FUNCIONES ADMIN
 // =====================================================
+
+window.adminBalance = async function(uid){
+  const nuevo = Number(prompt("Nuevo balance"));
+  if(isNaN(nuevo)) return;
+  await updateDoc(doc(db,"users",uid),{balance:nuevo});
+};
+
+window.adminVIP = async function(uid){
+  const vip = Number(prompt("VIP 1-10"));
+  if(vip<1||vip>10) return;
+  await updateDoc(doc(db,"users",uid),{level:vip});
+};
+
+window.adminSuspender = async function(uid){
+  await updateDoc(doc(db,"users",uid),{suspended:true});
+};
+
+window.aprobarRetiro = async function(id){
+  await updateDoc(doc(db,"withdrawals",id),{status:"approved"});
+  cargarAdminCompleto();
+};
+
+window.rechazarRetiro = async function(id,uid,amount){
+  await updateDoc(doc(db,"withdrawals",id),{status:"rejected"});
+  const ref=doc(db,"users",uid);
+  const snap=await getDoc(ref);
+  await updateDoc(ref,{balance:(snap.data().balance||0)+amount});
+  cargarAdminCompleto();
+};
+
+window.aprobarDeposito = async function(id,uid,amount){
+  await updateDoc(doc(db,"deposits",id),{status:"approved"});
+  const ref=doc(db,"users",uid);
+  const snap=await getDoc(ref);
+  await updateDoc(ref,{balance:(snap.data().balance||0)+amount});
+  cargarAdminCompleto();
+};
+
+window.rechazarDeposito = async function(id){
+  await updateDoc(doc(db,"deposits",id),{status:"rejected"});
+  cargarAdminCompleto();
+};
+
 document.getElementById("logoutBtn")?.addEventListener("click",async()=>{
   await signOut(auth);
 });
