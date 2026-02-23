@@ -136,7 +136,7 @@
 </div>
 
 <div id="productosPage" class="page">
-  <h3>Productos VIP</h3>
+  <h3>Productos</h3>
   <div id="productsList" class="grid"></div>
 </div>
 
@@ -150,11 +150,20 @@
   <!-- HEADER PERFIL -->
   <div class="perfil-header-card">
     <div class="perfil-top">
-      <div>
-        <span>ID: <b id="p-id">----</b></span>
-        <span class="vip-badge">VIP <b id="p-vip">0</b></span>
-      </div>
-    </div>
+  <div class="perfil-user-row">
+    <span>ID: <b id="p-id">----</b></span>
+
+    <span class="vip-badge">
+      VIP <b id="p-vip">0</b>
+    </span>
+
+    <!-- BOTÓN ADMIN -->
+    <button id="adminBtn" class="admin-btn" onclick="go('adminPage')" style="display:none;">
+      ADMIN
+    </button>
+
+  </div>
+</div>
 
     <div class="perfil-balance-box">
       <small>Balance Total</small>
@@ -293,9 +302,10 @@
   <button onclick="go('productosPage')">🛒</button>
   <button onclick="go('ordenesPage')">📦</button>
   <button onclick="go('perfilPage')">👤</button>
+  <button id="adminFab" onclick="go('adminPage')">⚙</button>
 </nav>
 
-<button id="adminFab" onclick="go('adminPage')">⚙</button>
+
 
 </section>
 
