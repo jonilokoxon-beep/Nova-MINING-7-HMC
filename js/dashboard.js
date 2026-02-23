@@ -541,6 +541,40 @@ btn.style.display="none";
 }
 
 // =====================================================
+// 🏦 GUARDAR CUENTA BANCARIA
+// =====================================================
+
+document.addEventListener("click", async (e)=>{
+  if(e.target.id === "saveBankBtn"){
+
+    const user = auth.currentUser;
+    if(!user) return;
+
+    const bankName = document.getElementById("bankName").value.trim();
+    const accountNumber = document.getElementById("accountNumber").value.trim();
+    const accountHolder = document.getElementById("accountHolder").value.trim();
+
+    if(!bankName || !accountNumber || !accountHolder){
+      alert("Completa todos los campos");
+      return;
+    }
+
+    const userRef = doc(db,"users",user.uid);
+
+    await updateDoc(userRef,{
+      bankData:{
+        bankName,
+        accountNumber,
+        accountHolder
+      }
+    });
+
+    document.getElementById("bankStatus").innerText =
+      "Cuenta guardada correctamente ✅";
+  }
+});
+
+// =====================================================
 // 🚪 LOGOUT
 // =====================================================
 document.getElementById("logoutBtn")?.addEventListener("click",async()=>{
