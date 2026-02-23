@@ -591,3 +591,63 @@ button{
   opacity:0.4;
   cursor:not-allowed;
 }
+
+/* PERFIL NUEVO ESTILO */
+
+.perfil-header-card{
+  background: linear-gradient(135deg,#1c1f3a,#2a2f6a);
+  padding:20px;
+  border-radius:20px;
+  margin-bottom:20px;
+}
+
+.perfil-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:15px;
+}
+
+.vip-badge{
+  background:#ffd700;
+  color:#000;
+  padding:5px 12px;
+  border-radius:20px;
+  font-weight:bold;
+  margin-left:10px;
+}
+
+.perfil-balance-box{
+  margin-bottom:15px;
+}
+
+.perfil-buttons{
+  display:flex;
+  gap:10px;
+}
+
+.perfil-buttons button{
+  flex:1;
+}
+
+.perfil-menu{
+  background:#1e2145;
+  border-radius:20px;
+  overflow:hidden;
+}
+
+.perfil-item{
+  display:flex;
+  justify-content:space-between;
+  padding:15px;
+  border-bottom:1px solid rgba(255,255,255,0.1);
+  cursor:pointer;
+}
+
+.perfil-item:last-child{
+  border-bottom:none;
+}
+
+.perfil-item:hover{
+  background:rgba(255,255,255,0.05);
+}
