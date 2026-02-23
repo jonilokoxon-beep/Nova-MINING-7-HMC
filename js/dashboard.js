@@ -103,7 +103,7 @@ balance:0,
 totalInvested:0,
 totalProfit:0,
 totalWithdrawn:0,
-level:0,
+level:1,
 role:"user",
 suspended:false,
 createdAt:serverTimestamp()
@@ -151,7 +151,10 @@ document.getElementById("p-id").innerText =
 user.uid.slice(0,8);
 
 document.getElementById("p-vip").innerText =
-data.level||0;
+data.level||1;
+
+// 🔥 ACTUALIZA VIP UI AUTOMÁTICAMENTE
+updateVipUI(data.level||1);
 
 activarBotonAdmin(data);
 });
@@ -175,6 +178,7 @@ document.getElementById(id).style.display="block";
 // =====================================================
 async function cargarProductos(){
 const list = document.getElementById("productsList");
+if(!list) return;
 list.innerHTML="";
 const snap = await getDocs(collection(db,"products"));
 snap.forEach(docSnap=>{
@@ -233,6 +237,7 @@ alert("Inversión realizada");
 async function cargarOrdenes(){
 const user = auth.currentUser;
 const container = document.getElementById("ordersList");
+if(!container) return;
 container.innerHTML="";
 const q = query(collection(db,"orders"),
 where("userId","==",user.uid));
@@ -249,91 +254,12 @@ container.innerHTML+=`
 }
 
 // =====================================================
-// 💸 RETIRO
-// =====================================================
-// SOLO AGREGO LO NUEVO A TU CÓDIGO ORIGINAL
-
-// ===== DEPÓSITO =====
-document.getElementById("btn-deposit")?.addEventListener("click", async () => {
-  const user = auth.currentUser;
-  if(!user) return;
-
-  const amount = Number(prompt("Monto a depositar"));
-  if(!amount || amount<=0){
-    alert("Monto inválido");
-    return;
-  }
-
-  await addDoc(collection(db,"deposits"),{
-    userId:user.uid,
-    amount,
-    status:"pending",
-    createdAt:serverTimestamp()
-  });
-
-  alert("Depósito enviado para aprobación");
-});
-
-// ===== ADMIN DEPÓSITOS =====
-window.aprobarDeposito = async(id,uid,amount)=>{
-  const userRef = doc(db,"users",uid);
-  const snap = await getDoc(userRef);
-  const data = snap.data();
-
-  await updateDoc(userRef,{
-    balance:(data.balance||0)+Number(amount)
-  });
-
-  await updateDoc(doc(db,"deposits",id),{
-    status:"approved"
-  });
-
-  alert("Depósito aprobado");
-};
-
-window.rechazarDeposito = async(id)=>{
-  await updateDoc(doc(db,"deposits",id),{
-    status:"rejected"
-  });
-
-  alert("Depósito rechazado");
-};
-
-document.getElementById("withdrawBtn")?.addEventListener("click",async()=>{
-const user = auth.currentUser;
-const amount = Number(document.getElementById("withdrawAmount").value);
-if(!amount || amount<=0) return alert("Monto inválido");
-
-const userRef = doc(db,"users",user.uid);
-const snap = await getDoc(userRef);
-const data = snap.data();
-
-if(data.balance < amount){
-alert("Saldo insuficiente");
-return;
-}
-
-await updateDoc(userRef,{
-balance:data.balance - amount,
-totalWithdrawn:(data.totalWithdrawn||0)+amount
-});
-
-await addDoc(collection(db,"withdrawals"),{
-userId:user.uid,
-amount,
-status:"pending",
-createdAt:serverTimestamp()
-});
-
-alert("Retiro solicitado");
-});
-
-// =====================================================
 // 📜 HISTORIAL
 // =====================================================
 async function cargarHistorial(){
 const user = auth.currentUser;
 const box = document.getElementById("transactionHistory");
+if(!box) return;
 box.innerHTML="";
 const q = query(collection(db,"withdrawals"),
 where("userId","==",user.uid));
@@ -345,80 +271,26 @@ box.innerHTML+=`<div>Retiro: $${w.amount} - ${w.status}</div>`;
 }
 
 // =====================================================
-// ⚙ ADMIN COMPLETO
+// 🔥 VIP SYSTEM (NUEVO)
 // =====================================================
-function activarBotonAdmin(data){
-document.getElementById("adminFab").style.display =
-data.role==="admin"?"flex":"none";
+function updateVipUI(level){
+
+const vipLevel = document.getElementById("vipLevel");
+const vipLevelText = document.getElementById("vipLevelText");
+const vipLevelDisplay = document.getElementById("vipLevelDisplay");
+
+if(!vipLevel) return;
+
+vipLevel.innerText = level;
+vipLevelText.innerText = level;
+vipLevelDisplay.innerText = "Nivel " + level;
+
+const progressFill = document.getElementById("vipProgressFill");
+if(progressFill){
+let progress = (level / 18) * 100;
+progressFill.style.width = progress + "%";
 }
-
-async function cargarAdmin(){
-const user = auth.currentUser;
-const snapUser = await getDoc(doc(db,"users",user.uid));
-if(!snapUser.exists()) return;
-if(snapUser.data().role!=="admin") return;
-
-const withdrawBox = document.getElementById("pendingWithdrawals");
-const depositBox = document.getElementById("pendingDeposits");
-const usersBox = document.getElementById("adminUsers");
-const statsBox = document.getElementById("adminStats");
-
-const usersSnap = await getDocs(collection(db,"users"));
-statsBox.innerHTML = "Usuarios totales: "+usersSnap.size;
-
-usersBox.innerHTML="";
-usersSnap.forEach(d=>{
-const u = d.data();
-usersBox.innerHTML+=`
-<div class="card">
-${u.email}<br>
-Balance: $${u.balance||0}<br>
-VIP: ${u.level||0}<br>
-<button onclick="modBalance('${u.uid}')">Modificar Balance</button>
-<button onclick="modVIP('${u.uid}')">Cambiar VIP</button>
-<button onclick="suspenderUser('${u.uid}')">Suspender</button>
-</div>`;
-});
-
-const wSnap = await getDocs(query(collection(db,"withdrawals"),
-where("status","==","pending")));
-withdrawBox.innerHTML="";
-wSnap.forEach(d=>{
-const w=d.data();
-withdrawBox.innerHTML+=`
-<div class="card">
-${w.userId.slice(0,6)} - $${w.amount}
-<button onclick="aprobarRetiro('${d.id}')">Aprobar</button>
-<button onclick="rechazarRetiro('${d.id}')">Rechazar</button>
-</div>`;
-});
-
-depositBox.innerHTML="Sistema listo para depósitos";
 }
-
-window.modBalance = async(uid)=>{
-const val = Number(prompt("Nuevo balance"));
-if(isNaN(val)) return;
-await updateDoc(doc(db,"users",uid),{balance:val});
-};
-
-window.modVIP = async(uid)=>{
-const val = Number(prompt("VIP 1-10"));
-if(val<1||val>10) return;
-await updateDoc(doc(db,"users",uid),{level:val});
-};
-
-window.suspenderUser = async(uid)=>{
-await updateDoc(doc(db,"users",uid),{suspended:true});
-};
-
-window.aprobarRetiro = async(id)=>{
-await updateDoc(doc(db,"withdrawals",id),{status:"approved"});
-};
-
-window.rechazarRetiro = async(id)=>{
-await updateDoc(doc(db,"withdrawals",id),{status:"rejected"});
-};
 
 // =====================================================
 // 🚪 LOGOUT
