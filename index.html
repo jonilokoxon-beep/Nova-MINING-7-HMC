@@ -9,7 +9,7 @@
 
 <body>
 
-<!-- ================= LOGIN ================= -->
+<!-- LOGIN -->
 <section id="loginView">
   <div class="login-card">
     <img src="assets/logo.jpeg" class="logo">
@@ -28,7 +28,7 @@
   </div>
 </section>
 
-<!-- ================= REGISTER ================= -->
+<!-- REGISTER -->
 <section id="registerView" style="display:none;">
   <div class="login-card">
     <h2>Crear Cuenta</h2>
@@ -43,7 +43,7 @@
   </div>
 </section>
 
-<!-- ================= APP ================= -->
+<!-- APP -->
 <section id="appView" style="display:none;">
 
 <header class="top">
@@ -68,7 +68,7 @@
   </div>
 </div>
 
-<!-- ================= PÁGINAS ================= -->
+<!-- PÁGINAS -->
 
 <div id="inicio" class="page" style="display:block;">
   <h3>💎 VIP</h3>
@@ -131,8 +131,8 @@
   </div>
 </div>
 
-<!-- ================= ADMIN ================= -->
-<div id="adminPage" class="page" style="display:none;">
+<!-- ADMIN -->
+<div id="adminPage" class="page">
   <h2>Panel Admin</h2>
 
   <h3>📊 Estadísticas</h3>
@@ -148,23 +148,17 @@
   <div id="pendingDeposits"></div>
 </div>
 
-<!-- ================= NAV ================= -->
-<nav class="bottom">
+<nav class="bottom-nav">
   <button onclick="go('inicio')">🏠Inicio</button>
   <button onclick="go('productosPage')">🛒Productos</button>
   <button onclick="go('ordenesPage')">📦Órdenes</button>
   <button onclick="go('perfilPage')">👤Perfil</button>
 </nav>
 
-<!-- BOTÓN FLOTANTE ADMIN -->
-<button id="adminFab"
-        style="display:none;"
-        onclick="go('adminPage')">
-⚙
-</button>
+<button id="adminFab" onclick="go('adminPage')">⚙</button>
 
 </section>
 
 <script type="module" src="js/dashboard.js"></script>
 </body>
-</html>
+  </html>
