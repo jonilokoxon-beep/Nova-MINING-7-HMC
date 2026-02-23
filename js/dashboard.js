@@ -26,12 +26,12 @@ onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
-apiKey: "TU_API",
-authDomain: "TU_DOMAIN",
-projectId: "TU_PROJECT",
-storageBucket: "TU_BUCKET",
-messagingSenderId: "TU_MSG",
-appId: "TU_APPID"
+  apiKey: "AIzaSyALrk15Qvqrq6zCVTxZ7U9wSnnZIqeSmv4",
+  authDomain: "novagrow-app.firebaseapp.com",
+  projectId: "novagrow-app",
+  storageBucket: "novagrow-app.appspot.com",
+  messagingSenderId: "976275033149",
+  appId: "1:976275033149:web:e40c6510684bd06c82ae54"
 };
 
 const app = initializeApp(firebaseConfig);
