@@ -11,16 +11,15 @@
 
 <!-- LOGIN -->
 <section id="loginView">
-  <div class="login-card">
+  <div class="auth-card">
     <img src="assets/logo.jpeg" class="logo">
     <h2>Nova MINING 7 HMC</h2>
 
     <input type="email" id="email" placeholder="Correo">
     <input type="password" id="password" placeholder="Contraseña">
-    <button id="loginBtn">Ingresar</button>
+    <button id="loginBtn" class="pink-btn">Ingresar</button>
 
-    <p style="margin-top:15px;">
-      ¿No tienes cuenta?
+    <p>¿No tienes cuenta?
       <a href="#" id="goRegister">Crear cuenta</a>
     </p>
 
@@ -30,99 +29,102 @@
 
 <!-- REGISTER -->
 <section id="registerView" style="display:none;">
-  <div class="login-card">
+  <div class="auth-card">
     <h2>Crear Cuenta</h2>
 
     <input type="email" id="regEmail" placeholder="Correo">
     <input type="password" id="regPassword" placeholder="Contraseña">
-    <button id="registerBtn">Registrarme</button>
+    <button id="registerBtn" class="pink-btn">Registrarme</button>
 
-    <p style="margin-top:15px;">
-      <a href="#" id="goLogin">Volver</a>
-    </p>
+    <p><a href="#" id="goLogin">Volver</a></p>
   </div>
 </section>
 
 <!-- APP -->
 <section id="appView" style="display:none;">
 
-<header class="top">
-  <span>Nova <b>MINING 7</b> HMC</span>
-  <button id="logoutBtn">Salir</button>
+<header class="top-pro">
+  <div class="brand">Nova <span>MINING 7</span></div>
+  <button id="logoutBtn" class="logout-btn">Salir</button>
 </header>
 
-<div class="stats">
-  <div class="box blue">
-    Saldo<br>
-    <b>$<span id="stat-balance">0.00</span></b>
-  </div>
-
-  <div class="box green">
-    Ganancias<br>
-    <b>$<span id="stat-profit">0.00</span></b>
-  </div>
-
-  <div class="box gold">
-    Retirado<br>
-    <b>$<span id="stat-withdrawn">0.00</span></b>
+<!-- BALANCE PRINCIPAL -->
+<div class="balance-card">
+  <small>Balance Total</small>
+  <h1>$<span id="stat-balance">0.00</span></h1>
+  <div class="mini-stats">
+    <div>
+      <span>Ganancias</span>
+      <b>$<span id="stat-profit">0.00</span></b>
+    </div>
+    <div>
+      <span>Retirado</span>
+      <b>$<span id="stat-withdrawn">0.00</span></b>
+    </div>
   </div>
 </div>
 
 <!-- PÁGINAS -->
 
 <div id="inicio" class="page" style="display:block;">
-  <h3>💎 VIP</h3>
+  <div class="pro-card">
+    <h3>💎 VIP</h3>
 
-  <button onclick="go('dailyPage')" class="main-btn">
-    🎁 Registro Diario
-  </button>
+    <button onclick="go('dailyPage')" class="pink-btn full">
+      🎁 Registro Diario
+    </button>
 
-  <button onclick="go('equipoPage')" class="main-btn">
-    👥 Tamaño del equipo<br>
-    <b id="teamCountHome">0</b>
-  </button>
+    <button onclick="go('equipoPage')" class="pink-outline full">
+      👥 Tamaño del equipo
+      <b id="teamCountHome">0</b>
+    </button>
+  </div>
 </div>
 
 <div id="dailyPage" class="page">
-  <h3>Registro Diario</h3>
-  <p>Estado: <b>Disponible</b></p>
-  <button>Reclamar</button>
+  <div class="pro-card">
+    <h3>Registro Diario</h3>
+    <p>Estado: <b>Disponible</b></p>
+    <button class="pink-btn full">Reclamar</button>
+  </div>
 </div>
 
 <div id="equipoPage" class="page">
-  <h3>Mi Equipo</h3>
-  <p>Total Referidos:</p>
-  <h2 id="teamCount">0</h2>
+  <div class="pro-card">
+    <h3>Mi Equipo</h3>
+    <p>Total Referidos:</p>
+    <h2 id="teamCount">0</h2>
+  </div>
 </div>
 
 <div id="productosPage" class="page">
   <h3>Productos VIP</h3>
-  <div id="productsList"></div>
+  <div id="productsList" class="grid"></div>
 </div>
 
 <div id="ordenesPage" class="page">
   <h3>Mis Órdenes</h3>
-  <div id="ordersList"></div>
+  <div id="ordersList" class="grid"></div>
 </div>
 
 <div id="perfilPage" class="page">
-  <h3>Perfil</h3>
+  <div class="pro-card">
+    <h3>Perfil</h3>
 
-  <div class="user-info">
-    <span>ID: <b id="p-id">----</b></span>
-    <span class="vip">VIP <b id="p-vip">0</b></span>
-  </div>
-
-  <div class="balance-box">
-    <small>MXN</small>
-    <h3>$<span id="p-balance">0.00</span></h3>
-
-    <button id="btn-deposit">Depósito</button>
-
-    <div style="margin-top:15px;">
-      <input type="number" id="withdrawAmount" placeholder="Monto a retirar">
-      <button id="withdrawBtn">Solicitar Retiro</button>
+    <div class="user-info">
+      <span>ID: <b id="p-id">----</b></span>
+      <span class="vip">VIP <b id="p-vip">0</b></span>
     </div>
+
+    <div class="perfil-balance">
+      <small>MXN</small>
+      <h2>$<span id="p-balance">0.00</span></h2>
+    </div>
+
+    <button id="btn-deposit" class="pink-btn full">Depósito</button>
+
+    <input type="number" id="withdrawAmount" placeholder="Monto a retirar">
+    <button id="withdrawBtn" class="pink-outline full">Solicitar Retiro</button>
 
     <div class="transaction-box">
       <h4>Historial</h4>
@@ -131,28 +133,19 @@
   </div>
 </div>
 
-<!-- ADMIN -->
 <div id="adminPage" class="page">
   <h2>Panel Admin</h2>
-
-  <h3>📊 Estadísticas</h3>
   <div id="adminStats"></div>
-
-  <h3>👤 Usuarios</h3>
   <div id="adminUsers"></div>
-
-  <h3>💸 Retiros Pendientes</h3>
   <div id="pendingWithdrawals"></div>
-
-  <h3>🏦 Depósitos Pendientes</h3>
   <div id="pendingDeposits"></div>
 </div>
 
-<nav class="bottom-nav">
-  <button onclick="go('inicio')">🏠Inicio</button>
-  <button onclick="go('productosPage')">🛒Productos</button>
-  <button onclick="go('ordenesPage')">📦Órdenes</button>
-  <button onclick="go('perfilPage')">👤Perfil</button>
+<nav class="bottom-nav-pro">
+  <button onclick="go('inicio')">🏠</button>
+  <button onclick="go('productosPage')">🛒</button>
+  <button onclick="go('ordenesPage')">📦</button>
+  <button onclick="go('perfilPage')">👤</button>
 </nav>
 
 <button id="adminFab" onclick="go('adminPage')">⚙</button>
