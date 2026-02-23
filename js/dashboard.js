@@ -1,4 +1,4 @@
-// ====/=================================================
+// =====================================================
 // 🔥 FIREBASE CONFIG
 // =====================================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -26,12 +26,12 @@ onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
-apiKey: "AIzaSyALrk15Qvqrq6zCVTxZ7U9wSnnZIqeSmv4",
-authDomain: "novagrow-app.firebaseapp.com",
-projectId: "novagrow-app",
-storageBucket: "novagrow-app.appspot.com",
-messagingSenderId: "976275033149",
-appId: "1:976275033149:web:e40c6510684bd06c82ae54"
+apiKey: "TU_API",
+authDomain: "TU_DOMAIN",
+projectId: "TU_PROJECT",
+storageBucket: "TU_BUCKET",
+messagingSenderId: "TU_MSG",
+appId: "TU_APPID"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -77,8 +77,8 @@ showLogin();
 // 🔐 LOGIN
 // =====================================================
 document.getElementById("loginBtn")?.addEventListener("click", async () => {
-const email = emailInput("email");
-const password = emailInput("password");
+const email = document.getElementById("email")?.value.trim();
+const password = document.getElementById("password")?.value.trim();
 if (!email || !password) return alert("Completa los campos");
 
 try{
@@ -90,8 +90,8 @@ await signInWithEmailAndPassword(auth,email,password);
 // 📝 REGISTER
 // =====================================================
 document.getElementById("registerBtn")?.addEventListener("click", async () => {
-const email = emailInput("regEmail");
-const password = emailInput("regPassword");
+const email = document.getElementById("regEmail")?.value.trim();
+const password = document.getElementById("regPassword")?.value.trim();
 if (!email || !password) return alert("Completa los campos");
 
 try{
@@ -110,10 +110,6 @@ createdAt:serverTimestamp()
 });
 }catch(e){ alert(e.message); }
 });
-
-function emailInput(id){
-return document.getElementById(id)?.value.trim();
-}
 
 // =====================================================
 // 🔄 ESTADO GLOBAL
@@ -153,16 +149,13 @@ user.uid.slice(0,8);
 document.getElementById("p-vip").innerText =
 data.level||1;
 
-// 🔥 ACTUALIZA VIP UI AUTOMÁTICAMENTE
 updateVipUI(data.level||1);
-
 activarBotonAdmin(data);
 });
 
 cargarProductos();
 cargarOrdenes();
 cargarHistorial();
-cargarAdmin();
 }
 
 // =====================================================
@@ -271,24 +264,92 @@ box.innerHTML+=`<div>Retiro: $${w.amount} - ${w.status}</div>`;
 }
 
 // =====================================================
-// 🔥 VIP SYSTEM (NUEVO)
+// 💳 DEPÓSITO
+// =====================================================
+document.getElementById("btn-deposit")?.addEventListener("click", async ()=>{
+const user = auth.currentUser;
+const amount = prompt("Ingresa monto a depositar");
+if(!amount || Number(amount)<=0) return;
+
+const userRef = doc(db,"users",user.uid);
+const snap = await getDoc(userRef);
+const data = snap.data();
+
+await updateDoc(userRef,{
+balance:(data.balance||0)+Number(amount)
+});
+
+await addDoc(collection(db,"deposits"),{
+userId:user.uid,
+amount:Number(amount),
+status:"approved",
+createdAt:serverTimestamp()
+});
+
+alert("Depósito agregado");
+});
+
+// =====================================================
+// 💸 RETIRO
+// =====================================================
+document.getElementById("withdrawBtn")?.addEventListener("click", async ()=>{
+const user = auth.currentUser;
+const amount = Number(document.getElementById("withdrawAmount").value);
+if(!amount || amount<=0) return alert("Monto inválido");
+
+const userRef = doc(db,"users",user.uid);
+const snap = await getDoc(userRef);
+const data = snap.data();
+
+if(data.balance < amount){
+alert("Saldo insuficiente");
+return;
+}
+
+await updateDoc(userRef,{
+balance:data.balance - amount,
+totalWithdrawn:(data.totalWithdrawn||0)+amount
+});
+
+await addDoc(collection(db,"withdrawals"),{
+userId:user.uid,
+amount,
+status:"pending",
+createdAt:serverTimestamp()
+});
+
+alert("Retiro solicitado");
+});
+
+// =====================================================
+// 🔥 VIP
 // =====================================================
 function updateVipUI(level){
-
 const vipLevel = document.getElementById("vipLevel");
-const vipLevelText = document.getElementById("vipLevelText");
-const vipLevelDisplay = document.getElementById("vipLevelDisplay");
-
 if(!vipLevel) return;
 
-vipLevel.innerText = level;
-vipLevelText.innerText = level;
-vipLevelDisplay.innerText = "Nivel " + level;
+document.getElementById("vipLevel").innerText = level;
+document.getElementById("vipLevelText").innerText = level;
+document.getElementById("vipLevelDisplay").innerText = "Nivel " + level;
 
 const progressFill = document.getElementById("vipProgressFill");
 if(progressFill){
 let progress = (level / 18) * 100;
 progressFill.style.width = progress + "%";
+}
+}
+
+// =====================================================
+// ⚙ ADMIN BUTTON
+// =====================================================
+function activarBotonAdmin(data){
+const btn = document.getElementById("adminFab");
+if(!btn) return;
+
+if(data.role === "admin"){
+btn.style.display="flex";
+}else{
+btn.style.display="none";
 }
 }
 
