@@ -146,31 +146,140 @@
 </div>
 
 <div id="perfilPage" class="page">
-  <div class="pro-card">
-    <h3>Perfil</h3>
 
-    <div class="user-info">
-      <span>ID: <b id="p-id">----</b></span>
-      <span class="vip">VIP <b id="p-vip">0</b></span>
+  <!-- HEADER PERFIL -->
+  <div class="perfil-header-card">
+    <div class="perfil-top">
+      <div>
+        <span>ID: <b id="p-id">----</b></span>
+        <span class="vip-badge">VIP <b id="p-vip">0</b></span>
+      </div>
     </div>
 
-    <div class="perfil-balance">
-      <small>MXN</small>
+    <div class="perfil-balance-box">
+      <small>Balance Total</small>
       <h2>$<span id="p-balance">0.00</span></h2>
     </div>
 
-    <button id="btn-deposit" class="pink-btn full">Depósito</button>
-
-    <input type="number" id="withdrawAmount" placeholder="Monto a retirar">
-    <button id="withdrawBtn" class="pink-outline full">Solicitar Retiro</button>
-
-    <div class="transaction-box">
-      <h4>Historial</h4>
-      <div id="transactionHistory"></div>
+    <div class="perfil-buttons">
+      <button id="btn-deposit" class="pink-btn">Depósito</button>
+      <button onclick="go('retiroPage')" class="pink-outline">
+        Retiro
+      </button>
     </div>
+  </div>
+
+  <!-- MENÚ PERFIL -->
+  <div class="perfil-menu">
+
+    <div class="perfil-item" onclick="go('empresaPage')">
+  <span>Perfil de la Empresa</span>
+  <span>›</span>
+</div>
+
+    <div class="perfil-item" onclick="go('dineroPage')">
+      <span>Detalles del dinero</span>
+      <span>›</span>
+    </div>
+
+    <div class="perfil-item" onclick="go('comisionPage')">
+      <span>Detalles de la Comisión</span>
+      <span>›</span>
+    </div>
+
+    <div class="perfil-item" onclick="go('cuentaBancariaPage')">
+  <span>Cuenta Bancaria</span>
+  <span>›</span>
+</div>
+
+  </div>
+
+</div>
+
+  <!-- RETIRO PAGE -->
+<div id="retiroPage" class="page">
+  <div class="pro-card">
+    <h3>Solicitar Retiro</h3>
+    <input type="number" id="withdrawAmount" placeholder="Monto a retirar">
+    <button id="withdrawBtn" class="pink-outline full">
+      Confirmar Retiro
+    </button>
   </div>
 </div>
 
+<!-- EMPRESA PAGE -->
+<div id="empresaPage" class="page">
+  <div class="pro-card">
+
+    <h2>Nova Mining Corporation</h2>
+
+    <img src="https://i.postimg.cc/qv7sJqzX/images.jpg"
+         style="width:100%; border-radius:15px; margin:15px 0;">
+
+    <p>
+      Nova Mining Corporation es una empresa especializada en minería 
+      de criptomonedas y tecnología blockchain.
+    </p>
+
+    <p>
+      Fundada en 2018, la compañía opera centros de datos en América del Norte 
+      y Europa, utilizando infraestructura de alto rendimiento para la 
+      validación de redes digitales como Bitcoin y USDT.
+    </p>
+
+    <p>
+      Nuestro objetivo es ofrecer oportunidades de inversión seguras 
+      respaldadas por activos digitales y contratos inteligentes.
+    </p>
+
+    <p>
+      ✔ Más de 120,000 usuarios activos<br>
+      ✔ Infraestructura 24/7<br>
+      ✔ Seguridad avanzada blockchain<br>
+      ✔ Plataforma internacional
+    </p>
+
+    <p>
+      Nova Mining continúa expandiendo su presencia global con el compromiso 
+      de ofrecer transparencia, estabilidad y crecimiento sostenido.
+    </p>
+
+  </div>
+</div>
+
+<!-- DINERO PAGE -->
+<div id="dineroPage" class="page">
+  <div class="pro-card">
+    <h3>Detalles del dinero</h3>
+    <p>Movimientos generales del usuario.</p>
+  </div>
+</div>
+
+<!-- COMISION PAGE -->
+<div id="comisionPage" class="page">
+  <div class="pro-card">
+    <h3>Detalles de la Comisión</h3>
+    <p>Comisiones generadas por referidos.</p>
+  </div>
+</div>
+
+<!-- CUENTA BANCARIA PAGE -->
+<div id="cuentaBancariaPage" class="page">
+  <div class="pro-card">
+    <h3>Registrar Cuenta Bancaria</h3>
+
+    <input type="text" id="bankName" placeholder="Nombre del Banco">
+    <input type="text" id="accountNumber" placeholder="Número de Cuenta">
+    <input type="text" id="accountHolder" placeholder="Nombre del Titular">
+
+    <button id="saveBankBtn" class="pink-btn full">
+      Guardar Cuenta
+    </button>
+
+    <p id="bankStatus" style="margin-top:10px;"></p>
+  </div>
+</div>
+  
 <div id="adminPage" class="page">
   <h2>Panel Admin</h2>
   <div id="adminStats"></div>
