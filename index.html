@@ -68,7 +68,9 @@
 
 <div id="inicio" class="page" style="display:block;">
   <div class="pro-card">
-    <h3>💎 VIP</h3>
+    <h3 onclick="go('vipPage')" style="cursor:pointer;">
+      💎 VIP <span id="vipLevelDisplay">Nivel 1</span>
+    </h3>
 
     <button onclick="go('dailyPage')" class="pink-btn full">
       🎁 Registro Diario
@@ -81,6 +83,42 @@
   </div>
 </div>
 
+<div id="vipPage" class="page">
+  <div class="vip-card">
+
+    <h2>Mi Nivel VIP</h2>
+
+    <div class="vip-header">
+      <div class="vip-badge">
+        <span id="vipLevel">1</span>
+      </div>
+
+      <div class="vip-info">
+        <p>ID: <b id="vipUserId">000000</b></p>
+        <p>Nivel actual: VIP <b id="vipLevelText">1</b></p>
+      </div>
+    </div>
+
+    <div class="vip-progress">
+      <div class="progress-bar">
+        <div id="vipProgressFill"></div>
+      </div>
+      <p>
+        Referidos activos: 
+        <b id="vipRefCount">0</b> /
+        <b id="vipNextTarget">5</b>
+      </p>
+    </div>
+
+    <div class="vip-description">
+      <p>
+        Invita usuarios y haz que inviertan para subir de nivel.
+      </p>
+    </div>
+
+  </div>
+</div>
+  
 <div id="dailyPage" class="page">
   <div class="pro-card">
     <h3>Registro Diario</h3>
