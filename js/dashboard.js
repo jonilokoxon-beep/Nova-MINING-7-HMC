@@ -147,9 +147,9 @@ document.getElementById("p-id").innerText =
 user.uid.slice(0,8);
 
 document.getElementById("p-vip").innerText =
-data.level||1;
+data.level||0;
 
-updateVipUI(data.level||1);
+updateVipUI(data.level||0);
 activarBotonAdmin(data);
 });
 
@@ -170,20 +170,59 @@ document.getElementById(id).style.display="block";
 // 💰 PRODUCTOS
 // =====================================================
 async function cargarProductos(){
-const list = document.getElementById("productsList");
-if(!list) return;
-list.innerHTML="";
-const snap = await getDocs(collection(db,"products"));
-snap.forEach(docSnap=>{
-const p = docSnap.data();
-list.innerHTML+=`
-<div class="card">
-<h4>${p.name}</h4>
-<p>Precio: $${p.price}</p>
-<p>Ganancia diaria: $${p.dailyProfit}</p>
-<button class="invertir" data-id="${docSnap.id}">Invertir</button>
-</div>`;
-});
+  const list = document.getElementById("productsList");
+  if(!list) return;
+
+  list.innerHTML="";
+
+  const snap = await getDocs(collection(db,"products"));
+
+  snap.forEach(docSnap=>{
+    const p = docSnap.data();
+
+    list.innerHTML+=`
+    <div class="product-card">
+
+      <div class="product-image">
+        <img src="${p.image}" alt="${p.name}">
+        ${p.tag ? `<div class="product-tag">${p.tag}</div>` : ""}
+      </div>
+
+      <div class="product-top">
+        <span class="mode">${p.mode || ""}</span>
+      </div>
+
+      <h3 class="product-title">${p.name}</h3>
+
+      <div class="product-price">
+        $${p.price}
+        <button class="invest-btn invertir" data-id="${docSnap.id}">
+          Adecuado
+        </button>
+      </div>
+
+      <div class="product-info">
+        <div>
+          <strong>Ingresos totales:</strong>
+          $${p.totalIncome}
+        </div>
+        <div>
+          <strong>Cuota:</strong>
+          ${p.quota}
+        </div>
+        <div>
+          <strong>Ciclo:</strong>
+          ${p.cycleDays} días
+        </div>
+        <div>
+          <strong>Ingresos diarios:</strong>
+          $${p.dailyProfit}
+        </div>
+      </div>
+
+    </div>
+    `;
+  });
 }
 
 // =====================================================
