@@ -96,6 +96,7 @@ if (!email || !password) return alert("Completa los campos");
 
 try{
 const cred = await createUserWithEmailAndPassword(auth,email,password);
+
 await setDoc(doc(db,"users",cred.user.uid),{
 uid:cred.user.uid,
 email,
@@ -103,11 +104,13 @@ balance:0,
 totalInvested:0,
 totalProfit:0,
 totalWithdrawn:0,
+totalReferrals:0, // 🔥 NUEVO
 level:1,
 role:"user",
 suspended:false,
 createdAt:serverTimestamp()
 });
+
 }catch(e){ alert(e.message); }
 });
 
@@ -131,7 +134,7 @@ function activarUsuario(user){
 
 const userRef = doc(db,"users",user.uid);
 
-onSnapshot(userRef,snap=>{
+onSnapshot(userRef,async snap=>{
 const data = snap.data();
 if(!data) return;
 
@@ -153,8 +156,11 @@ user.uid.slice(0,8);
 document.getElementById("p-vip").innerText =
 data.level||1;
 
-// 🔥 ACTUALIZA VIP UI AUTOMÁTICAMENTE
+// 🔥 VIP UI
 updateVipUI(data.level||1);
+
+// 🔥 RECALCULAR VIP AUTOMÁTICO
+await recalcularVIP(user);
 
 activarBotonAdmin(data);
 });
@@ -271,19 +277,42 @@ box.innerHTML+=`<div>Retiro: $${w.amount} - ${w.status}</div>`;
 }
 
 // =====================================================
-// 🔥 VIP SYSTEM (NUEVO)
+// 🔥 VIP SYSTEM (REFERIDOS + INVERSIÓN)
 // =====================================================
+async function recalcularVIP(user){
+
+const userRef = doc(db,"users",user.uid);
+const userSnap = await getDoc(userRef);
+const data = userSnap.data();
+if(!data) return;
+
+const referidos = data.totalReferrals || 0;
+const inversion = data.totalInvested || 0;
+
+// 🎯 SISTEMA DE PUNTOS
+const puntosReferidos = referidos;
+const puntosInversion = Math.floor(inversion / 100);
+
+const puntosTotales = puntosReferidos + puntosInversion;
+
+let nuevoNivel = Math.floor(puntosTotales / 10) + 1;
+
+if(nuevoNivel > 18) nuevoNivel = 18;
+
+if(nuevoNivel !== data.level){
+await updateDoc(userRef,{ level:nuevoNivel });
+}
+}
+
 function updateVipUI(level){
 
 const vipLevel = document.getElementById("vipLevel");
 const vipLevelText = document.getElementById("vipLevelText");
 const vipLevelDisplay = document.getElementById("vipLevelDisplay");
 
-if(!vipLevel) return;
-
-vipLevel.innerText = level;
-vipLevelText.innerText = level;
-vipLevelDisplay.innerText = "Nivel " + level;
+if(vipLevel) vipLevel.innerText = level;
+if(vipLevelText) vipLevelText.innerText = level;
+if(vipLevelDisplay) vipLevelDisplay.innerText = "Nivel " + level;
 
 const progressFill = document.getElementById("vipProgressFill");
 if(progressFill){
