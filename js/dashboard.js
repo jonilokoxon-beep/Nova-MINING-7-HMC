@@ -251,6 +251,54 @@ container.innerHTML+=`
 // =====================================================
 // 💸 RETIRO
 // =====================================================
+// SOLO AGREGO LO NUEVO A TU CÓDIGO ORIGINAL
+
+// ===== DEPÓSITO =====
+document.getElementById("btn-deposit")?.addEventListener("click", async () => {
+  const user = auth.currentUser;
+  if(!user) return;
+
+  const amount = Number(prompt("Monto a depositar"));
+  if(!amount || amount<=0){
+    alert("Monto inválido");
+    return;
+  }
+
+  await addDoc(collection(db,"deposits"),{
+    userId:user.uid,
+    amount,
+    status:"pending",
+    createdAt:serverTimestamp()
+  });
+
+  alert("Depósito enviado para aprobación");
+});
+
+// ===== ADMIN DEPÓSITOS =====
+window.aprobarDeposito = async(id,uid,amount)=>{
+  const userRef = doc(db,"users",uid);
+  const snap = await getDoc(userRef);
+  const data = snap.data();
+
+  await updateDoc(userRef,{
+    balance:(data.balance||0)+Number(amount)
+  });
+
+  await updateDoc(doc(db,"deposits",id),{
+    status:"approved"
+  });
+
+  alert("Depósito aprobado");
+};
+
+window.rechazarDeposito = async(id)=>{
+  await updateDoc(doc(db,"deposits",id),{
+    status:"rejected"
+  });
+
+  alert("Depósito rechazado");
+};
+
 document.getElementById("withdrawBtn")?.addEventListener("click",async()=>{
 const user = auth.currentUser;
 const amount = Number(document.getElementById("withdrawAmount").value);
