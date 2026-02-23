@@ -282,27 +282,10 @@ async function cargarOrdenes(){
 
   snap.forEach(docSnap=>{
     const o = docSnap.data();
-    const now = Date.now();
-
-    const nextClaim = o.lastClaim + (24 * 60 * 60 * 1000);
-    const timeLeft = nextClaim - now;
-
-    let buttonDisabled = true;
-    let countdownText = "";
-
-    if(timeLeft <= 0){
-      buttonDisabled = false;
-      countdownText = "Disponible";
-    }else{
-      const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-      const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-
-      countdownText = `${hours}h ${minutes}m ${seconds}s`;
-    }
+    const orderId = docSnap.id;
 
     container.innerHTML+=`
-    <div class="order-card">
+    <div class="order-card" id="order-${orderId}">
 
       <div class="order-image">
         <img src="${o.image}">
@@ -317,18 +300,18 @@ async function cargarOrdenes(){
         <div>$${o.totalProfit}<br><small>Ganancia total</small></div>
       </div>
 
-      <div class="countdown">
-        ${countdownText}
+      <div class="countdown" id="countdown-${orderId}">
+        Cargando...
       </div>
 
       <div class="order-bottom">
-        <div class="earn">
+        <div class="earn" id="earn-${orderId}">
           +$${o.received || 0}
         </div>
         <button 
           class="receive-btn"
-          data-id="${docSnap.id}"
-          ${buttonDisabled ? "disabled" : ""}
+          id="btn-${orderId}"
+          data-id="${orderId}"
         >
           Recibir
         </button>
@@ -336,14 +319,57 @@ async function cargarOrdenes(){
 
     </div>
     `;
+
+    iniciarContador(orderId, o);
   });
+}
+function iniciarContador(orderId, o){
+
+  if(orderIntervals[orderId]){
+    clearInterval(orderIntervals[orderId]);
+  }
+
+  orderIntervals[orderId] = setInterval(()=>{
+
+    const now = Date.now();
+    const endCycle = o.startDate + (o.cycleDays * 24 * 60 * 60 * 1000);
+
+    if(now >= endCycle){
+      document.getElementById(`countdown-${orderId}`).innerHTML = "Vencido";
+      document.getElementById(`btn-${orderId}`).disabled = true;
+      document.getElementById(`btn-${orderId}`).innerHTML = "Finalizado";
+      clearInterval(orderIntervals[orderId]);
+      return;
+    }
+
+    const nextClaim = o.lastClaim + (24 * 60 * 60 * 1000);
+    const timeLeft = nextClaim - now;
+
+    const btn = document.getElementById(`btn-${orderId}`);
+    const countdown = document.getElementById(`countdown-${orderId}`);
+
+    if(timeLeft <= 0){
+      countdown.innerHTML = "Disponible ahora";
+      btn.disabled = false;
+      btn.classList.add("active-btn");
+    }else{
+      const h = Math.floor(timeLeft / (1000*60*60));
+      const m = Math.floor((timeLeft % (1000*60*60)) / (1000*60));
+      const s = Math.floor((timeLeft % (1000*60)) / 1000);
+
+      countdown.innerHTML = `${h}h ${m}m ${s}s`;
+      btn.disabled = true;
+      btn.classList.remove("active-btn");
+    }
+
+  },1000);
 }
 document.addEventListener("click", async (e)=>{
   if(e.target.classList.contains("receive-btn")){
-    
+
     const id = e.target.dataset.id;
-    const ref = doc(db,"orders",id);
-    const snap = await getDoc(ref);
+    const orderRef = doc(db,"orders",id);
+    const snap = await getDoc(orderRef);
 
     if(!snap.exists()) return;
 
@@ -351,19 +377,23 @@ document.addEventListener("click", async (e)=>{
     const now = Date.now();
     const nextClaim = data.lastClaim + (24*60*60*1000);
 
-    if(now < nextClaim){
-      alert("Aún no disponible");
-      return;
-    }
+    if(now < nextClaim) return;
 
     const newReceived = (data.received || 0) + data.dailyProfit;
 
-    await updateDoc(ref,{
+    await updateDoc(orderRef,{
       received: newReceived,
       lastClaim: now
     });
 
-    alert("Ganancia recibida ✅");
+    // SUMAR AL BALANCE
+    const userRef = doc(db,"users",data.userId);
+    const userSnap = await getDoc(userRef);
+    const userData = userSnap.data();
+
+    await updateDoc(userRef,{
+      balance: (userData.balance || 0) + data.dailyProfit
+    });
 
     cargarOrdenes();
   }
