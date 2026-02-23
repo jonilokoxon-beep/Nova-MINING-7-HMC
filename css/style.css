@@ -238,3 +238,20 @@ button:hover{
     transform: translateY(0);
   }
 }
+
+#adminFab{
+  position: fixed;
+  right: 20px;
+  bottom: 90px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(45deg,#ff9800,#ff5722);
+  color: white;
+  font-size: 22px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
