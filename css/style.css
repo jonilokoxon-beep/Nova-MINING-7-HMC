@@ -449,13 +449,11 @@ button{
 
 .order-card{
   background:linear-gradient(145deg,#1e1e2f,#2a2a3f);
+  color:#fff;
   border-radius:25px;
   padding:20px;
-  margin:20px;
-  color:#fff;
-  box-shadow:0 15px 35px rgba(0,0,0,0.6);
-  position:relative;
-  overflow:hidden;
+  margin:20px; /* EXACTAMENTE igual que product */
+  box-shadow:0 10px 25px rgba(0,0,0,0.2);
 }
 
 .order-card::before{
