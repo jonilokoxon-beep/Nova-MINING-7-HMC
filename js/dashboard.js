@@ -124,7 +124,6 @@ activarUsuario(user);
 // 👤 ACTIVAR USUARIO
 // =====================================================
 function activarUsuario(user){
-
 const userRef = doc(db,"users",user.uid);
 
 onSnapshot(userRef,snap=>{
@@ -236,6 +235,7 @@ const productId = e.target.dataset.id;
 
 const userRef = doc(db,"users",user.uid);
 const userSnap = await getDoc(userRef);
+ 
 const userData = userSnap.data();
 
 const prodSnap = await getDoc(doc(db,"products",productId));
@@ -530,14 +530,20 @@ progressFill.style.width = progress + "%";
 // ⚙ ADMIN BUTTON
 // =====================================================
 function activarBotonAdmin(data){
-const btn = document.getElementById("adminFab");
-if(!btn) return;
 
-if(data.role === "admin"){
-btn.style.display="flex";
-}else{
-btn.style.display="none";
-}
+  console.log("ROLE:", data.role);
+
+  const fab = document.getElementById("adminFab");
+  const perfilBtn = document.getElementById("adminBtn");
+
+  if(data.role === "admin"){
+    if(fab) fab.style.display = "flex";
+    if(perfilBtn) perfilBtn.style.display = "inline-block";
+  }else{
+    if(fab) fab.style.display = "none";
+    if(perfilBtn) perfilBtn.style.display = "none";
+  }
+
 }
 
 // =====================================================
