@@ -197,7 +197,7 @@ async function cargarProductos(){
       <div class="product-price">
         $${p.price}
         <button class="invest-btn invertir" data-id="${docSnap.id}">
-          Adecuado
+          Invertir
         </button>
       </div>
 
