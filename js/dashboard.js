@@ -251,13 +251,27 @@ balance:userData.balance - p.price,
 totalInvested:(userData.totalInvested||0)+p.price
 });
 
+const now = Date.now();
+
 await addDoc(collection(db,"orders"),{
-userId:user.uid,
-productName:p.name,
-amount:p.price,
-dailyProfit:p.dailyProfit,
-status:"active",
-createdAt:serverTimestamp()
+  userId:user.uid,
+
+  productName:p.name,
+  amount:p.price,
+  dailyProfit:p.dailyProfit,
+
+  image:p.image || "",
+  mode:p.mode || "",
+
+  cycleDays:p.cycleDays || 1,
+  totalProfit:(p.dailyProfit || 0) * (p.cycleDays || 1),
+
+  startDate:now,
+  lastClaim:now,
+  received:0,
+
+  status:"active",
+  createdAt:serverTimestamp()
 });
 
 alert("Inversión realizada");
