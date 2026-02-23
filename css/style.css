@@ -563,15 +563,16 @@ button{
   cursor:not-allowed;
 }
 .order-card{
-  width: 92%;
-  margin: 10px auto;
-  padding: 15px;
-  border-radius: 15px;
+  width:100%;
+  margin:15px 0;
+  padding:18px;
+  border-radius:20px;
 
   background: linear-gradient(145deg,#1e1e2f,#2a2a3f);
   color:#fff;
 
-  box-shadow: 0 10px 15px rgba(0,0,0,0.5);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+  box-sizing:border-box;
 }
 
 .order-image img{
@@ -582,7 +583,8 @@ button{
 }
 #ordersList{
   width:100%;
-  padding:0;
+  padding:10px 12px;
+  box-sizing:border-box;
 }
 .order-mode{
   position:absolute;
