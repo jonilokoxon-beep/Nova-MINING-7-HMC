@@ -266,6 +266,11 @@ alert("Inversión realizada");
 // =====================================================
 // 📦 ÓRDENES
 // =====================================================
+let orderIntervals = {};
+
+// ===============================
+// CARGAR ORDENES PREMIUM
+// ===============================
 async function cargarOrdenes(){
   const user = auth.currentUser;
   const container = document.getElementById("ordersList");
@@ -286,13 +291,20 @@ async function cargarOrdenes(){
 
     container.innerHTML+=`
     <div class="order-card" id="order-${orderId}">
-
+      
       <div class="order-image">
         <img src="${o.image}">
         <span class="order-mode">${o.mode}</span>
       </div>
 
       <h3>${o.productName}</h3>
+
+      <!-- BARRA PROGRESO -->
+      <div class="progress-bar">
+        <div class="progress-fill" 
+          style="width:${calcularProgreso(o)}%">
+        </div>
+      </div>
 
       <div class="order-stats">
         <div>$${o.dailyProfit}<br><small>Ganancia diaria</small></div>
@@ -323,6 +335,21 @@ async function cargarOrdenes(){
     iniciarContador(orderId, o);
   });
 }
+
+// ===============================
+// CALCULAR PROGRESO DEL CICLO
+// ===============================
+function calcularProgreso(o){
+  const now = Date.now();
+  const end = o.startDate + (o.cycleDays*24*60*60*1000);
+  const total = end - o.startDate;
+  const passed = now - o.startDate;
+  return Math.min(100,(passed/total)*100);
+}
+
+// ===============================
+// CONTADOR EN VIVO
+// ===============================
 function iniciarContador(orderId, o){
 
   if(orderIntervals[orderId]){
@@ -334,10 +361,17 @@ function iniciarContador(orderId, o){
     const now = Date.now();
     const endCycle = o.startDate + (o.cycleDays * 24 * 60 * 60 * 1000);
 
+    const btn = document.getElementById(`btn-${orderId}`);
+    const countdown = document.getElementById(`countdown-${orderId}`);
+
+    if(!btn || !countdown) return;
+
+    // SI TERMINÓ CICLO
     if(now >= endCycle){
-      document.getElementById(`countdown-${orderId}`).innerHTML = "Vencido";
-      document.getElementById(`btn-${orderId}`).disabled = true;
-      document.getElementById(`btn-${orderId}`).innerHTML = "Finalizado";
+      countdown.innerHTML = "🏁 Ciclo finalizado";
+      btn.disabled = true;
+      btn.innerHTML = "Finalizado";
+      btn.classList.remove("active-btn");
       clearInterval(orderIntervals[orderId]);
       return;
     }
@@ -345,11 +379,8 @@ function iniciarContador(orderId, o){
     const nextClaim = o.lastClaim + (24 * 60 * 60 * 1000);
     const timeLeft = nextClaim - now;
 
-    const btn = document.getElementById(`btn-${orderId}`);
-    const countdown = document.getElementById(`countdown-${orderId}`);
-
     if(timeLeft <= 0){
-      countdown.innerHTML = "Disponible ahora";
+      countdown.innerHTML = "🟢 Disponible ahora";
       btn.disabled = false;
       btn.classList.add("active-btn");
     }else{
@@ -357,13 +388,17 @@ function iniciarContador(orderId, o){
       const m = Math.floor((timeLeft % (1000*60*60)) / (1000*60));
       const s = Math.floor((timeLeft % (1000*60)) / 1000);
 
-      countdown.innerHTML = `${h}h ${m}m ${s}s`;
+      countdown.innerHTML = `⏳ ${h}h ${m}m ${s}s`;
       btn.disabled = true;
       btn.classList.remove("active-btn");
     }
 
   },1000);
 }
+
+// ===============================
+// BOTON RECIBIR
+// ===============================
 document.addEventListener("click", async (e)=>{
   if(e.target.classList.contains("receive-btn")){
 
