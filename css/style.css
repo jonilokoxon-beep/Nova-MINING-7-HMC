@@ -399,3 +399,18 @@ button{
   grid-template-columns:1fr 1fr;
   gap:10px;
 }
+
+.countdown{
+  text-align:center;
+  background:#111;
+  color:#fff;
+  padding:10px;
+  border-radius:15px;
+  margin:10px 0;
+  font-weight:bold;
+}
+
+.receive-btn:disabled{
+  opacity:0.5;
+  cursor:not-allowed;
+}
