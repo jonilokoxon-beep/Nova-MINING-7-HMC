@@ -267,24 +267,107 @@ alert("Inversión realizada");
 // 📦 ÓRDENES
 // =====================================================
 async function cargarOrdenes(){
-const user = auth.currentUser;
-const container = document.getElementById("ordersList");
-if(!container) return;
-container.innerHTML="";
-const q = query(collection(db,"orders"),
-where("userId","==",user.uid));
-const snap = await getDocs(q);
-snap.forEach(d=>{
-const o = d.data();
-container.innerHTML+=`
-<div class="card">
-<h4>${o.productName}</h4>
-<p>$${o.amount}</p>
-<p>Ganancia diaria: $${o.dailyProfit}</p>
-</div>`;
-});
-}
+  const user = auth.currentUser;
+  const container = document.getElementById("ordersList");
+  if(!container || !user) return;
 
+  container.innerHTML="";
+
+  const q = query(
+    collection(db,"orders"),
+    where("userId","==",user.uid)
+  );
+
+  const snap = await getDocs(q);
+
+  snap.forEach(docSnap=>{
+    const o = docSnap.data();
+    const now = Date.now();
+
+    const nextClaim = o.lastClaim + (24 * 60 * 60 * 1000);
+    const timeLeft = nextClaim - now;
+
+    let buttonDisabled = true;
+    let countdownText = "";
+
+    if(timeLeft <= 0){
+      buttonDisabled = false;
+      countdownText = "Disponible";
+    }else{
+      const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+      const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+      countdownText = `${hours}h ${minutes}m ${seconds}s`;
+    }
+
+    container.innerHTML+=`
+    <div class="order-card">
+
+      <div class="order-image">
+        <img src="${o.image}">
+        <span class="order-mode">${o.mode}</span>
+      </div>
+
+      <h3>${o.productName}</h3>
+
+      <div class="order-stats">
+        <div>$${o.dailyProfit}<br><small>Ganancia diaria</small></div>
+        <div>${o.cycleDays} d<br><small>Ciclo</small></div>
+        <div>$${o.totalProfit}<br><small>Ganancia total</small></div>
+      </div>
+
+      <div class="countdown">
+        ${countdownText}
+      </div>
+
+      <div class="order-bottom">
+        <div class="earn">
+          +$${o.received || 0}
+        </div>
+        <button 
+          class="receive-btn"
+          data-id="${docSnap.id}"
+          ${buttonDisabled ? "disabled" : ""}
+        >
+          Recibir
+        </button>
+      </div>
+
+    </div>
+    `;
+  });
+}
+document.addEventListener("click", async (e)=>{
+  if(e.target.classList.contains("receive-btn")){
+    
+    const id = e.target.dataset.id;
+    const ref = doc(db,"orders",id);
+    const snap = await getDoc(ref);
+
+    if(!snap.exists()) return;
+
+    const data = snap.data();
+    const now = Date.now();
+    const nextClaim = data.lastClaim + (24*60*60*1000);
+
+    if(now < nextClaim){
+      alert("Aún no disponible");
+      return;
+    }
+
+    const newReceived = (data.received || 0) + data.dailyProfit;
+
+    await updateDoc(ref,{
+      received: newReceived,
+      lastClaim: now
+    });
+
+    alert("Ganancia recibida ✅");
+
+    cargarOrdenes();
+  }
+});
 // =====================================================
 // 📜 HISTORIAL
 // =====================================================
