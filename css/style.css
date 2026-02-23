@@ -414,3 +414,32 @@ button{
   opacity:0.5;
   cursor:not-allowed;
 }
+.countdown{
+  text-align:center;
+  background:#111;
+  color:#fff;
+  padding:10px;
+  border-radius:15px;
+  margin:10px 0;
+  font-weight:bold;
+  transition:0.3s;
+}
+
+.receive-btn{
+  background:linear-gradient(45deg,#a18cd1,#fbc2eb);
+  border:none;
+  padding:10px 20px;
+  border-radius:20px;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+.receive-btn.active-btn{
+  background:linear-gradient(45deg,#00c853,#64dd17);
+  box-shadow:0 0 15px rgba(0,255,0,0.6);
+}
+
+.receive-btn:disabled{
+  opacity:0.4;
+  cursor:not-allowed;
+}
