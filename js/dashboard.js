@@ -593,6 +593,104 @@ document.addEventListener("click", async (e)=>{
       "Cuenta guardada correctamente ✅";
   }
 });
+// =====================================================
+// 🎁 DAILY CHECK IN
+// =====================================================
+
+async function renderCalendar(){
+
+  const user = auth.currentUser;
+  if(!user) return;
+
+  const calendar = document.getElementById("calendar");
+  if(!calendar) return;
+
+  calendar.innerHTML = "";
+
+  const userRef = doc(db,"users",user.uid);
+  const snap = await getDoc(userRef);
+  const data = snap.data();
+
+  const checkins = data.checkins || [];
+
+  const today = new Date();
+  const daysInMonth = new Date(
+    today.getFullYear(),
+    today.getMonth()+1,
+    0
+  ).getDate();
+
+  for(let i=1;i<=daysInMonth;i++){
+
+    const dayDate = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      i
+    );
+
+    const dateStr = dayDate.toISOString().split("T")[0];
+
+    const div = document.createElement("div");
+    div.classList.add("day");
+    div.innerText = i;
+
+    if(checkins.includes(dateStr)){
+      div.classList.add("checked");
+    }
+
+    if(i === today.getDate()){
+      div.classList.add("today");
+    }
+
+    calendar.appendChild(div);
+  }
+}
+
+window.checkIn = async function(){
+
+  const user = auth.currentUser;
+  if(!user) return;
+
+  const userRef = doc(db,"users",user.uid);
+  const snap = await getDoc(userRef);
+  const data = snap.data();
+
+  const todayStr = new Date().toISOString().split("T")[0];
+
+  let checkins = data.checkins || [];
+
+  if(checkins.includes(todayStr)){
+    document.getElementById("checkinStatus").innerText =
+      "Ya hiciste check-in hoy ❌";
+    return;
+  }
+
+  checkins.push(todayStr);
+
+  await updateDoc(userRef,{
+    balance:(data.balance||0)+1,
+    checkins:checkins
+  });
+
+  document.getElementById("checkinStatus").innerText =
+    "Check-in exitoso +$1 ✅";
+
+  renderCalendar();
+};
+
+// Render cuando se abre la página
+const originalGo = window.go;
+
+window.go = function(id){
+  document.querySelectorAll(".page")
+    .forEach(p=>p.style.display="none");
+
+  document.getElementById(id).style.display="block";
+
+  if(id === "dailyPage"){
+    renderCalendar();
+  }
+};
 
 // =====================================================
 // 🚪 LOGOUT
