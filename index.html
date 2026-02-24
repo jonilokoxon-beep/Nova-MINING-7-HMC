@@ -120,11 +120,22 @@
 </div>
   
 <div id="dailyPage" class="page">
-  <div class="pro-card">
-    <h3>Registro Diario</h3>
-    <p>Estado: <b>Disponible</b></p>
-    <button class="pink-btn full">Reclamar</button>
+
+  <div class="card checkin">
+
+    <h2>Registro Diario</h2>
+    <p>Haz check-in una vez al día y gana recompensas.</p>
+
+    <div class="calendar" id="calendar"></div>
+
+    <button onclick="checkIn()" class="btn neon">
+      ✔ Check In +$1
+    </button>
+
+    <p id="checkinStatus" style="margin-top:10px;"></p>
+
   </div>
+
 </div>
 
 <div id="equipoPage" class="page">
